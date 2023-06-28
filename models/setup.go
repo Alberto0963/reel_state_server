@@ -67,7 +67,9 @@ func InitDB() (*gorm.DB, error) {
 	err = godotenv.Load(baseDir + "/.env")
 
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		// log.Fatalf("Error loading .env file: ", err)
+		fmt.Println("Error loading .env file:", err)
+
 	}
 
 	Dbdriver := os.Getenv("DB_DRIVER")
