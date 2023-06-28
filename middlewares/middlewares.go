@@ -8,6 +8,7 @@ import (
 
 	"reelState/utils/token"
 
+	// "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,6 +23,50 @@ func JwtAuthMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// func JwtAuthMiddleware() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		authHeader := c.GetHeader("Authorization")
+// 		if authHeader == "" {
+// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing authorization header"})
+// 			c.Abort()
+// 			return
+// 		}
+
+// 		tokenString := strings.Split(authHeader, "Bearer ")[1]
+// 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+// 			// Replace "your-secret-key" with your actual secret key used for signing JWT tokens
+// 			return []byte("your-secret-key"), nil
+// 		})
+
+// 		if err != nil {
+// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+// 			c.Abort()
+// 			return
+// 		}
+
+// 		claims, ok := token.Claims.(jwt.MapClaims)
+// 		if !ok || !token.Valid {
+// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+// 			c.Abort()
+// 			return
+// 		}
+
+// 		// Extract the user ID or other relevant information from the token claims
+// 		userID, ok := claims["user_id"].(string)
+// 		if !ok {
+// 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+// 			c.Abort()
+// 			return
+// 		}
+
+// 		// Attach the user ID or other relevant information to the request context or context-specific variables
+// 		c.Set("user_id", userID)
+
+// 		c.Next()
+// 	}
+// }
+
 
 // BlockFolderAccessMiddleware is a middleware function to block folder access and only allow access to specific files.
 func BlockFolderAccessMiddleware() gin.HandlerFunc {

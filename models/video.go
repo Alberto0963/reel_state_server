@@ -1,12 +1,28 @@
 package models
 
 import (
-	"io"
 	"math/rand"
-	"mime/multipart"
-	"os"
+
 	"time"
+
+	// "gorm.io/gorm"
 )
+
+
+type Video struct {
+	// gorm.Model
+	// DeletedAt gorm.DeletedAt `gorm:"index"`
+	ID uint `gorm:"not null;unique" json:"id"`
+	Video_url string `gorm:"size:13;not null;unique" json:"video_url"`
+	Description     string `gorm:"size:255;not null;unique" json:"description"`
+	Location     string `gorm:"size:100;not null;" json:"location"`
+	Area string `gorm:"size:255;not null;" json:"area"`
+	Property_number string `gorm:"size:255;not null;" json:"property_number"`
+	Price string `gorm:"size:255;not null;" json:"price"`
+	Id_user string `gorm:"size:255;not null;" json:"id_user"`
+	Sale_type_id string `gorm:"size:255;not null;" json:"sale_type_id"`
+	Sale_category_id string `gorm:"size:255;not null;" json:"sale_category_id"`
+}
 
 func GenerateRandomName() string {
 	rand.Seed(time.Now().UnixNano())
@@ -19,24 +35,14 @@ func GenerateRandomName() string {
 	return  "reel_state." + string( name)
 }
 
-func SaveVideo(file *multipart.FileHeader, destination string) error {
-	src, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer src.Close()
+func (v *Video) SaveVideo() (*Video, error) {
+	var err error
+	dbConn := Pool
 
-	dst, err := os.Create(destination)
+	err = dbConn.Create(&v).Error
 	if err != nil {
-		return err
+		return &Video{}, err
 	}
-	defer dst.Close()
-
-	_, err = io.Copy(dst, src)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return v, nil
 
 }
