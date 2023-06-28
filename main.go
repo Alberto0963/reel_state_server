@@ -20,7 +20,7 @@ func main() {
 	r.Use(middlewares.BlockFolderAccessMiddleware())
 
 	// Serve static files from the "public" directory
-	r.Static("/public", "./public")
+	r.Static("/public", "home/reelstate/go/reel_state_server/public")
 
 	public := r.Group("/api")
 

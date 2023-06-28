@@ -38,7 +38,7 @@ func HandleVideoUpload(c *gin.Context) {
 	fileName := models.GenerateRandomName() + filepath.Ext(file.Filename)
 
 	// Create the destination file
-	destPath := filepath.Join("public/videos", fileName)
+	destPath := filepath.Join("home/reelstate/go/reel_state_server/public/videos", fileName)
 
 	err = models.SaveVideo(file, destPath)
 	if err != nil {
