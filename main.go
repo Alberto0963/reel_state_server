@@ -15,6 +15,7 @@ func main() {
 	models.InitDB()
 
 	r := gin.Default()
+	r.SetTrustedProxies(nil)
 
 	r.Use(middlewares.BlockFolderAccessMiddleware())
 
