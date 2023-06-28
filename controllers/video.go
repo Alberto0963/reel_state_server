@@ -4,6 +4,7 @@ import (
 	// "io"
 	// "mime/multipart"
 	// "go/token"
+	// "fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -51,7 +52,12 @@ func HandleVideoUpload(c *gin.Context) {
 
 	// Create the destination file
 	//destPath := filepath.Join("", fileName)
-	destPath := filepath.Join("home/reelstate/go/reel_state_server/public/videos", fileName)
+	baseDir, err := os.Getwd() // Get the current working directory
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	destPath := filepath.Join(baseDir ,"public/videos", fileName)
 	err =  saveVideoFile(file, destPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -64,10 +70,9 @@ func HandleVideoUpload(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-
+	
 	v := models.Video{}
-	v.Video_url = destPath
+	v.Video_url = filepath.Join("public/videos", fileName)
 	v.Description = input.Description
 	v.Location = input.Location
 	v.Area = input.Area

@@ -56,8 +56,15 @@ import (
 var Pool *gorm.DB // Declare a global variable to hold the connection pool
 
 func InitDB() (*gorm.DB, error) {
+	
+	baseDir, err := os.Getwd() // Get the current working directory
+	
+	if err != nil {
+		log.Fatalf("Error loading path")
 
-	err := godotenv.Load("/home/reelstate/go/reel_state_server" + "/.env")
+	}
+
+	err = godotenv.Load(baseDir + "/.env")
 
 	if err != nil {
 		log.Fatalf("Error loading .env file")
