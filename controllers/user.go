@@ -3,8 +3,7 @@ package controllers
 import (
 	// "io"
 	// "mime/multipart"
-	"net/http"
-	"path/filepath"
+	
 	// "os"
 
 	"reelState/auth"
@@ -27,24 +26,66 @@ func CurrentUserHandler(c *gin.Context) {
 	auth.CurrentUser(c)
 }
 
-func HandleVideoUpload(c *gin.Context) {
-	file, err := c.FormFile("video")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+// func HandleVideoUpload(c *gin.Context) {
+// 	file, err := c.FormFile("video")
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
 
-	// Generate a random file name
-	fileName := models.GenerateRandomName() + filepath.Ext(file.Filename)
 
-	// Create the destination file
-	destPath := filepath.Join("public/videos", fileName)
 
-	err = models.SaveVideo(file, destPath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+// 	// Generate a random file name
+// 	fileName := models.GenerateRandomName() + filepath.Ext(file.Filename)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
-}
+// 	// Create the destination file
+// 	destPath := filepath.Join("public/videos", fileName)
+
+// 	err =  saveVideoFile(file, destPath)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	var input models.Video
+
+// 	if err := c.ShouldBind(&input); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+
+// 	v := models.Video{}
+
+// 	_, err = v.SaveVideo()
+
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
+// }
+
+
+// func saveVideoFile(file *multipart.FileHeader, destination string) error {
+// 	src, err := file.Open()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer src.Close()
+
+// 	dst, err := os.Create(destination)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer dst.Close()
+
+// 	_, err = io.Copy(dst, src)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+
+// }

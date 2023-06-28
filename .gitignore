@@ -13,7 +13,7 @@
 # Ignore IDE-specific files and directories
 .idea/
 .vscode/
-
+public/
 # Ignore dependency directories
 vendor/
 node_modules/
