@@ -26,6 +26,10 @@ func CurrentUserHandler(c *gin.Context) {
 	auth.CurrentUser(c)
 }
 
+func getCategoryAndTypeHandler(c *gin.Context) {
+	
+}
+
 // func HandleVideoUpload(c *gin.Context) {
 // 	file, err := c.FormFile("video")
 // 	if err != nil {

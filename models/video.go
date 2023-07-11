@@ -24,6 +24,7 @@ type Video struct {
 	Sale_category_id string `gorm:"size:255;not null;" json:"sale_category_id"`
 }
 
+
 func GenerateRandomName() string {
 	rand.Seed(time.Now().UnixNano())
 	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -46,3 +47,4 @@ func (v *Video) SaveVideo() (*Video, error) {
 	return v, nil
 
 }
+

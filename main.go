@@ -26,11 +26,12 @@ func main() {
 
 	public.POST("/register", controllers.RegisterHandler)
 	public.POST("/login", controllers.LoginHandler)
-
+	
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.POST("/upload", controllers.HandleVideoUpload)
+	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 
 	r.Run(":8080")
 

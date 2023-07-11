@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"reelState/models"
 	"reelState/utils/token"
+	// "time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -92,8 +93,7 @@ func Login(c *gin.Context, db *gorm.DB) {
 type RegisterInput struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
-	Phone string `json:"phone" binding:"required"`
-
+	Phone    string `json:"phone" binding:"required"`
 }
 
 func Register(c *gin.Context) {
@@ -127,6 +127,20 @@ func Register(c *gin.Context) {
 	u.Phone = input.Phone
 
 	u.ProfileImage = profileImagePath
+	// u.IdMembership = 1
+	// // Get the current date and time
+	// currentTime := time.Now()
+
+	// // Extract the date from the current time
+	// // currentDate := currentTime.Format("2006-01-02")
+
+	// date := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, time.UTC)
+
+	// // Define a duration to add
+	// duration := 24 * time.Hour
+
+	// // Add the duration to the date
+	// sum := date.Add(duration)
 
 	_, err = u.SaveUser()
 	if err != nil {

@@ -28,24 +28,22 @@ type VideoInput struct {
 	// ID uint `json:"id" binding:"required" `
 	// Video_url string `json:"video_url" binding:"required"`
 	Description     string `json:"description" binding:"required"`
-	Location     string `json:"location" binding:"required"`
-	Area string `json:"area" binding:"required"`
+	Location        string `json:"location" binding:"required"`
+	Area            string `json:"area" binding:"required"`
 	Property_number string `json:"property_number" binding:"required"`
-	Price string `json:"price" binding:"required"`
+	Price           string `json:"price" binding:"required"`
 	// Id_user string `json:"id_user" binding:"required"`
-	Sale_type_id string `json:"sale_type_id" binding:"required"`
+	Sale_type_id     string `json:"sale_type_id" binding:"required"`
 	Sale_category_id string `json:"sale_category_id" binding:"required"`
 }
 
 func HandleVideoUpload(c *gin.Context) {
-	
+
 	file, err := c.FormFile("video")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-
 
 	// Generate a random file name
 	fileName := models.GenerateRandomName() + filepath.Ext(file.Filename)
@@ -58,8 +56,8 @@ func HandleVideoUpload(c *gin.Context) {
 		return
 	}
 
-	destPath := filepath.Join(baseDir ,"public/videos", fileName)
-	err =  saveVideoFile(file, destPath)
+	destPath := filepath.Join(baseDir, "public/videos", fileName)
+	err = saveVideoFile(file, destPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -71,9 +69,9 @@ func HandleVideoUpload(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	v := models.Video{}
-	v.Video_url = ("public/videos"+ fileName)
+	v.Video_url = ("public/videos" + fileName)
 	v.Description = input.Description
 	v.Location = input.Location
 	v.Area = input.Area
@@ -93,7 +91,6 @@ func HandleVideoUpload(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
 }
-
 
 func saveVideoFile(file *multipart.FileHeader, destination string) error {
 	src, err := file.Open()
@@ -115,4 +112,20 @@ func saveVideoFile(file *multipart.FileHeader, destination string) error {
 
 	return nil
 
+}
+
+func HandleGetCategoriesAndTypes(c *gin.Context) {
+
+	cat, err := models.GetCategory()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	types, err := models.GetTypes()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "categories": cat, "types": types})
 }

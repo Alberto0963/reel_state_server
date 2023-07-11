@@ -23,6 +23,10 @@ type User struct {
 	Username     string `gorm:"size:255;not null;unique" json:"username"`
 	Password     string `gorm:"size:100;not null;" json:"password"`
 	ProfileImage string `gorm:"size:255;not null;" json:"profileImage"`
+	ExpirationMembershipDate string `gorm:"size:255;not null;" json:"expiration_membership_date"`
+	IdMembership int `gorm:"size:255;not null;" json:"id_membership"`
+	RenovationActive string `gorm:"size:255;not null;" json:"renovation_active"`
+
 }
 
 func GetUserByID(uid uint) (User, error) {
