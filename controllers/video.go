@@ -50,14 +50,22 @@ func HandleVideoUpload(c *gin.Context) {
 
 	// Create the destination file
 	//destPath := filepath.Join("", fileName)
-	baseDir, err := os.Getwd() // Get the current working directory
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	// baseDir, err := os.Getwd() // Get the current working directory
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// 	return
+	// }
 
-	destPath := filepath.Join(baseDir, "public/videos", fileName)
+	url := os.Getenv("MY_URL")
+	// if url != nil {
+
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// 	return
+	// }
+
+	destPath := filepath.Join(url, "/public/videos", fileName)
 	err = saveVideoFile(file, destPath)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
