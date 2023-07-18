@@ -79,7 +79,7 @@ func HandleVideoUpload(c *gin.Context) {
 	}
 
 	v := models.Video{}
-	v.Video_url = ("public/videos" + fileName)
+	v.Video_url = ("public/videos/" + fileName)
 	v.Description = input.Description
 	v.Location = input.Location
 	v.Area = input.Area
