@@ -2,6 +2,8 @@ package main
 
 import (
 	// "os/user"
+	"log"
+	"net/http"
 	"reelState/controllers"
 	"reelState/middlewares"
 	"reelState/models"
@@ -33,6 +35,6 @@ func main() {
 	protected.POST("/upload", controllers.HandleVideoUpload)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 
-	r.Run(":8080")
+	log.Fatal(http.ListenAndServe(":8080", r))
 
 }
