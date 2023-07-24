@@ -1,6 +1,10 @@
 package models
 
-import "errors"
+import (
+	"errors"
+
+	"gorm.io/gorm"
+)
 
 // "math/rand"
 
@@ -10,7 +14,7 @@ import "errors"
 
 
 type Category struct {
-	// gorm.Model
+	gorm.Model
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
 	ID uint `gorm:"not null;unique" json:"id"`
 	Category string `gorm:"size:13;not null;unique" json:"category"`

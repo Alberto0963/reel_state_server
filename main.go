@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+
 	gin.SetMode(gin.DebugMode)
 
 	models.InitDB()
@@ -28,7 +29,8 @@ func main() {
 
 	public.POST("/register", controllers.RegisterHandler)
 	public.POST("/login", controllers.LoginHandler)
-	
+	public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
+
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
 	protected.GET("/user", controllers.CurrentUserHandler)

@@ -16,7 +16,7 @@ import (
 )
 
 type User struct {
-	// gorm.Model
+	gorm.Model
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
 	ID uint `gorm:"not null;unique" json:"id"`
 	Phone string `gorm:"size:13;not null;unique" json:"phone"`
