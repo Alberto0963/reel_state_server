@@ -3,7 +3,7 @@ package models
 import (
 	"errors"
 
-	"gorm.io/gorm"
+	// "gorm.io/gorm"
 )
 
 // "math/rand"
@@ -14,7 +14,7 @@ import (
 
 
 type Category struct {
-	gorm.Model
+	// gorm.Model
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
 	ID uint `gorm:"not null;unique" json:"id"`
 	Category string `gorm:"size:13;not null;unique" json:"category"`

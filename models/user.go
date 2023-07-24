@@ -3,6 +3,8 @@ package models
 import (
 	"errors"
 	"html"
+	"time"
+
 	// "mime/multipart"
 
 	// "io"
@@ -16,16 +18,16 @@ import (
 )
 
 type User struct {
-	gorm.Model
+    // gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
 	ID uint `gorm:"not null;unique" json:"id"`
 	Phone string `gorm:"size:13;not null;unique" json:"phone"`
 	Username     string `gorm:"size:255;not null;unique" json:"username"`
 	Password     string `gorm:"size:100;not null;" json:"password"`
 	ProfileImage string `gorm:"size:255;not null;" json:"profileImage"`
-	ExpirationMembershipDate string `gorm:"size:255;not null;" json:"expiration_membership_date"`
+	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
 	IdMembership int `gorm:"size:255;not null;" json:"id_membership"`
-	RenovationActive string `gorm:"size:255;not null;" json:"renovation_active"`
+	RenovationActive int `gorm:"size:255;not null;" json:"renovation_active"`
 
 }
 
@@ -36,7 +38,7 @@ func GetUserByID(uid uint) (User, error) {
 	dbConn := Pool
 	// defer dbConn.Close()
 
-	if err := dbConn.First(&u, uid).Error; err != nil {
+	if err := dbConn.Unscoped().First(&u, uid).Error; err != nil {
 		return u, errors.New("User not found!")
 	}
 

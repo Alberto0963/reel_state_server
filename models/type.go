@@ -3,7 +3,7 @@ package models
 import (
 	"errors"
 
-	"gorm.io/gorm"
+	// "gorm.io/gorm"
 )
 
 // "math/rand"
@@ -14,7 +14,7 @@ import (
 
 
 type Type struct {
-	gorm.Model `gorm:"softDelete:false"`
+	// gorm.Model `gorm:"softDelete:false"`
 	Id uint `gorm:"not null;unique" json:"id"`
 	Type string `gorm:"size:13;not null;unique" json:"type"`
 	Description     string `gorm:"size:255;not null;unique" json:"description"`

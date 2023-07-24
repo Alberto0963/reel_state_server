@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"reelState/models"
 	"reelState/utils/token"
+	"time"
+
 	// "time"
 
 	"github.com/gin-gonic/gin"
@@ -127,7 +129,8 @@ func Register(c *gin.Context) {
 	u.Phone = input.Phone
 
 	u.ProfileImage = profileImagePath
-	// u.IdMembership = 1
+	u.ExpirationMembershipDate = time.Now()
+	u.IdMembership = 1
 	// // Get the current date and time
 	// currentTime := time.Now()
 
