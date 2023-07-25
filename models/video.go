@@ -3,12 +3,12 @@ package models
 import (
 	"math/rand"
 	"time"
-	"gorm.io/gorm"
+	// "gorm.io/gorm"
 )
 
 
 type Video struct {
-	gorm.Model `gorm:"softDelete:false"`
+	// gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
 	Id int `gorm:"not null;unique" json:"id"`
 	Video_url string `gorm:"size:13;not null;unique" json:"video_url"`
