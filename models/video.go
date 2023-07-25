@@ -19,7 +19,7 @@ type Video struct {
 
 	Price string `gorm:"size:255;not null;" json:"price"`
 	Id_user uint `gorm:"size:255;not null;" json:"id_user"`
-	User User `gorm:"references:id; foreignKey:Id_user"`
+	User PublicUser `gorm:"references:id; foreignKey:Id_user"`
 	Sale_type_id int `gorm:"size:255;not null;" json:"sale_type_id"`
 	SaleType Type `gorm:"references:id; foreignKey:Sale_type_id"`
 	Sale_category_id int `gorm:"size:255;not null;" json:"sale_category_id"`
