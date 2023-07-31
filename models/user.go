@@ -18,34 +18,32 @@ import (
 )
 
 type User struct {
-    // gorm.Model `gorm:"softDelete:false"`
+	// gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
-	ID uint `gorm:"not null;unique" json:"id"`
-	Phone string `gorm:"size:13;not null;unique" json:"phone"`
-	Username     string `gorm:"size:255;not null;unique" json:"username"`
-	Password     string `gorm:"size:100;not null;" json:"password"`
-	ProfileImage string `gorm:"size:255;not null;" json:"profileImage"`
+	ID                       uint      `gorm:"not null;unique" json:"id"`
+	Phone                    string    `gorm:"size:13;not null;unique" json:"phone"`
+	Username                 string    `gorm:"size:255;not null;unique" json:"username"`
+	Password                 string    `gorm:"size:100;not null;" json:"password"`
+	ProfileImage             string    `gorm:"size:255;not null;" json:"profileImage"`
 	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
-	IdMembership int `gorm:"size:255;not null;" json:"id_membership"`
-	RenovationActive int `gorm:"size:255;not null;" json:"renovation_active"`
-
+	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
+	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 }
 
 type PublicUser struct {
-    // gorm.Model `gorm:"softDelete:false"`
+	// gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
-	ID uint `gorm:"not null;unique" json:"id"`
-	Phone string `gorm:"size:13;not null;unique" json:"phone"`
-	Username     string `gorm:"size:255;not null;unique" json:"username"`
-	ProfileImage string `gorm:"size:255;not null;" json:"profileImage"`
+	ID                       uint      `gorm:"not null;unique" json:"id"`
+	Phone                    string    `gorm:"size:13;not null;unique" json:"phone"`
+	Username                 string    `gorm:"size:255;not null;unique" json:"username"`
+	ProfileImage             string    `gorm:"size:255;not null;" json:"profileImage"`
 	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
-	IdMembership int `gorm:"size:255;not null;" json:"id_membership"`
-	RenovationActive int `gorm:"size:255;not null;" json:"renovation_active"`
-
+	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
+	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 }
 
 func (PublicUser) TableName() string {
-    return "users"
+	return "users"
 }
 
 func GetUserByID(uid uint) (User, error) {

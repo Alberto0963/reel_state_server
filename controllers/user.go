@@ -26,6 +26,10 @@ func CurrentUserHandler(c *gin.Context) {
 	auth.CurrentUser(c)
 }
 
+func CurrentSendVerificationCode(c *gin.Context) {
+	auth.SendVerificationCode(c)
+}
+
 func getCategoryAndTypeHandler(c *gin.Context) {
 	
 }

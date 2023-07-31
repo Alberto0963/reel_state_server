@@ -9,6 +9,8 @@ import (
 	"reelState/models"
 
 	"github.com/gin-gonic/gin"
+
+
 )
 
 func main() {
@@ -30,6 +32,7 @@ func main() {
 	public.POST("/register", controllers.RegisterHandler)
 	public.POST("/login", controllers.LoginHandler)
 	public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
+	public.POST("/sendVerificationCode", controllers.CurrentSendVerificationCode)
 
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
@@ -40,3 +43,5 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", r))
 
 }
+
+
