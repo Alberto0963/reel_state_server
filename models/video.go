@@ -19,11 +19,33 @@ type Video struct {
 
 	Price string `gorm:"size:255;not null;" json:"price"`
 	Id_user uint `gorm:"size:255;not null;" json:"id_user"`
-	User PublicUser `gorm:"references:id; foreignKey:Id_user"`
+	User PublicUser `gorm:"references:Id; foreignKey:Id_user"`
 	Sale_type_id int `gorm:"size:255;not null;" json:"sale_type_id"`
-	SaleType Type `gorm:"references:id; foreignKey:Sale_type_id"`
+	SaleType Type `gorm:"references:id; foreignKey:sale_type_id"`
 	Sale_category_id int `gorm:"size:255;not null;" json:"sale_category_id"`
-	SaleCategory Category `gorm:"references:id; foreignKey:Sale_category_id"`
+	SaleCategory Category `gorm:"references:id; foreignKey:sale_category_id"`
+}
+
+type MyVideo struct {
+	// gorm.Model `gorm:"softDelete:false"`
+	// DeletedAt gorm.DeletedAt `gorm:"index"`
+	Id int `gorm:"not null;unique" json:"id"`
+	Video_url string `gorm:"size:13;not null;unique" json:"video_url"`
+	Description     string `gorm:"size:255;not null;unique" json:"description"`
+	Location     string `gorm:"size:100;not null;" json:"location"`
+	Area string `gorm:"size:255;not null;" json:"area"`
+	Property_number string `gorm:"size:255;not null;" json:"property_number"`
+
+	Price string `gorm:"size:255;not null;" json:"price"`
+	Id_user uint `gorm:"size:255;not null;" json:"id_user"`
+	Sale_type_id int `gorm:"size:255;not null;" json:"sale_type_id"`
+	SaleType Type `gorm:"references:id; foreignKey:sale_type_id"`
+	Sale_category_id int `gorm:"size:255;not null;" json:"sale_category_id"`
+	SaleCategory Category `gorm:"references:id; foreignKey:sale_category_id"`
+}
+
+func (MyVideo) TableName() string {
+	return "videos"
 }
 
 
@@ -62,4 +84,6 @@ func  FetchAllVideos() ([]Video, error) {
 	return vid, nil
 
 }
+
+
 
