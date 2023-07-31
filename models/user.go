@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"html"
+	// "strconv"
 	"time"
 
 	// "mime/multipart"
@@ -40,7 +41,7 @@ type PublicUser struct {
 	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
 	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
-	Videos []MyVideo `gorm:"references:id; foreignKey:id_user"`
+	Videos                   []MyVideo `gorm:"references:id; foreignKey:id_user"`
 }
 
 func (PublicUser) TableName() string {
@@ -96,19 +97,21 @@ func (u *User) BeforeSave(tx *gorm.DB) error {
 
 }
 
-func GetMyVideos(uid uint) (User, error) {
-
-	var u User
-	// Obtain a connection from the pool
+func GetMyVideos(id_user int, page int) ([]MyVideo, error) {
+	var err error
 	dbConn := Pool
-	// defer dbConn.Close()
+	var vid []MyVideo
+	// Get page number and page size from query parameters
+	// page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	 pageSize := 10
 
-	if err := dbConn.Unscoped().First(&u, uid).Error; err != nil {
-		return u, errors.New("User not found!")
+	// Calculate the offset based on the page number and page size
+	offset := (page - 1) * pageSize
+	// err = dbConn.Unscoped().Find(&vid).Error
+	err = dbConn.Model(&MyVideo{}).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Unscoped().Find(&vid).Error
+	if err != nil {
+		return vid, err
 	}
-
-	u.PrepareGive()
-
-	return u, nil
+	return vid, nil
 
 }

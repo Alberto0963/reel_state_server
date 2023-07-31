@@ -39,6 +39,9 @@ func main() {
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.POST("/upload", controllers.HandleVideoUpload)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
+	protected.GET("/getMyVideos", controllers.GetMyVideos)
+
+	
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 

@@ -3,11 +3,14 @@ package controllers
 import (
 	// "io"
 	// "mime/multipart"
-	
+
 	// "os"
 
+	"net/http"
 	"reelState/auth"
 	"reelState/models"
+	"reelState/utils/token"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	// "golang.org/x/crypto/nacl/auth"
@@ -30,8 +33,17 @@ func CurrentSendVerificationCode(c *gin.Context) {
 	auth.SendVerificationCode(c)
 }
 
-func getCategoryAndTypeHandler(c *gin.Context) {
-	
+func GetMyVideos(c *gin.Context) {
+
+	userID, _ := token.ExtractTokenID(c)
+    page, _ := strconv.Atoi(c.DefaultPostForm("page", "1"))
+
+	cat, err := models.GetMyVideos(int(userID),page)
+	if(err != nil){
+		c.JSON(http.StatusBadRequest, gin.H{"Error":err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
 }
 
 // func HandleVideoUpload(c *gin.Context) {
