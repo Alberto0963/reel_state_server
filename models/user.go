@@ -54,7 +54,7 @@ func GetUserByID(uid uint) (PublicUser, error) {
 	dbConn := Pool
 	// defer dbConn.Close()
 
-	if err := dbConn.Model(&PublicUser{}).Preload("Videos").Preload("Videos.SaleType").Preload("Videos.SaleCategory").First(&u, uid).Error; err != nil {
+	if err := dbConn.Model(&PublicUser{}).First(&u, uid).Error; err != nil {
 		return u, errors.New("User not found!")
 	}
 
