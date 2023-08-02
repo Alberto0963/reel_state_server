@@ -6,7 +6,9 @@ import (
 	// "go/token"
 	// "fmt"
 	"fmt"
+
 	"io"
+	
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -20,6 +22,7 @@ import (
 	"reelState/models"
 
 	"github.com/gin-gonic/gin"
+
 	// "golang.org/x/crypto/nacl/auth"
 )
 
@@ -89,18 +92,18 @@ func HandleVideoUpload(c *gin.Context) {
 	userID, _ := token.ExtractTokenID(c)
 	v.Id_user = userID
 	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
-    if err != nil {
-        // Handle the error if the conversion fails
-        fmt.Println("Error converting string to uint:", err)
-        return
-    }
+	if err != nil {
+		// Handle the error if the conversion fails
+		fmt.Println("Error converting string to uint:", err)
+		return
+	}
 	v.Sale_type_id = int(sale_type_id)
 	sale_category_id, err := strconv.ParseUint(input.Sale_category_id, 10, 32)
-    if err != nil {
-        // Handle the error if the conversion fails
-        fmt.Println("Error converting string to uint:", err)
-        return
-    }
+	if err != nil {
+		// Handle the error if the conversion fails
+		fmt.Println("Error converting string to uint:", err)
+		return
+	}
 	v.Sale_category_id = int(sale_category_id)
 	_, err = v.SaveVideo()
 
@@ -150,11 +153,11 @@ func HandleGetCategoriesAndTypes(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "categories": cat, "types": types})
 }
 
-func HandleGetAllVideos(c *gin.Context){
+func HandleGetAllVideos(c *gin.Context) {
 
 	cat, err := models.FetchAllVideos()
-	if(err != nil){
-		c.JSON(http.StatusBadRequest, gin.H{"Error":err.Error()})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})

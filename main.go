@@ -32,7 +32,8 @@ func main() {
 	public.POST("/register", controllers.RegisterHandler)
 	public.POST("/login", controllers.LoginHandler)
 	public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
-	public.POST("/sendVerificationCode", controllers.CurrentSendVerificationCode)
+	public.POST("/sendVerificationCode", controllers.SendVerificationCode)
+	public.POST("/CodeIsValid", controllers.ValidateVerificationCode)
 
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())

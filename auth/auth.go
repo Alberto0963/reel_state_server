@@ -106,6 +106,12 @@ type VerificationPhoneInput struct {
 	Phone string `json:"phone" binding:"required"`
 }
 
+type VerificationCodeInput struct {
+	Phone string `json:"phone" binding:"required"`
+	Code string `json:"code" binding:"required"`
+
+}
+
 func Register(c *gin.Context) {
 
 	var input RegisterInput
@@ -192,20 +198,6 @@ func SendVerificationCode(c *gin.Context) {
 	v.Code = code
 	v.Phone = input.Phone
 
-	// // Get the current date and time
-	// currentTime := time.Now()
-
-	// // Extract the date from the current time
-	// // currentDate := currentTime.Format("2006-01-02")
-
-	// date := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, time.UTC)
-
-	// // Define a duration to add
-	// duration := 24 * time.Hour
-
-	// // Add the duration to the date
-	// sum := date.Add(duration)
-
 	_, err := v.SaveVerificationCode()
 
 	if err != nil {
@@ -218,4 +210,34 @@ func SendVerificationCode(c *gin.Context) {
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
 
 }
+
+func ValidateVerificationCode(c *gin.Context) {
+
+	var input VerificationCodeInput
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	v := models.VerificationCode{}
+	// var code = SMS.GenerateRandomCode(6)
+
+	v.Code = input.Code
+	v.Phone = input.Phone
+
+	_, err := v.CodeIsValid()
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+
+	c.JSON(http.StatusOK, gin.H{"message": "code is valid"})
+	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
+
+}
+
+
 

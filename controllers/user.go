@@ -29,10 +29,13 @@ func CurrentUserHandler(c *gin.Context) {
 	auth.CurrentUser(c)
 }
 
-func CurrentSendVerificationCode(c *gin.Context) {
+func SendVerificationCode(c *gin.Context) {
 	auth.SendVerificationCode(c)
 }
 
+func ValidateVerificationCode(c *gin.Context) {
+	auth.ValidateVerificationCode(c)
+}
 func GetMyVideos(c *gin.Context) {
 
 	userID, _ := token.ExtractTokenID(c)

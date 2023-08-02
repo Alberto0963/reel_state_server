@@ -50,3 +50,4 @@ func GenerateRandomCode(length int) string {
 	return string(code)
 
 }
+
