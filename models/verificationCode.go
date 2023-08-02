@@ -1,8 +1,5 @@
 package models
 
-import "time"
-
-
 type VerificationCode struct {
     // gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
