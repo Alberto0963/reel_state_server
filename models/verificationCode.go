@@ -34,7 +34,7 @@ func (c *VerificationCode) CodeIsValid() (*VerificationCode, error){
 	dbConn := Pool
 	var verificationCode VerificationCode
 	// Check if the verification code exists in the database and is not expired
-	err = dbConn.Where("code = ? AND phone = ? AND created_at >= ?", c.Code, c.Phone, time.Now().Add(-60*time.Second)).First(&verificationCode).Error
+	err = dbConn.Where("code = ? AND phone = ? ", c.Code, c.Phone).First(&verificationCode).Error
 
 	if err != nil {
 		return &VerificationCode{}, err
