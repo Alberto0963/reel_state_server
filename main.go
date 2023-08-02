@@ -34,6 +34,7 @@ func main() {
 	public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
 	public.POST("/sendVerificationCode", controllers.SendVerificationCode)
 	public.POST("/CodeIsValid", controllers.ValidateVerificationCode)
+	public.POST("/ValidateUserName", controllers.ValidateUserName)
 
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())

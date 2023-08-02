@@ -45,6 +45,7 @@ type LoginInput struct {
 
 func Login(c *gin.Context, db *gorm.DB) {
 	var input LoginInput
+	
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

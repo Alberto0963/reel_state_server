@@ -65,6 +65,25 @@ func GetUserByID(uid uint) (PublicUser, error) {
 
 }
 
+
+func UsernameExists(username string) bool{
+
+	var u PublicUser
+	// Obtain a connection from the pool
+	dbConn := Pool
+	// defer dbConn.Close()
+	result := dbConn.Model(&PublicUser{}).Where("username = ?", username).First(&u)
+	
+	if result.Error == nil {
+        // The username already exists
+        return true
+    }
+	// u.PrepareGive()
+
+	return false
+
+}
+
 func (u *User) PrepareGive() {
 	u.Password = ""
 }

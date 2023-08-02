@@ -11,6 +11,7 @@ import (
 	"reelState/models"
 	"reelState/utils/token"
 	"strconv"
+	
 
 	"github.com/gin-gonic/gin"
 	// "golang.org/x/crypto/nacl/auth"
@@ -36,6 +37,7 @@ func SendVerificationCode(c *gin.Context) {
 func ValidateVerificationCode(c *gin.Context) {
 	auth.ValidateVerificationCode(c)
 }
+
 func GetMyVideos(c *gin.Context) {
 
 	userID, _ := token.ExtractTokenID(c)
@@ -47,6 +49,20 @@ func GetMyVideos(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
+}
+
+
+func ValidateUserName(c *gin.Context) {
+
+    username := c.DefaultPostForm("UserName", "")
+
+
+    if models.UsernameExists(username) {
+        c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
+        return
+    }
+
+    c.JSON(http.StatusOK, gin.H{"message": "Username is available"})
 }
 
 // func HandleVideoUpload(c *gin.Context) {
