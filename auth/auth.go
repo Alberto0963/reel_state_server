@@ -172,6 +172,12 @@ func Register(c *gin.Context) {
 		return
 	}
 
+	token, err := token.GenerateToken(u.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
 	// Save the profile image
 	// err = c.SaveUploadedFile(profileImage, url+ profileImagePath)
 	// if err != nil {
@@ -179,7 +185,7 @@ func Register(c *gin.Context) {
 	// 	return
 	// }
 
-	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
+	c.JSON(http.StatusOK, gin.H{"message": "registration success","token": token})
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
 
 }
