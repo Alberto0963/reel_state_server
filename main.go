@@ -36,12 +36,14 @@ func main() {
 	public.POST("/CodeIsValid", controllers.ValidateVerificationCode)
 	public.POST("/ValidateUserName", controllers.ValidateUserName)
 
+	
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.POST("/upload", controllers.HandleVideoUpload)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)
+	protected.POST("/UpdateProfileImageUserName", controllers.UpdateProfileImageUserName)
 
 	
 

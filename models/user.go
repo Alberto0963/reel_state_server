@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"html"
+	"os"
 	// "strconv"
 	"time"
 
@@ -48,6 +49,46 @@ func (PublicUser) TableName() string {
 	return "users"
 }
 
+func (updatedUser *User) UpdateProfileImageUser() (User, error) {
+	dbConn := Pool
+
+	// Fetch the existing user from the database
+	var user User
+	if err := dbConn.First(&user, updatedUser.ID).Error; err != nil {
+		return user, err
+	}
+
+	oldImage := user.ProfileImage
+	// Update the user fields with the new values
+	user.ProfileImage = updatedUser.ProfileImage
+	// user.Email = updatedUser.Email
+	// Update other user fields as needed...
+
+	// Save the changes to the database
+
+	if err := dbConn.Save(&user).Error; err != nil {
+		return user, err
+	}
+	pathOldImage := os.Getenv("MY_URL")
+
+	err := deleteImage(pathOldImage + oldImage)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func deleteImage(imagePath string) error {
+	err := os.Remove(imagePath)
+	if err != nil {
+		// Handle the error
+		return err
+	}
+
+	return nil
+}
+
 func GetUserByID(uid uint) (PublicUser, error) {
 
 	var u PublicUser
@@ -65,19 +106,18 @@ func GetUserByID(uid uint) (PublicUser, error) {
 
 }
 
-
-func UsernameExists(username string) bool{
+func UsernameExists(username string) bool {
 
 	var u PublicUser
 	// Obtain a connection from the pool
 	dbConn := Pool
 	// defer dbConn.Close()
 	result := dbConn.Model(&PublicUser{}).Where("username = ?", username).First(&u)
-	
+
 	if result.Error == nil {
-        // The username already exists
-        return true
-    }
+		// The username already exists
+		return true
+	}
 	// u.PrepareGive()
 
 	return false
@@ -122,7 +162,7 @@ func GetMyVideos(id_user int, page int) ([]MyVideo, error) {
 	var vid []MyVideo
 	// Get page number and page size from query parameters
 	// page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	 pageSize := 10
+	pageSize := 10
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize

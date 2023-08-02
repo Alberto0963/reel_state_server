@@ -7,11 +7,12 @@ import (
 	// "os"
 
 	"net/http"
+	"os"
+	"path/filepath"
 	"reelState/auth"
 	"reelState/models"
 	"reelState/utils/token"
 	"strconv"
-	
 
 	"github.com/gin-gonic/gin"
 	// "golang.org/x/crypto/nacl/auth"
@@ -41,28 +42,60 @@ func ValidateVerificationCode(c *gin.Context) {
 func GetMyVideos(c *gin.Context) {
 
 	userID, _ := token.ExtractTokenID(c)
-    page, _ := strconv.Atoi(c.DefaultPostForm("page", "1"))
+	page, _ := strconv.Atoi(c.DefaultPostForm("page", "1"))
 
-	cat, err := models.GetMyVideos(int(userID),page)
-	if(err != nil){
-		c.JSON(http.StatusBadRequest, gin.H{"Error":err.Error()})
+	cat, err := models.GetMyVideos(int(userID), page)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
 }
 
-
 func ValidateUserName(c *gin.Context) {
 
-    username := c.DefaultPostForm("UserName", "")
+	username := c.DefaultPostForm("UserName", "")
 
+	if models.UsernameExists(username) {
+		c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
+		return
+	}
 
-    if models.UsernameExists(username) {
-        c.JSON(http.StatusConflict, gin.H{"error": "Username already exists"})
-        return
-    }
+	c.JSON(http.StatusOK, gin.H{"message": "Username is available"})
+}
 
-    c.JSON(http.StatusOK, gin.H{"message": "Username is available"})
+func UpdateProfileImageUserName(c *gin.Context) {
+
+	profileImage, err := c.FormFile("profile_image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from the request"})
+		return
+	}
+	// Generate a random file name for the profile image
+	imageFileName := models.GenerateRandomName() + filepath.Ext(profileImage.Filename)
+	url := os.Getenv("MY_URL")
+	profileImagePath := filepath.Join("public/profile_images", imageFileName)
+	
+	userID, _ := token.ExtractTokenID(c)
+
+	u := models.User{}
+
+	u.ProfileImage = profileImagePath
+	u.ID = userID
+
+	_, err = u.UpdateProfileImageUser()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	// Save the profile image
+	err = c.SaveUploadedFile(profileImage, url+ profileImagePath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save profile image"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "image is updated"})
 }
 
 // func HandleVideoUpload(c *gin.Context) {
@@ -72,11 +105,7 @@ func ValidateUserName(c *gin.Context) {
 // 		return
 // 	}
 
-
-
-	// Create the destination file
-
-
+// Create the destination file
 
 // 	// Generate a random file name
 // 	fileName := models.GenerateRandomName() + filepath.Ext(file.Filename)
@@ -97,7 +126,6 @@ func ValidateUserName(c *gin.Context) {
 // 		return
 // 	}
 
-
 // 	v := models.Video{}
 
 // 	_, err = v.SaveVideo()
@@ -109,7 +137,6 @@ func ValidateUserName(c *gin.Context) {
 
 // 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
 // }
-
 
 // func saveVideoFile(file *multipart.FileHeader, destination string) error {
 // 	src, err := file.Open()

@@ -2,9 +2,9 @@ package auth
 
 import (
 	"net/http"
-	"os"
+	// "os"
 
-	"path/filepath"
+	// "path/filepath"
 	"reelState/models"
 	SMS "reelState/utils"
 	"reelState/utils/token"
@@ -45,7 +45,7 @@ type LoginInput struct {
 
 func Login(c *gin.Context, db *gorm.DB) {
 	var input LoginInput
-	
+
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -122,17 +122,17 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	profileImage, err := c.FormFile("profile_image")
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from the request"})
-        return
-    }
+	// profileImage, err := c.FormFile("profile_image")
+    // if err != nil {
+    //     c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from the request"})
+    //     return
+    // }
 	// Generate a random file name for the profile image
-	imageFileName := models.GenerateRandomName() + filepath.Ext(profileImage.Filename)
-	url := os.Getenv("MY_URL")
+	// imageFileName := models.GenerateRandomName() + filepath.Ext(profileImage.Filename)
+	// url := os.Getenv("MY_URL")
 
 	// Create the destination path for saving the image
-	profileImagePath := filepath.Join("public/profile_images", imageFileName)
+	// profileImagePath := filepath.Join("public/profile_images", imageFileName)
 
 	u := models.User{}
 
@@ -140,7 +140,7 @@ func Register(c *gin.Context) {
 	u.Password = input.Password
 	u.Phone = input.Phone
 
-	u.ProfileImage = profileImagePath
+	// u.ProfileImage = profileImagePath
 	u.ExpirationMembershipDate = time.Now()
 	u.IdMembership = 1
 	// // Get the current date and time
@@ -166,18 +166,18 @@ func Register(c *gin.Context) {
 	// 	return
 	// }
 
-	_, err = u.SaveUser()
+	_, err := u.SaveUser()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Save the profile image
-	err = c.SaveUploadedFile(profileImage, url+ profileImagePath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save profile image"})
-		return
-	}
+	// err = c.SaveUploadedFile(profileImage, url+ profileImagePath)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save profile image"})
+	// 	return
+	// }
 
 	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
