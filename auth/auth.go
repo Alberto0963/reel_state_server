@@ -39,7 +39,7 @@ func CurrentUser(c *gin.Context) {
 }
 
 type LoginInput struct {
-	Username string `json:"username" binding:"required"`
+	Phone string `json:"phone" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -52,7 +52,7 @@ func Login(c *gin.Context, db *gorm.DB) {
 	}
 
 	user := models.User{}
-	if err := db.Where("username = ?", input.Username).First(&user).Error; err != nil {
+	if err := db.Where("phone = ?", input.Phone).First(&user).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
