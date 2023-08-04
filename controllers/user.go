@@ -32,9 +32,15 @@ func CurrentUserHandler(c *gin.Context) {
 }
 
 func UserByIdHandler(c *gin.Context) {
-	id, _ := strconv.Atoi(c.DefaultPostForm("id", "0"))
+	id:= c.Query("id")
 
-	result, err := models.GetUserByID(uint(id))
+	userID, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	result, err := models.GetUserByID(uint(userID))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
