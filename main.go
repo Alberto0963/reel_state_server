@@ -36,6 +36,7 @@ func main() {
 	public.POST("/CodeIsValid", controllers.ValidateVerificationCode)
 	public.POST("/ValidateUserName", controllers.ValidateUserName)
 	public.GET("/UserByIdHandler/", controllers.UserByIdHandler)
+	public.GET("/getUserVideos", controllers.GetUserVideos)
 
 	
 	

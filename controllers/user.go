@@ -32,7 +32,8 @@ func CurrentUserHandler(c *gin.Context) {
 }
 
 func UserByIdHandler(c *gin.Context) {
-	id:= c.Query("id")
+
+	id := c.Query("id")
 
 	userID, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
@@ -49,7 +50,6 @@ func UserByIdHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": result})
 }
 
-
 func SendVerificationCode(c *gin.Context) {
 	auth.SendVerificationCode(c)
 }
@@ -64,6 +64,32 @@ func GetMyVideos(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultPostForm("page", "1"))
 
 	cat, err := models.GetMyVideos(int(userID), page)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
+}
+
+func GetUserVideos(c *gin.Context) {
+
+	id := c.Query("id")
+
+	userID, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	p := c.Query("page")
+	page, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
+
+	cat, err := models.GetMyVideos(int(userID), int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
@@ -94,7 +120,7 @@ func UpdateProfileImageUserName(c *gin.Context) {
 	imageFileName := models.GenerateRandomName() + filepath.Ext(profileImage.Filename)
 	url := os.Getenv("MY_URL")
 	profileImagePath := filepath.Join("public/profile_images", imageFileName)
-	
+
 	userID, _ := token.ExtractTokenID(c)
 
 	u := models.User{}
@@ -107,9 +133,8 @@ func UpdateProfileImageUserName(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
 
-	err = c.SaveUploadedFile(profileImage, url+ profileImagePath)
+	err = c.SaveUploadedFile(profileImage, url+profileImagePath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save profile image"})
 		return
