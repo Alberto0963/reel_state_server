@@ -74,7 +74,7 @@ func UpdateProfileImageUserName(c *gin.Context) {
 	// Generate a random file name for the profile image
 	imageFileName := models.GenerateRandomName() + filepath.Ext(profileImage.Filename)
 	url := os.Getenv("MY_URL")
-	profileImagePath := filepath.Join(url +"public/profile_images", imageFileName)
+	profileImagePath := filepath.Join("public/profile_images", imageFileName)
 	
 	userID, _ := token.ExtractTokenID(c)
 
@@ -89,6 +89,8 @@ func UpdateProfileImageUserName(c *gin.Context) {
 		return
 	}
 	// Save the profile image
+	profileImagePath = filepath.Join(url + imageFileName)
+
 	err = c.SaveUploadedFile(profileImage, url+ profileImagePath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save profile image"})
