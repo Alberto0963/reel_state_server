@@ -88,9 +88,8 @@ func UpdateProfileImageUserName(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	// Save the profile image
-	profileImagePath = filepath.Join(url + imageFileName)
-
+	
+	
 	err = c.SaveUploadedFile(profileImage, url+ profileImagePath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save profile image"})

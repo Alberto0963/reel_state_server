@@ -71,10 +71,11 @@ func (updatedUser *User) UpdateProfileImageUser() (User, error) {
 	}
 	pathOldImage := os.Getenv("MY_URL")
 
-	err := deleteImage(pathOldImage + oldImage)
-	if err != nil {
-		return user, err
-	}
+	
+	 deleteImage(pathOldImage + oldImage)
+	// if err != nil {
+	// 	return user, err
+	// }
 
 	return user, nil
 }
