@@ -90,18 +90,18 @@ func deleteImage(imagePath string) error {
 	return nil
 }
 
-func GetUserByID(uid uint) (PublicUser, error) {
+func GetUserByID(uid uint) (User, error) {
 
-	var u PublicUser
+	var u User
 	// Obtain a connection from the pool
 	dbConn := Pool
 	// defer dbConn.Close()
 
-	if err := dbConn.Model(&PublicUser{}).First(&u, uid).Error; err != nil {
+	if err := dbConn.Model(&User{}).First(&u, uid).Error; err != nil {
 		return u, errors.New("User not found!")
 	}
 
-	// u.PrepareGive()
+	u.PrepareGive()
 
 	return u, nil
 
