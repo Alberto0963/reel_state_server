@@ -74,7 +74,7 @@ func UpdateProfileImageUserName(c *gin.Context) {
 	// Generate a random file name for the profile image
 	imageFileName := models.GenerateRandomName() + filepath.Ext(profileImage.Filename)
 	url := os.Getenv("MY_URL")
-	profileImagePath := filepath.Join("public/profile_images", imageFileName)
+	profileImagePath := filepath.Join(url, imageFileName)
 	
 	userID, _ := token.ExtractTokenID(c)
 
