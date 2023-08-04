@@ -31,6 +31,19 @@ func CurrentUserHandler(c *gin.Context) {
 	auth.CurrentUser(c)
 }
 
+func UserByIdHandler(c *gin.Context) {
+	id, _ := strconv.Atoi(c.DefaultPostForm("id", "0"))
+
+	result, err := models.GetUserByID(uint(id))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": result})
+}
+
+
 func SendVerificationCode(c *gin.Context) {
 	auth.SendVerificationCode(c)
 }
@@ -89,7 +102,7 @@ func UpdateProfileImageUserName(c *gin.Context) {
 		return
 	}
 	
-	
+
 	err = c.SaveUploadedFile(profileImage, url+ profileImagePath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save profile image"})
