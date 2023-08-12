@@ -6,6 +6,8 @@ import (
 	// "go/token"
 	// "fmt"
 	"bytes"
+	"encoding/json"
+	// "encoding/json"
 	"fmt"
 
 	"io"
@@ -52,7 +54,7 @@ func HandleVideoUpload(c *gin.Context) {
 	}
 
 	// Generate a random file name
-	fileName := models.GenerateRandomName() + filepath.Ext(file.Filename)
+	fileName := models.GenerateRandomName() 
 
 	// Create the destination file
 	//destPath := filepath.Join("", fileName)
@@ -69,7 +71,7 @@ func HandleVideoUpload(c *gin.Context) {
 	// 	return
 	// }
 
-	destPath := filepath.Join(url, "/public/videos", fileName)
+	destPath := filepath.Join(url, "/public/videos", fileName + filepath.Ext(file.Filename))
 	err = saveVideoFile(file, destPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -120,7 +122,7 @@ func HandleVideoUpload(c *gin.Context) {
 		return
 	}
 
-	err = getFrame(destPath,fileName)
+	err = getFrame(destPath, fileName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -128,8 +130,6 @@ func HandleVideoUpload(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
 }
-
- 
 
 func saveVideoFile(file *multipart.FileHeader, destination string) error {
 	src, err := file.Open()
@@ -180,74 +180,27 @@ func HandleGetAllVideos(c *gin.Context) {
 
 }
 
+func getFrame(filePath string, fileName string) error {
 
-func getFrame(filePath string, fileName string) error{
-	// Open the file you want to send
-	file, err := os.Open(filePath)
-	if err != nil {
-		// fmt.Println("Error opening file:", err)
-		return err
-	}
-	defer file.Close()
-
-	// Create a new HTTP request
 	url := os.Getenv("api_frame")
 
-	request, err := http.NewRequest("POST", url, nil)
-	if err != nil {
-		// fmt.Println("Error creating request:", err)
+    jsonStr := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":"kk.jpg"}`)
+	jjson := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":"kk.jpg"}`)
+
+	d ,_:= json.Marshal(jjson)
+	fmt.Println("Response:", d)
+    req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+    req.Header.Set("Content-Type", "application/json")
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        panic(err)
 		return err
-	}
-
-	// Create a new multipart writer to write the file as part of the request body
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	// Add the "name" parameter as a form field
-	err = writer.WriteField("image_name", fileName)
-	if err != nil {
-		fmt.Println("Error writing form field:", err)
-		return err
-	}
-
-	// Create the file part of the request
-	part, err := writer.CreateFormFile("file", file.Name())
-	if err != nil {
-		// fmt.Println("Error creating form file:", err)
-		return err
-	}
-
-	// Copy the file content to the part
-	_, err = io.Copy(part, file)
-	if err != nil {
-		// fmt.Println("Error copying file content:", err)
-		return err
-	}
-
-	// Close the writer to finish writing the request body
-	writer.Close()
-
-	// Set the content type for the request
-	request.Header.Set("Content-Type", writer.FormDataContentType())
-
-	// Make the request and get the response
-	client := http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		// fmt.Println("Error making request:", err)
-		return err
-	}
-	defer response.Body.Close()
-
-	// Check the response status code
-	if response.StatusCode != http.StatusOK {
-		// fmt.Println("Request failed with status code:", response.StatusCode)
-		return err
-	}
-
-	// Read the response body
+    }
+    defer resp.Body.Close()
 	var result bytes.Buffer
-	_, err = io.Copy(&result, response.Body)
+	_, err = io.Copy(&result, resp.Body)
 	if err != nil {
 		// fmt.Println("Error reading response:", err)
 		return err
@@ -255,4 +208,51 @@ func getFrame(filePath string, fileName string) error{
 
 	fmt.Println("Response:", result.String())
 	return nil
+	// return nil
+	
+	// url := os.Getenv("api_frame")
+
+	// // Create a new multipart writer to write the file as part of the request body
+	// body := &bytes.Buffer{}
+	// writer := multipart.NewWriter(body)
+
+	
+    // jsonStr := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":fileName + ".jpg"}`)
+
+	
+
+	// request, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	// if err != nil {
+	// 	// fmt.Println("Error creating request:", err)
+	// 	return err
+	// }
+
+	// // Set the content type for the request
+	// // request.Header.Set("Content-Type", writer.FormDataContentType())
+	// request.Header.Set("Content-Type", "application/json")
+	// // Make the request and get the response
+	// client := http.Client{}
+	// response, err := client.Do(request)
+	// if err != nil {
+	// 	// fmt.Println("Error making request:", err)
+	// 	return err
+	// }
+	// defer response.Body.Close()
+
+	// // Check the response status code
+	// if response.StatusCode != http.StatusOK {
+	// 	// fmt.Println("Request failed with status code:", response.StatusCode)
+	// 	return err
+	// }
+
+	// // Read the response body
+	// var result bytes.Buffer
+	// _, err = io.Copy(&result, response.Body)
+	// if err != nil {
+	// 	// fmt.Println("Error reading response:", err)
+	// 	return err
+	// }
+
+	// fmt.Println("Response:", result.String())
+	// return nil
 }

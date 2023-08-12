@@ -168,7 +168,7 @@ func GetMyVideos(id_user int, page int) ([]MyVideo, error) {
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
 	// err = dbConn.Unscoped().Find(&vid).Error
-	err = dbConn.Model(&MyVideo{}).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Unscoped().Find(&vid).Error
+	err = dbConn.Model(&MyVideo{}).Where("id_user = ?", id_user).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Unscoped().Find(&vid).Error
 	if err != nil {
 		return vid, err
 	}
