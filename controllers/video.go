@@ -103,6 +103,10 @@ func HandleVideoUpload(c *gin.Context) {
 	// frame, err := fut.Value()
 	// fmt.Println(frame, err)
 	fmt.Println("/////////////// final ///////////////////")
+	d, err := os.Stat(destPath)
+
+	fmt.Println(d)
+
 
 	//  = saveVideoFile(file, destPath,uploadComplete)
 	// if err != nil {
