@@ -6,6 +6,7 @@ import (
 	// "go/token"
 	// "fmt"
 	"bytes"
+	"encoding/json"
 	// "encoding/json"
 	// "encoding/json"
 	"io/ioutil"
@@ -182,6 +183,11 @@ func HandleGetAllVideos(c *gin.Context) {
 
 }
 
+type RequestData struct {
+	Path_video string `json:"path_video"`
+	Image_name string `json:"image_name"`
+}
+
 func getFrame(filePath string, fileName string) error {
 
 	url := os.Getenv("api_frame")
@@ -189,16 +195,18 @@ func getFrame(filePath string, fileName string) error {
 	// jsonStr := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":"kk.jpg"}`)
 	// jsonStrign := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
 	// Create a map to hold the data
-
-	path_video := []byte("'path_video': "+ filePath)
-	image_name := []byte("'image_name': "+ fileName)
 	
+	data := RequestData{
+		Path_video: filePath,
+		Image_name: fileName,
+	}
 
-	// Convert the JSON data to a byte slice
-	// jjson := []byte(path_video)
-	jjson := append(path_video,image_name...)
-
-	// jjson := []byte(`{"path_video":filePath,"image_name":fileName}`)
+	// Convert the data to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return err
+	}
 
 	fmt.Println("HTTP JSON POST URL:", url)
 
@@ -206,7 +214,7 @@ func getFrame(filePath string, fileName string) error {
 	// 	"name": "morpheus",
 	// 	"job": "leader"
 	// }`)
-	request, error := http.NewRequest("POST", url, bytes.NewBuffer(jjson))
+	request, error := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 
 	client := &http.Client{}
