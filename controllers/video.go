@@ -189,6 +189,7 @@ func saveVideoFile(file *multipart.FileHeader, destination string) error {
 	}
 
 	// ch <- true
+	fmt.Println("/////////////// upload ///////////////////")
 
 	return nil
 
