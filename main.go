@@ -2,14 +2,15 @@ package main
 
 import (
 	// "os/user"
+	// "fmt"
 	"log"
 	"net/http"
 	"reelState/controllers"
 	"reelState/middlewares"
 	"reelState/models"
-
+	// "time"
 	"github.com/gin-gonic/gin"
-
+	// "github.com/ianlopshire/go-async"
 
 )
 
@@ -48,10 +49,22 @@ func main() {
 	protected.GET("/getMyVideos", controllers.GetMyVideos)
 	protected.POST("/UpdateProfileImageUserName", controllers.UpdateProfileImageUserName)
 
+	type User struct {
+		ID   int
+		Name string
+	}
 	
+	
+	// output: {1 John Does} <nil>
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 
 }
 
 
+// func DoneAsync() int {
+// 	fmt.Println("Warming up ...")
+// 	time.Sleep(3 * time.Second)
+// 	fmt.Println("Done ...")
+// 	return 1
+// }

@@ -7,13 +7,14 @@ import (
 	// "fmt"
 	"bytes"
 	"encoding/json"
+	// "time"
+
 	// "errors"
 	// "strings"
 
 	// "encoding/json"
 	// "encoding/json"
-	"io/ioutil"
-	
+	// "io/ioutil"
 
 	// "encoding/json"
 	"fmt"
@@ -35,6 +36,7 @@ import (
 	"reelState/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ianlopshire/go-async"
 	// "golang.org/x/crypto/nacl/auth"
 )
 
@@ -79,14 +81,25 @@ func HandleVideoUpload(c *gin.Context) {
 	// 	return
 	// }
 
-	// Create a channel to signal the completion of the upload
-	uploadComplete := make(chan bool)
+
+	fut := new(async.Future[error])
 
 	destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 	
-	go saveVideoFile(file, destPath,uploadComplete)
+		// Simulate long computation or IO by sleeping before and resolving the future.
+	go func() {
+		err=saveVideoFile(file, destPath)
+		fmt.Println("/////////////// inicio ///////////////////")
+		// time.Sleep(50 * time.Second)
 
-	<-uploadComplete
+		async.ResolveFuture(fut,err, nil)
+	}()
+
+	// Block until the future is resolved.
+	frame, err := fut.Value()
+	fmt.Println(frame, err)
+	fmt.Println("/////////////// final ///////////////////")
+
 	//  = saveVideoFile(file, destPath,uploadComplete)
 	// if err != nil {
 	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -146,7 +159,7 @@ func HandleVideoUpload(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
 }
 
-func saveVideoFile(file *multipart.FileHeader, destination string, ch chan<- bool)  {
+func saveVideoFile(file *multipart.FileHeader, destination string) error  {
 	src, err := file.Open()
 	if err != nil {
 		// return err
@@ -170,9 +183,9 @@ func saveVideoFile(file *multipart.FileHeader, destination string, ch chan<- boo
 		// return err
 	}
 
-	ch <- true
+	// ch <- true
 
-	// return nil
+	return nil
 
 }
 
@@ -246,7 +259,7 @@ func getFrame(filePath string, fileName string) error {
 
 	fmt.Println("response Status:", response.Status)
 	fmt.Println("response Headers:", response.Header)
-	body, _ := ioutil.ReadAll(response.Body)
-	fmt.Println("response Body:", string(body))
+	// body, _ := ioutil.ReadAll(response.Body)
+	// fmt.Println("response Body:", string(body))
 	return nil
 }
