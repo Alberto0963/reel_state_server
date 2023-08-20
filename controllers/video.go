@@ -6,7 +6,10 @@ import (
 	// "go/token"
 	// "fmt"
 	"bytes"
-	"encoding/json"
+	// "encoding/json"
+	// "encoding/json"
+	"io/ioutil"
+
 	// "encoding/json"
 	"fmt"
 
@@ -54,7 +57,7 @@ func HandleVideoUpload(c *gin.Context) {
 	}
 
 	// Generate a random file name
-	fileName := models.GenerateRandomName() 
+	fileName := models.GenerateRandomName()
 
 	// Create the destination file
 	//destPath := filepath.Join("", fileName)
@@ -71,7 +74,7 @@ func HandleVideoUpload(c *gin.Context) {
 	// 	return
 	// }
 
-	destPath := filepath.Join(url, "/public/videos", fileName + filepath.Ext(file.Filename))
+	destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 	err = saveVideoFile(file, destPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -93,7 +96,7 @@ func HandleVideoUpload(c *gin.Context) {
 	}
 
 	v := models.Video{}
-	v.Video_url = ("public/videos/" + fileName)
+	v.Video_url = ("public/videos/" + fileName + filepath.Ext(file.Filename))
 	v.Description = input.Description
 	v.Location = input.Location
 	v.Area = input.Area
@@ -116,13 +119,12 @@ func HandleVideoUpload(c *gin.Context) {
 	}
 	v.Sale_category_id = int(sale_category_id)
 	_, err = v.SaveVideo()
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = getFrame(destPath, fileName)
+	err = getFrame(destPath, fileName+".jpg")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -184,75 +186,39 @@ func getFrame(filePath string, fileName string) error {
 
 	url := os.Getenv("api_frame")
 
-    jsonStr := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":"kk.jpg"}`)
-	jjson := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":"kk.jpg"}`)
+	// jsonStr := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":"kk.jpg"}`)
+	// jsonStrign := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
+	// Create a map to hold the data
 
-	d ,_:= json.Marshal(jjson)
-	fmt.Println("Response:", d)
-    req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-    req.Header.Set("Content-Type", "application/json")
+	path_video := []byte("'path_video': "+ filePath)
+	image_name := []byte("'image_name': "+ fileName)
+	
 
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    if err != nil {
-        panic(err)
-		return err
-    }
-    defer resp.Body.Close()
-	var result bytes.Buffer
-	_, err = io.Copy(&result, resp.Body)
-	if err != nil {
-		// fmt.Println("Error reading response:", err)
-		return err
+	// Convert the JSON data to a byte slice
+	// jjson := []byte(path_video)
+	jjson := append(path_video,image_name...)
+
+	// jjson := []byte(`{"path_video":filePath,"image_name":fileName}`)
+
+	fmt.Println("HTTP JSON POST URL:", url)
+
+	// var jsonData = []byte(`{
+	// 	"name": "morpheus",
+	// 	"job": "leader"
+	// }`)
+	request, error := http.NewRequest("POST", url, bytes.NewBuffer(jjson))
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	client := &http.Client{}
+	response, error := client.Do(request)
+	if error != nil {
+		panic(error)
 	}
+	defer response.Body.Close()
 
-	fmt.Println("Response:", result.String())
+	fmt.Println("response Status:", response.Status)
+	fmt.Println("response Headers:", response.Header)
+	body, _ := ioutil.ReadAll(response.Body)
+	fmt.Println("response Body:", string(body))
 	return nil
-	// return nil
-	
-	// url := os.Getenv("api_frame")
-
-	// // Create a new multipart writer to write the file as part of the request body
-	// body := &bytes.Buffer{}
-	// writer := multipart.NewWriter(body)
-
-	
-    // jsonStr := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":fileName + ".jpg"}`)
-
-	
-
-	// request, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	// if err != nil {
-	// 	// fmt.Println("Error creating request:", err)
-	// 	return err
-	// }
-
-	// // Set the content type for the request
-	// // request.Header.Set("Content-Type", writer.FormDataContentType())
-	// request.Header.Set("Content-Type", "application/json")
-	// // Make the request and get the response
-	// client := http.Client{}
-	// response, err := client.Do(request)
-	// if err != nil {
-	// 	// fmt.Println("Error making request:", err)
-	// 	return err
-	// }
-	// defer response.Body.Close()
-
-	// // Check the response status code
-	// if response.StatusCode != http.StatusOK {
-	// 	// fmt.Println("Request failed with status code:", response.StatusCode)
-	// 	return err
-	// }
-
-	// // Read the response body
-	// var result bytes.Buffer
-	// _, err = io.Copy(&result, response.Body)
-	// if err != nil {
-	// 	// fmt.Println("Error reading response:", err)
-	// 	return err
-	// }
-
-	// fmt.Println("Response:", result.String())
-	// return nil
 }
