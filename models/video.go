@@ -24,6 +24,8 @@ type Video struct {
 	SaleType Type `gorm:"references:id; foreignKey:sale_type_id"`
 	Sale_category_id int `gorm:"size:255;not null;" json:"sale_category_id"`
 	SaleCategory Category `gorm:"references:id; foreignKey:sale_category_id"`
+	Image_cover string `gorm:"size:255;not null;" json:"image_cover"`
+
 }
 
 type MyVideo struct {

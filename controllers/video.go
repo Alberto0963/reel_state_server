@@ -53,6 +53,7 @@ type VideoInput struct {
 	// Id_user string `json:"id_user" binding:"required"`
 	Sale_type_id     string `json:"sale_type_id" binding:"required"`
 	Sale_category_id string `json:"sale_category_id" binding:"required"`
+
 }
 
 func HandleVideoUpload(c *gin.Context) {
@@ -130,6 +131,7 @@ func HandleVideoUpload(c *gin.Context) {
 
 	v := models.Video{}
 	v.Video_url = ("public/videos/" + fileName + filepath.Ext(file.Filename))
+	v.Image_cover = "public/video_cover/" + fileName + ".jpg"
 	v.Description = input.Description
 	v.Location = input.Location
 	v.Area = input.Area
