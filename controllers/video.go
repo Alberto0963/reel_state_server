@@ -81,23 +81,24 @@ func HandleVideoUpload(c *gin.Context) {
 	// 	return
 	// }
 
-
 	fut := new(async.Future[error])
 
 	destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
-	
-		// Simulate long computation or IO by sleeping before and resolving the future.
+
+	// Simulate long computation or IO by sleeping before and resolving the future.
 	go func() {
-		err=saveVideoFile(file, destPath)
+		err = saveVideoFile(file, destPath)
 		fmt.Println("/////////////// inicio ///////////////////")
 		// time.Sleep(50 * time.Second)
 
-		async.ResolveFuture(fut,err, nil)
+		async.ResolveFuture(fut, err, nil)
 	}()
 
 	// Block until the future is resolved.
-	frame, err := fut.Value()
-	fmt.Println(frame, err)
+	// Block until the future is resolved.
+	async.Await(fut)
+	// frame, err := fut.Value()
+	// fmt.Println(frame, err)
 	fmt.Println("/////////////// final ///////////////////")
 
 	//  = saveVideoFile(file, destPath,uploadComplete)
@@ -105,7 +106,6 @@ func HandleVideoUpload(c *gin.Context) {
 	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	// 	return
 	// }
-
 
 	// coverUrl,err := SMS.GenerateImageFromVideo(destPath)
 
@@ -159,7 +159,8 @@ func HandleVideoUpload(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
 }
 
-func saveVideoFile(file *multipart.FileHeader, destination string) error  {
+func saveVideoFile(file *multipart.FileHeader, destination string) error {
+	
 	src, err := file.Open()
 	if err != nil {
 		// return err
@@ -228,7 +229,7 @@ func getFrame(filePath string, fileName string) error {
 	// jsonStr := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":"kk.jpg"}`)
 	// jsonStrign := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
 	// Create a map to hold the data
-	
+
 	data := RequestData{
 		Path_video: filePath,
 		Image_name: fileName,
