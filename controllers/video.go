@@ -7,6 +7,9 @@ import (
 	// "fmt"
 	"bytes"
 	"encoding/json"
+	// "errors"
+	// "strings"
+
 	// "encoding/json"
 	// "encoding/json"
 	"io/ioutil"
@@ -75,12 +78,20 @@ func HandleVideoUpload(c *gin.Context) {
 	// 	return
 	// }
 
+	// Create a channel to signal the completion of the upload
+	uploadComplete := make(chan error)
+
 	destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
-	err = saveVideoFile(file, destPath)
+	
+	go saveVideoFile(file, destPath,uploadComplete)
+
+	err = <-uploadComplete
+	//  = saveVideoFile(file, destPath,uploadComplete)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 
 	// coverUrl,err := SMS.GenerateImageFromVideo(destPath)
 
@@ -134,7 +145,7 @@ func HandleVideoUpload(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
 }
 
-func saveVideoFile(file *multipart.FileHeader, destination string) error {
+func saveVideoFile(file *multipart.FileHeader, destination string, ch chan<- error) error {
 	src, err := file.Open()
 	if err != nil {
 		return err
@@ -151,6 +162,8 @@ func saveVideoFile(file *multipart.FileHeader, destination string) error {
 	if err != nil {
 		return err
 	}
+
+	ch <- nil
 
 	return nil
 
