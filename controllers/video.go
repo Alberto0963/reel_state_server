@@ -86,14 +86,17 @@ func HandleVideoUpload(c *gin.Context) {
 	destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
 	// Simulate long computation or IO by sleeping before and resolving the future.
+	
 	go func() {
-		err = saveVideoFile(file, destPath)
+		// err = saveVideoFile(file, destPath)
 		fmt.Println("/////////////// inicio ///////////////////")
 		// time.Sleep(50 * time.Second)
 
-		async.ResolveFuture(fut, err, nil)
-	}()
+		async.ResolveFuture(fut, saveVideoFile(file, destPath), nil)
 
+	
+	}()
+// async.Awaiter()
 	// Block until the future is resolved.
 	// Block until the future is resolved.
 	async.Await(fut)
@@ -160,6 +163,7 @@ func HandleVideoUpload(c *gin.Context) {
 }
 
 func saveVideoFile(file *multipart.FileHeader, destination string) error {
+	
 	
 	src, err := file.Open()
 	if err != nil {
