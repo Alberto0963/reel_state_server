@@ -219,7 +219,30 @@ func HandleGetCategoriesAndTypes(c *gin.Context) {
 
 func HandleGetAllVideos(c *gin.Context) {
 
-	cat, err := models.FetchAllVideos()
+	p := c.Query("page")
+	page, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
+
+	sale := c.Query("sale")
+	sale_id, err := strconv.ParseUint(sale, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
+		return
+	}
+
+	vip := c.Query("isvip")
+	is_vip, err := strconv.ParseUint(vip, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
+		return
+	}
+
+
+
+	cat, err := models.FetchAllVideos(int(sale_id),int(is_vip),int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return

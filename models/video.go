@@ -76,12 +76,16 @@ func (v *Video) SaveVideo() (*Video, error) {
 
 }
 
-func  FetchAllVideos() ([]Video, error) {
+func  FetchAllVideos(sale_type int, isvip int,page int) ([]Video, error) {
 	var err error
 	dbConn := Pool
 	var vid []Video
+	pageSize := 10
+
+	// Calculate the offset based on the page number and page size
+	offset := (page - 1) * pageSize
 	// err = dbConn.Unscoped().Find(&vid).Error
-	err = dbConn.Model(&Video{}).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
+	err = dbConn.Model(&Video{}).Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).Order("RAND()").Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
 	if err != nil {
 		return vid, err
 	}
