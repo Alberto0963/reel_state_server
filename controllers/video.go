@@ -236,7 +236,7 @@ func HandleGetAllVideos(c *gin.Context) {
 	vip := c.Query("isvip")
 	is_vip, err := strconv.ParseUint(vip, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid isvip"})
 		return
 	}
 
