@@ -61,9 +61,15 @@ func ValidateVerificationCode(c *gin.Context) {
 func GetMyVideos(c *gin.Context) {
 
 	userID, _ := token.ExtractTokenID(c)
-	page, _ := strconv.Atoi(c.DefaultPostForm("page", "1"))
+	p := c.Query("page")
+	page, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
+	// page, _ := strconv.Atoi(c.DefaultPostForm("page", "1"))
 
-	cat, err := models.GetMyVideos(int(userID), page)
+	cat, err := models.GetMyVideos(int(userID), int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
