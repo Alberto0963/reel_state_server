@@ -157,10 +157,10 @@ func (u *User) BeforeSave(tx *gorm.DB) error {
 
 }
 
-func GetMyVideos(id_user int, page int) ([]MyVideo, error) {
+func GetMyVideos(id_user int, page int) ([]Video, error) {
 	var err error
 	dbConn := Pool
-	var vid []MyVideo
+	var vid []Video
 	// Get page number and page size from query parameters
 	// page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize := 12
