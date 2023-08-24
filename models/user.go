@@ -163,12 +163,12 @@ func GetMyVideos(id_user int, page int) ([]MyVideo, error) {
 	var vid []MyVideo
 	// Get page number and page size from query parameters
 	// page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize := 10
+	pageSize := 12
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
 	// err = dbConn.Unscoped().Find(&vid).Error
-	err = dbConn.Model(&MyVideo{}).Where("id_user = ?", id_user).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Unscoped().Find(&vid).Error
+	err = dbConn.Model(&MyVideo{}).Where("id_user = ?", id_user).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
 	if err != nil {
 		return vid, err
 	}

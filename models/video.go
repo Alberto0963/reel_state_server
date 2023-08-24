@@ -80,7 +80,7 @@ func  FetchAllVideos(sale_type int, isvip int,page int) ([]Video, error) {
 	var err error
 	dbConn := Pool
 	var vid []Video
-	pageSize := 10
+	pageSize := 12
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
