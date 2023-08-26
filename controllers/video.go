@@ -221,6 +221,7 @@ func HandleGetAroundVideos(c *gin.Context) {
 	
 	lat := c.Query("latitude")
 	long := c.Query("longitude")
+	dist := c.Query("distance")
 
 	p := c.Query("page")
 	
@@ -242,8 +243,14 @@ func HandleGetAroundVideos(c *gin.Context) {
 		return
 	}
 
+	distance, err := strconv.ParseFloat(dist, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid longitude"})
+		return
+	}
 
-	vid, err := models.GetPlacesAroundLocation(latitude, longitude,20.0,int(page))
+
+	vid, err := models.GetPlacesAroundLocation(latitude, longitude,distance,int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
