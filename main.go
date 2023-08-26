@@ -43,11 +43,14 @@ func main() {
 	
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
-	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.POST("/upload", controllers.HandleVideoUpload)
-	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
-	protected.GET("/getMyVideos", controllers.GetMyVideos)
 	protected.POST("/UpdateProfileImageUserName", controllers.UpdateProfileImageUserName)
+	// protected.GET("/user", controllers.CurrentUserHandler)
+	protected.GET("/getMyVideos", controllers.GetMyVideos)
+	protected.GET("/user", controllers.CurrentUserHandler)
+	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
+	protected.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
+
 
 	type User struct {
 		ID   int

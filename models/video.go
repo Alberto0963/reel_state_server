@@ -2,7 +2,10 @@ package models
 
 import (
 	"math/rand"
+	"reelState/utils/location"
 	"time"
+
+	// "gorm.io/gorm/utils"
 	// "gorm.io/gorm"
 )
 
@@ -25,6 +28,8 @@ type Video struct {
 	Sale_category_id int `gorm:"size:255;not null;" json:"sale_category_id"`
 	SaleCategory Category `gorm:"references:id; foreignKey:sale_category_id"`
 	Image_cover string `gorm:"size:255;not null;" json:"image_cover"`
+	Latitude float64 `gorm:"size:255;not null;" json:"latitude"`
+	Longitude float64 `gorm:"size:255;not null;" json:"longitude"`
 
 }
 
@@ -95,6 +100,41 @@ func  FetchAllVideos(sale_type int, isvip int,page int) ([]Video, error) {
 	rand.Shuffle(len(vid), func(i, j int) {vid[i], vid[j] = vid[j], vid[i] })
 	return vid, nil
 
+}
+
+func GetPlacesAroundLocation(centerLat, centerLon float64, maxDistance float64, page int) ([]Video, error) {
+	var err error
+	dbConn := Pool
+	var vid []Video
+	pageSize := 12
+	var nearbyPlaces []Video
+
+	// Calculate the offset based on the page number and page size
+	offset := (page - 1) * pageSize
+
+	err = dbConn.Model(&Video{})	.Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
+	// .Where("sale_type_id = ? && is_vip = ?", sale_type, isvip)
+	if err != nil {
+		return vid, err
+	}
+
+	// // query := fmt.Sprintf("SELECT name, latitude, longitude FROM places")
+	// rows, err := db.Query(query)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer rows.Close()
+
+	// var places []string
+
+	for _, place := range vid {
+		distance := location.HaversineDistance(centerLat, centerLon, place.Latitude, place.Longitude)
+		if distance <= maxDistance {
+			nearbyPlaces = append(nearbyPlaces, place)
+		}
+	}
+
+	return nearbyPlaces, nil
 }
 
 

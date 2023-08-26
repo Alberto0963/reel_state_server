@@ -217,6 +217,47 @@ func HandleGetCategoriesAndTypes(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "categories": cat, "types": types})
 }
 
+func HandleGetAroundVideos(c *gin.Context) {
+	
+	lat := c.Query("latitude")
+	long := c.Query("longitude")
+
+	p := c.Query("page")
+	
+	page, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
+
+	latitude, err := strconv.ParseFloat(lat, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid latitude"})
+		return
+	}
+
+	longitude, err := strconv.ParseFloat(long, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid longitude"})
+		return
+	}
+
+
+	vid, err := models.GetPlacesAroundLocation(latitude, longitude,20.0,int(page))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	// types, err := models.GetTypes()
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 	return
+	// }23
+	
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "videos": vid})
+}
+
 func HandleGetAllVideos(c *gin.Context) {
 
 	p := c.Query("page")
