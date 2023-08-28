@@ -4,6 +4,8 @@ import (
 	"errors"
 	"html"
 	"os"
+	// "reelState/utils/token"
+
 	// "strconv"
 	"time"
 
@@ -161,6 +163,8 @@ func GetMyVideos(id_user int, page int) ([]Video, error) {
 	var err error
 	dbConn := Pool
 	var vid []Video
+	// userID, _ := token.ExtractTokenID(c)
+
 	// Get page number and page size from query parameters
 	// page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize := 12

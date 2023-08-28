@@ -266,6 +266,7 @@ func HandleGetAroundVideos(c *gin.Context) {
 }
 
 func HandleGetAllVideos(c *gin.Context) {
+	userID, _ := token.ExtractTokenID(c)
 
 	p := c.Query("page")
 	page, err := strconv.ParseUint(p, 10, 64)
@@ -290,7 +291,7 @@ func HandleGetAllVideos(c *gin.Context) {
 
 
 
-	cat, err := models.FetchAllVideos(int(sale_id),int(is_vip),int(page))
+	cat, err := models.FetchAllVideos(int(userID),int(sale_id),int(is_vip),int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
