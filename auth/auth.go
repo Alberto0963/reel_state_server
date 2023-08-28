@@ -67,8 +67,11 @@ func Login(c *gin.Context, db *gorm.DB) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	isVip := false
+	if user.IdMembership == 4 || user.IdMembership == 5 {
+		isVip = true
+	}
+	c.JSON(http.StatusOK, gin.H{"token": token,"isVip" : isVip})
 }
 
 // func Login(c *gin.Context, ) {
