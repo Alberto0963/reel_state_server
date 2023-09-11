@@ -230,13 +230,13 @@ func HandleGetAroundVideos(c *gin.Context) {
 	long := c.Query("longitude")
 	dist := c.Query("distance")
 
-	p := c.Query("page")
+	// p := c.Query("page")
 	
-	page, err := strconv.ParseUint(p, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
-		return
-	}
+	// page, err := strconv.ParseUint(p, 10, 64)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+	// 	return
+	// }
 
 	latitude, err := strconv.ParseFloat(lat, 64)
 	if err != nil {
@@ -257,7 +257,7 @@ func HandleGetAroundVideos(c *gin.Context) {
 	}
 
 
-	vid, err := models.GetPlacesAroundLocation(latitude, longitude,distance,int(page))
+	vid, err := models.GetPlacesAroundLocation(latitude, longitude,distance)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

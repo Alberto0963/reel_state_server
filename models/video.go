@@ -151,17 +151,17 @@ func  FetchAllVideos(id_user int ,sale_type int, isvip int,page int) ([]FeedVide
 
 }
 
-func GetPlacesAroundLocation(centerLat, centerLon float64, maxDistance float64, page int) ([]Video, error) {
+func GetPlacesAroundLocation(centerLat, centerLon float64, maxDistance float64) ([]Video, error) {
 	var err error
 	dbConn := Pool
 	var vid []Video
-	pageSize := 12
+	// pageSize := 12
 	var nearbyPlaces []Video
 
 	// Calculate the offset based on the page number and page size
-	offset := (page - 1) * pageSize
+	// offset := (page - 1) * pageSize
 
-	err = dbConn.Model(&Video{})	.Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
+	err = dbConn.Model(&Video{}).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
 	// .Where("sale_type_id = ? && is_vip = ?", sale_type, isvip)
 	if err != nil {
 		return vid, err
