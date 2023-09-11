@@ -45,12 +45,13 @@ func main() {
 	protected.Use(middlewares.JwtAuthMiddleware())
 	protected.POST("/upload", controllers.HandleVideoUpload)
 	protected.POST("/UpdateProfileImageUserName", controllers.UpdateProfileImageUserName)
+	protected.POST("/SetFavorite", controllers.SetFavorite)
+
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 	protected.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
-
 
 	type User struct {
 		ID   int

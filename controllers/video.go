@@ -40,6 +40,13 @@ import (
 	// "golang.org/x/crypto/nacl/auth"
 )
 
+type RegisterFavInput struct {
+	Id_user int `json:"id_user" binding:"required"`
+	Id_video int `json:"id_video" binding:"required"`
+	// Phone    string `json:"phone" binding:"required"`
+	// Code     string `json:"phone" binding:"required"`
+}
+
 type VideoInput struct {
 	// Username string `json:"username" binding:"required"`
 	// Password string `json:"password" binding:"required"`
@@ -346,4 +353,59 @@ func getFrame(filePath string, fileName string) error {
 	// body, _ := ioutil.ReadAll(response.Body)
 	// fmt.Println("response Body:", string(body))
 	return nil
+}
+
+
+func SetFavorite(c *gin.Context){
+
+	var input RegisterFavInput
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	model := models.Favorites{}
+	model.Id_user = input.Id_user
+	model.Id_video = input.Id_video
+	// value := c.Query("id_user")
+	// id_user, err := strconv.ParseUint(value, 10, 64)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id_user"})
+	// 	return
+	// }
+
+	// value = c.Query("id_video")
+	// sale_id, err := strconv.ParseUint(value, 10, 64)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id_video"})
+	// 	return
+	// }
+
+	err := models.IsVideoFavorite(model.Id_user,model.Id_video)
+	if err != nil {
+
+		//
+		fav, err := models.SetVideoFavorite(model)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error to set favorite"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "success", "data": fav})
+		return
+	}else
+	{
+		err := models.DeleteFavoritetByID(model.Id_user,model.Id_video)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error to delete"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "success delete",})
+		return
+		// c.JSON(http.StatusOK, gin.H{"message": "success"})
+
+	}
+	
+	// c.JSON(http.StatusOK, gin.H{"message": "success"})
+
+
 }
