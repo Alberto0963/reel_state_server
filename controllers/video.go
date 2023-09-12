@@ -348,6 +348,17 @@ func HandleGetAllCategoriesVideos(c *gin.Context) {
         category = 4
     case "Industrial":
         category = 5
+
+	case "Residential":
+        category = 1
+    case "Business":
+        category = 2
+    case "Land":
+        category = 3
+    case "corporate":
+        category = 4
+    case "industry":
+        category = 5
     default:
         category = 0
     }
