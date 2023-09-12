@@ -33,12 +33,14 @@ func main() {
 	public.POST("/register", controllers.RegisterHandler)
 	public.POST("/login", controllers.LoginHandler)
 	public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
+	public.GET("/getFeedCategoryVideos", controllers.HandleGetAllCategoriesVideos)
+
 	public.POST("/sendVerificationCode", controllers.SendVerificationCode)
 	public.POST("/CodeIsValid", controllers.ValidateVerificationCode)
 	public.POST("/ValidateUserName", controllers.ValidateUserName)
 	public.GET("/UserByIdHandler/", controllers.UserByIdHandler)
 	public.GET("/getUserVideos", controllers.GetUserVideos)
-
+	
 	
 	
 	protected := r.Group("/api/admin")

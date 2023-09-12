@@ -307,6 +307,48 @@ func HandleGetAllVideos(c *gin.Context) {
 
 }
 
+func HandleGetAllCategoriesVideos(c *gin.Context) {
+	userID, _ := token.ExtractTokenID(c)
+
+	p := c.Query("page")
+	page, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
+
+	sale := c.Query("sale")
+	sale_id, err := strconv.ParseUint(sale, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
+		return
+	}
+
+	vip := c.Query("isvip")
+	is_vip, err := strconv.ParseUint(vip, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid isvip"})
+		return
+	}
+
+	cat := c.Query("category")
+	category, err := strconv.ParseUint(cat, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid isvip"})
+		return
+	}
+
+
+
+	data, err := models.FetchAllCategoryVideos(int(userID),int(sale_id),int(is_vip),int(category),int(page))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": data})
+
+}
+
 type RequestData struct {
 	Path_video string `json:"path_video"`
 	Image_name string `json:"image_name"`
