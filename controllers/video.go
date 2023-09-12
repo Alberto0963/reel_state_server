@@ -41,7 +41,7 @@ import (
 )
 
 type RegisterFavInput struct {
-	Id_user int `json:"id_user" binding:"required"`
+	// Id_user int `json:"id_user" binding:"required"`
 	Id_video int `json:"id_video" binding:"required"`
 	// Phone    string `json:"phone" binding:"required"`
 	// Code     string `json:"phone" binding:"required"`
