@@ -87,6 +87,7 @@ func GetUserVideos(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
+	// userID, _ := token.ExtractTokenID(c)
 
 	p := c.Query("page")
 	page, err := strconv.ParseUint(p, 10, 64)
@@ -96,6 +97,25 @@ func GetUserVideos(c *gin.Context) {
 	}
 
 	cat, err := models.GetMyVideos(int(userID), int(page))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
+}
+
+func GetUserFavoritesVideos(c *gin.Context) {
+
+	userID, _ := token.ExtractTokenID(c)
+
+	p := c.Query("page")
+	page, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
+
+	cat, err := models.GetMyFavoritesVideos(int(userID), int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return

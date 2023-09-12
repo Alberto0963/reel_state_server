@@ -179,3 +179,44 @@ func GetMyVideos(id_user int, page int) ([]Video, error) {
 	return vid, nil
 
 }
+
+
+func GetMyFavoritesVideos(id_user int, page int) ([]Video, error) {
+	var err error
+	dbConn := Pool
+	var vid []Video
+	// userID, _ := token.ExtractTokenID(c)
+
+	// Get page number and page size from query parameters
+	// page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize := 12
+
+	// Calculate the offset based on the page number and page size
+	offset := (page - 1) * pageSize
+	// err = dbConn.Unscoped().Find(&vid).Error
+	err = dbConn.Model(&MyVideo{}).
+	Joins("INNER JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video").
+	Where("users_videos_favorites.id_user = ?", id_user).
+	Limit(pageSize).Offset(offset).
+	Preload("SaleType").
+	Preload("SaleCategory").
+	Preload("User").
+	Unscoped().
+	Find(&vid).Error
+	// var favoriteVideos []Video
+	// err = db.
+	// 	Table("videos").
+	// 	Select("videos.*").
+	// 	Joins("INNER JOIN videosfavorites ON videos.id = videosfavorites.video_id").
+	// 	Where("videosfavorites.user_id = ?", userID).
+	// 	Find(&favoriteVideos).Error
+
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	if err != nil {
+		return vid, err
+	}
+	return vid, nil
+
+}

@@ -51,6 +51,8 @@ func main() {
 
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)
+	protected.GET("/getMyFavoritesVideos", controllers.GetUserFavoritesVideos)
+
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 	protected.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
