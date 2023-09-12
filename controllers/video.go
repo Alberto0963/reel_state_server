@@ -332,15 +332,29 @@ func HandleGetAllCategoriesVideos(c *gin.Context) {
 	}
 
 	cat := c.Query("category")
-	category, err := strconv.ParseUint(cat, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid isvip"})
-		return
-	}
+	category := 0
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category"})
+	// 	return
+	// }
+	switch cat {
+    case "Residencial":
+        category = 1
+    case "Comercial":
+        category = 2
+    case "Terreno":
+        category = 3
+    case "Corporativo":
+        category = 4
+    case "Industrial":
+        category = 5
+    default:
+        category = 0
+    }
 
 
 
-	data, err := models.FetchAllCategoryVideos(int(userID),int(sale_id),int(is_vip),int(category),int(page))
+	data, err := models.FetchAllCategoryVideos(int(userID),int(sale_id),int(is_vip),category,int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
