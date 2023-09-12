@@ -407,7 +407,9 @@ func SetFavorite(c *gin.Context){
 		return
 	}
 	model := models.Favorites{}
-	model.Id_user = input.Id_user
+	
+	userID, _ := token.ExtractTokenID(c)
+	model.Id_user = int(userID)
 	model.Id_video = input.Id_video
 	// value := c.Query("id_user")
 	// id_user, err := strconv.ParseUint(value, 10, 64)
