@@ -474,7 +474,33 @@ func SetFavorite(c *gin.Context){
 
 	}
 	
-	// c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
 
+
+func HandleSearchVideos(c *gin.Context) {
+	userID, _ := token.ExtractTokenID(c)
+
+	p := c.Query("page")
+	page, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
+
+	search_text := c.Query("search")
+	// search, err := strconv.p(search_text, 10, 64)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
+	// 	return
+	// }
+
+
+
+	vid, err := models.SearchVideos(search_text,int(page),int(userID))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": vid})
 
 }

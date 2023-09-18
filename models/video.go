@@ -87,7 +87,7 @@ func (MyVideo) TableName() string {
 
 
 func GenerateRandomName() string {
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 	chars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	length := 10
 	name := make([]byte, length)
@@ -144,7 +144,53 @@ func  FetchAllVideos(id_user int ,sale_type int, isvip int,page int) ([]FeedVide
 	// }
 
 
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
+
+	rand.Shuffle(len(vid), func(i, j int) {vid[i], vid[j] = vid[j], vid[i] })
+	return vid, nil
+
+}
+
+
+
+func  SearchVideos(search string, page int,id_user int ) ([]FeedVideo, error) {
+	var err error
+	dbConn := Pool
+	var vid []FeedVideo
+	pageSize := 12
+
+	// Calculate the offset based on the page number and page size
+	offset := (page - 1) * pageSize
+
+	result := dbConn.Model(&Video{}).
+	Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+	Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+	Where("location like ?", "%"+search+"%").
+	Limit(pageSize).
+	Offset(offset).
+	Preload("SaleType").
+	Preload("SaleCategory").
+	Preload("User").
+	Unscoped().
+	Find(&vid).Error
+
+	// Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+	// Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+	// Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).
+	// Limit(pageSize).Offset(offset).
+	// Preload("SaleType").
+	// Preload("SaleCategory").
+	// Preload("User").
+	// Unscoped().
+	// Find(&vid).Error
+
+	if result != nil {
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		return vid,err
+	}
+
+
+	rand.NewSource(time.Now().UnixNano())
 
 	rand.Shuffle(len(vid), func(i, j int) {vid[i], vid[j] = vid[j], vid[i] })
 	return vid, nil
@@ -194,7 +240,7 @@ func  FetchAllCategoryVideos(id_user int ,sale_type int, isvip int,categoryId,pa
 	// }
 
 
-	rand.Seed(time.Now().UnixNano())
+	rand.NewSource(time.Now().UnixNano())
 
 	rand.Shuffle(len(vid), func(i, j int) {vid[i], vid[j] = vid[j], vid[i] })
 	return vid, nil
