@@ -60,6 +60,8 @@ type VideoInput struct {
 	// Id_user string `json:"id_user" binding:"required"`
 	Sale_type_id     string `json:"sale_type_id" binding:"required"`
 	Sale_category_id string `json:"sale_category_id" binding:"required"`
+	Latitude float64 `json:"latitude" binding:"required"`
+	Longitude float64 `json:"longitude" binding:"required"`
 
 }
 
@@ -146,6 +148,9 @@ func HandleVideoUpload(c *gin.Context) {
 	v.Price = input.Price
 	userID, _ := token.ExtractTokenID(c)
 	v.Id_user = userID
+	v.Latitude = input.Latitude
+	v.Longitude = input.Longitude
+	
 	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
 	if err != nil {
 		// Handle the error if the conversion fails
