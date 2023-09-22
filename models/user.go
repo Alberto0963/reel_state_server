@@ -32,6 +32,7 @@ type User struct {
 	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
 	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
+	Cover_image              string       `gorm:"size:255;not null;" json:"cover_image"`
 }
 
 type PublicUser struct {
@@ -73,8 +74,37 @@ func (updatedUser *User) UpdateProfileImageUser() (User, error) {
 	}
 	pathOldImage := os.Getenv("MY_URL")
 
-	
-	 deleteImage(pathOldImage + oldImage)
+	deleteImage(pathOldImage + oldImage)
+	// if err != nil {
+	// 	return user, err
+	// }
+
+	return user, nil
+}
+
+func (updatedUser *User) UpdateCoverImageUser() (User, error) {
+	dbConn := Pool
+
+	// Fetch the existing user from the database
+	var user User
+	if err := dbConn.First(&user, updatedUser.ID).Error; err != nil {
+		return user, err
+	}
+
+	oldImage := user.Cover_image
+	// Update the user fields with the new values
+	user.Cover_image = updatedUser.Cover_image
+	// user.Email = updatedUser.Email
+	// Update other user fields as needed...
+
+	// Save the changes to the database
+
+	if err := dbConn.Save(&user).Error; err != nil {
+		return user, err
+	}
+	pathOldImage := os.Getenv("MY_URL")
+
+	deleteImage(pathOldImage + oldImage)
 	// if err != nil {
 	// 	return user, err
 	// }
@@ -180,7 +210,6 @@ func GetMyVideos(id_user int, page int) ([]Video, error) {
 
 }
 
-
 func GetMyFavoritesVideos(id_user int, page int) ([]Video, error) {
 	var err error
 	dbConn := Pool
@@ -195,14 +224,14 @@ func GetMyFavoritesVideos(id_user int, page int) ([]Video, error) {
 	offset := (page - 1) * pageSize
 	// err = dbConn.Unscoped().Find(&vid).Error
 	err = dbConn.Model(&MyVideo{}).
-	Joins("INNER JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video").
-	Where("users_videos_favorites.id_user = ?", id_user).
-	Limit(pageSize).Offset(offset).
-	Preload("SaleType").
-	Preload("SaleCategory").
-	Preload("User").
-	Unscoped().
-	Find(&vid).Error
+		Joins("INNER JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video").
+		Where("users_videos_favorites.id_user = ?", id_user).
+		Limit(pageSize).Offset(offset).
+		Preload("SaleType").
+		Preload("SaleCategory").
+		Preload("User").
+		Unscoped().
+		Find(&vid).Error
 	// var favoriteVideos []Video
 	// err = db.
 	// 	Table("videos").
