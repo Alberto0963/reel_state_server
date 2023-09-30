@@ -32,7 +32,7 @@ type User struct {
 	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
 	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
-	Cover_image              string       `gorm:"size:255;not null;" json:"cover_image"`
+	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 }
 
 type PublicUser struct {
@@ -249,3 +249,5 @@ func GetMyFavoritesVideos(id_user int, page int) ([]Video, error) {
 	return vid, nil
 
 }
+
+

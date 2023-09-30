@@ -204,64 +204,29 @@ func UpdateCoverImageUserName(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "image is updated"})
 }
 
-// func HandleVideoUpload(c *gin.Context) {
-// 	file, err := c.FormFile("video")
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
 
-// Create the destination file
+func GetMemberShips(c *gin.Context) {
 
-// 	// Generate a random file name
-// 	fileName := models.GenerateRandomName() + filepath.Ext(file.Filename)
+	// userID, _ := token.ExtractTokenID(c)
 
-// 	// Create the destination file
-// 	destPath := filepath.Join("public/videos", fileName)
+	p := c.Query("page")
+	page, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
 
-// 	err =  saveVideoFile(file, destPath)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
+	currencyCode := c.Query("currencyCode")
+	// currencyCode, err := strconv.ParseUint(p, 10, 64)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+	// 	return
+	// }
 
-// 	var input models.Video
-
-// 	if err := c.ShouldBind(&input); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	v := models.Video{}
-
-// 	_, err = v.SaveVideo()
-
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
-// }
-
-// func saveVideoFile(file *multipart.FileHeader, destination string) error {
-// 	src, err := file.Open()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer src.Close()
-
-// 	dst, err := os.Create(destination)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer dst.Close()
-
-// 	_, err = io.Copy(dst, src)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-
-// }
+	cat, err := models.GetMemberShips(currencyCode, int(page))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
+}
