@@ -208,6 +208,12 @@ func UpdateCoverImageUserName(c *gin.Context) {
 func GetMemberShips(c *gin.Context) {
 
 	// userID, _ := token.ExtractTokenID(c)
+	user_id, err := token.ExtractTokenID(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	p := c.Query("page")
 	page, err := strconv.ParseUint(p, 10, 64)
@@ -228,5 +234,12 @@ func GetMemberShips(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
+
+	u, err := models.GetUserByID(user_id)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat, "user": u})
 }
