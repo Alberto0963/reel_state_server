@@ -13,7 +13,11 @@ type Membership struct {
 	Price          string `gorm:"size:100;not null;" json:"price"`
 	ProductCode    string `gorm:"size:255;not null;" json:"product_code"`
 	CurrencyCode   string `gorm:"size:255;" json:"currency_code"`
-	MembershipCode string `gorm:"size:255;not null;" json:"memberships_code"`
+	MembershipsCode string `gorm:"size:255;not null;" json:"memberships_code"`
+}
+
+func (Membership) TableName() string {
+	return "memberships"
 }
 
 func GetMemberShips(code string, page int) ([]Membership, error) {
