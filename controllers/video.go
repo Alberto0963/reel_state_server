@@ -192,7 +192,7 @@ func HandleVideoEdit(c *gin.Context) {
 	p := c.Query("idVideo")
 	idVideo, err := strconv.ParseUint(p, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid idVideo"})
 		return
 	}
 

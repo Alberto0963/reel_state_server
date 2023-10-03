@@ -208,6 +208,7 @@ func GetMyVideos(id_user int, page int) ([]FeedVideo, error) {
 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
 		// Where("sale_type_id = ? && is_vip = ? && sale_category_id = ? ", sale_type, isvip,categoryId).
 		// Where("sale_category_id = ? && is_vip = ?", sale_type, isvip).
+		Where("id_user = ?", id_user).
 		Limit(pageSize).
 		Offset(offset).
 		Preload("SaleType").
