@@ -109,6 +109,39 @@ func (v *Video) SaveVideo() (*Video, error) {
 
 }
 
+func (v *Video) EditVideo() (*Video, error) {
+	var err error
+	dbConn := Pool
+	var vid Video
+	err = dbConn.Where("id_user = ? && id = ?", v.Id_user,v.Id).Find(&vid).Error
+	if err != nil {
+		return &vid, err
+	}
+
+	
+	vid.Description = v.Description
+	vid.Location = v.Location
+	vid.Area = v.Area
+	vid.Property_number = v.Property_number
+	vid.Price = v.Price
+	// uidserID, _ := v.ExtractTokenID(c)
+	// vid.Id_user = userID
+	vid.Latitude = v.Latitude
+	vid.Longitude = v.Longitude
+	
+	vid.Sale_type_id = v.Sale_type_id
+	
+	vid.Sale_category_id = v.Sale_category_id
+
+
+	err = dbConn.Save(&vid).Error
+	if err != nil {
+		return &Video{}, err
+	}
+	return v, nil
+
+}
+
 func  FetchAllVideos(id_user int ,sale_type int, isvip int,page int) ([]FeedVideo, error) {
 	var err error
 	dbConn := Pool

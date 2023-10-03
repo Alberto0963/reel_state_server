@@ -60,8 +60,8 @@ type VideoInput struct {
 	// Id_user string `json:"id_user" binding:"required"`
 	Sale_type_id     string `json:"sale_type_id" binding:"required"`
 	Sale_category_id string `json:"sale_category_id" binding:"required"`
-	Latitude float64 `json:"latitude" binding:"required"`
-	Longitude float64 `json:"longitude" binding:"required"`
+	Latitude float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 
 }
 
@@ -178,6 +178,64 @@ func HandleVideoUpload(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
+}
+
+
+func HandleVideoEdit(c *gin.Context) {
+
+	var input VideoInput
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	p := c.Query("idVideo")
+	idVideo, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
+
+	v := models.Video{}
+	v.Id = int(idVideo)
+	v.Description = input.Description
+	v.Location = input.Location
+	v.Area = input.Area
+	v.Property_number = input.Property_number
+	v.Price = input.Price
+	userID, _ := token.ExtractTokenID(c)
+	v.Id_user = userID
+	v.Latitude = input.Latitude
+	v.Longitude = input.Longitude
+	
+	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
+	if err != nil {
+		// Handle the error if the conversion fails
+		fmt.Println("Error converting string to uint:", err)
+		return
+	}
+	v.Sale_type_id = int(sale_type_id)
+	sale_category_id, err := strconv.ParseUint(input.Sale_category_id, 10, 32)
+	if err != nil {
+		// Handle the error if the conversion fails
+		fmt.Println("Error converting string to uint:", err)
+		return
+	}
+	v.Sale_category_id = int(sale_category_id)
+	
+	_, err = v.EditVideo()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// err = getFrame(destPath, fileName+".jpg")
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// 	return
+	// }
+
+	c.JSON(http.StatusOK, gin.H{"message": "Video Edited successfully"})
 }
 
 func saveVideoFile(file *multipart.FileHeader, destination string) error {

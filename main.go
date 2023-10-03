@@ -48,9 +48,12 @@ func main() {
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
 	protected.POST("/upload", controllers.HandleVideoUpload)
+	protected.POST("/edit", controllers.HandleVideoEdit)
+
 	protected.POST("/UpdateProfileImageUserName", controllers.UpdateProfileImageUserName)
 	protected.POST("/UpdateCoverImageUserName", controllers.UpdateCoverImageUserName)
 	protected.POST("/SetFavorite", controllers.SetFavorite)
+	protected.POST("/DeleteUserVideo", controllers.DeleteUserVideo)
 
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)

@@ -251,3 +251,24 @@ func GetMyFavoritesVideos(id_user int, page int) ([]Video, error) {
 }
 
 
+func DeleteUserVideo(id_video int, id_user int) error {
+	var err error
+	dbConn := Pool
+	var vid Video
+
+	
+	if err = dbConn.Where("id_user = ? && id = ?", id_user,id_video).Find(&vid).Error; err != nil {
+		return err
+	}
+	pathOldImage := os.Getenv("MY_URL")
+
+	deleteImage(pathOldImage + vid.Image_cover )
+	deleteImage(pathOldImage + vid.Video_url )
+
+	if err = dbConn.Where("id_user = ? && id = ?", id_user,id_video).Delete(&vid).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+

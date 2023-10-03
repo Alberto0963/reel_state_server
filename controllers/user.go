@@ -243,3 +243,34 @@ func GetMemberShips(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat, "user": u})
 }
+
+
+
+func DeleteUserVideo(c *gin.Context) {
+
+	// userID, _ := token.ExtractTokenID(c)
+	user_id, err := token.ExtractTokenID(c)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	p := c.Query("idVideo")
+	idVideo, err := strconv.ParseUint(p, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
+		return
+	}
+
+	
+
+	err = models.DeleteUserVideo(int(idVideo),int(user_id))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	
+	c.JSON(http.StatusOK, gin.H{"message": "success",})
+}
