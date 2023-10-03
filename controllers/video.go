@@ -319,8 +319,9 @@ func HandleGetAroundVideos(c *gin.Context) {
 		return
 	}
 
+	userID, _ := token.ExtractTokenID(c)
 
-	vid, err := models.GetPlacesAroundLocation(latitude, longitude,distance)
+	vid, err := models.GetPlacesAroundLocation(latitude, longitude,distance,int(userID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

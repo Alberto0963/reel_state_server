@@ -280,7 +280,7 @@ func  FetchAllCategoryVideos(id_user int ,sale_type int, isvip int,categoryId,pa
 
 }
 
-func GetPlacesAroundLocation(centerLat, centerLon float64, maxDistance float64) ([]Video, error) {
+func GetPlacesAroundLocation(centerLat, centerLon float64, maxDistance float64, id_user int) ([]Video, error) {
 	var err error
 	dbConn := Pool
 	var vid []Video
@@ -290,7 +290,18 @@ func GetPlacesAroundLocation(centerLat, centerLon float64, maxDistance float64) 
 	// Calculate the offset based on the page number and page size
 	// offset := (page - 1) * pageSize
 
-	err = dbConn.Model(&Video{}).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
+	err = dbConn.Table("videos").
+	Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+	Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+	// Where("sale_type_id = ? && is_vip = ? && sale_category_id = ? ", sale_type, isvip,categoryId).
+	// Where("sale_category_id = ? && is_vip = ?", sale_type, isvip).
+	// Limit(pageSize).
+	// Offset(offset).
+	Preload("SaleType").
+	Preload("SaleCategory").
+	Preload("User").
+	Unscoped().
+	Find(&vid).Error
 	// .Where("sale_type_id = ? && is_vip = ?", sale_type, isvip)
 	if err != nil {
 		return vid, err
