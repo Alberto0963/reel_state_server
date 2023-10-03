@@ -189,10 +189,10 @@ func (u *User) BeforeSave(tx *gorm.DB) error {
 
 }
 
-func GetMyVideos(id_user int, page int) ([]Video, error) {
+func GetMyVideos(id_user int, page int) ([]FeedVideo, error) {
 	var err error
 	dbConn := Pool
-	var vid []Video
+	var vid []FeedVideo
 	// userID, _ := token.ExtractTokenID(c)
 
 	// Get page number and page size from query parameters
@@ -223,10 +223,10 @@ func GetMyVideos(id_user int, page int) ([]Video, error) {
 
 }
 
-func GetMyFavoritesVideos(id_user int, page int) ([]Video, error) {
+func GetMyFavoritesVideos(id_user int, page int) ([]FeedVideo, error) {
 	var err error
 	dbConn := Pool
-	var vid []Video
+	var vid []FeedVideo
 	// userID, _ := token.ExtractTokenID(c)
 
 	// Get page number and page size from query parameters
