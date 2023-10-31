@@ -40,7 +40,7 @@ func SendSMS(number string, code string) {
 
 
 func GenerateRandomCode(length int) string {
-	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	const charset = "0123456789"
 	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	code := make([]byte, length)
