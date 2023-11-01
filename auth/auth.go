@@ -108,6 +108,8 @@ type RegisterInput struct {
 
 type VerificationPhoneInput struct {
 	Phone string `json:"phone" binding:"required"`
+	AppSignature string `json:"appSignature" binding:"required"`
+
 }
 
 type VerificationCodeInput struct {
@@ -215,7 +217,7 @@ func SendVerificationCode(c *gin.Context) {
 		return
 	}
 
-	SMS.SendSMS(v.Phone, code)
+	SMS.SendSMS(v.Phone, code, input.AppSignature)
 	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
 

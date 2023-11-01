@@ -11,7 +11,7 @@ import (
 	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
-func SendSMS(number string, code string) {
+func SendSMS(number string, code string, signature string) {
     // Get your Twilio credentials from environment variables
     accountSid := os.Getenv("TWILIO_ACCOUNT_SID")
     authToken := os.Getenv("TWILIO_AUTH_TOKEN")
@@ -27,7 +27,7 @@ func SendSMS(number string, code string) {
 	params.SetTo(number)
 	params.SetFrom("+19892005987")
 
-	params.SetBody(fmt.Sprintf("Your ReelState verification code is: %s, Don't share this code with anyone.", code))
+	params.SetBody(fmt.Sprintf("Your ReelState verification code is: %s, Don't share this code with anyone. %s", code,signature))
 
 	resp, err := client.Api.CreateMessage(params)
 	if err != nil {
