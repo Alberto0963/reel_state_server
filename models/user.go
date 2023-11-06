@@ -33,7 +33,7 @@ type User struct {
 	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
-	Description              string    `gorm:"size:255;not null;" json:"description"`
+	Description              string    `gorm:"size:255" json:"description"`
 
 }
 
@@ -48,7 +48,7 @@ type PublicUser struct {
 	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Videos                   []MyVideo `gorm:"references:id; foreignKey:id_user"`
-	Description              string    `gorm:"size:255;not null;" json:"description"`
+	Description              string    `gorm:"size:255" json:"description"`
 
 }
 
