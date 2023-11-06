@@ -27,6 +27,14 @@ func RegisterHandler(c *gin.Context) {
 	auth.Register(c)
 }
 
+func UpdatePasswordHandler(c *gin.Context) {
+	auth.ResetPassword(c)
+}
+
+func UpdateUsernameHandler(c *gin.Context) {
+	auth.UpdateUserName(c)
+}
+
 func CurrentUserHandler(c *gin.Context) {
 	auth.CurrentUser(c)
 }

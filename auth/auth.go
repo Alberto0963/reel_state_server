@@ -39,7 +39,7 @@ func CurrentUser(c *gin.Context) {
 }
 
 type LoginInput struct {
-	Phone string `json:"phone" binding:"required"`
+	Phone    string `json:"phone" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -71,51 +71,38 @@ func Login(c *gin.Context, db *gorm.DB) {
 	if user.IdMembership == 4 || user.IdMembership == 5 {
 		isVip = true
 	}
-	c.JSON(http.StatusOK, gin.H{"token": token,"isVip" : isVip})
+	c.JSON(http.StatusOK, gin.H{"token": token, "isVip": isVip})
 }
-
-// func Login(c *gin.Context, ) {
-
-// 	var input LoginInput
-
-// 	if err := c.ShouldBindJSON(&input); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	u := models.User{}
-
-// 	u.Username = input.Username
-// 	u.Password = input.Password
-
-// 	token, err := models.LoginCheck(u.Username, u.Password)
-
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "username or password is incorrect."})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{"token":token})
-
-// }
 
 type RegisterInput struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Phone    string `json:"phone" binding:"required"`
-	Code     string `json:"phone" binding:"required"`
+	Code     string `json:"code" binding:""`
+}
+
+type ResetPasswordInput struct {
+	// Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Phone    string `json:"phone" binding:"required"`
+	Code     string `json:"code" binding:""`
+}
+
+type UpdateUserNameInput struct {
+	Username string `json:"username" binding:"required"`
+	// Password string `json:"password" binding:"required"`
+	// Phone    string `json:"phone" binding:"required"`
+	// Code     string `json:"code" binding:""`
 }
 
 type VerificationPhoneInput struct {
-	Phone string `json:"phone" binding:"required"`
+	Phone        string `json:"phone" binding:"required"`
 	AppSignature string `json:"appSignature" binding:"required"`
-
 }
 
 type VerificationCodeInput struct {
 	Phone string `json:"phone" binding:"required"`
-	Code string `json:"code" binding:"required"`
-
+	Code  string `json:"code" binding:"required"`
 }
 
 func Register(c *gin.Context) {
@@ -128,10 +115,10 @@ func Register(c *gin.Context) {
 	}
 
 	// profileImage, err := c.FormFile("profile_image")
-    // if err != nil {
-    //     c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from the request"})
-    //     return
-    // }
+	// if err != nil {
+	//     c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from the request"})
+	//     return
+	// }
 	// Generate a random file name for the profile image
 	// imageFileName := models.GenerateRandomName() + filepath.Ext(profileImage.Filename)
 	// url := os.Getenv("MY_URL")
@@ -190,7 +177,107 @@ func Register(c *gin.Context) {
 	// 	return
 	// }
 
-	c.JSON(http.StatusOK, gin.H{"message": "registration success","token": token})
+	c.JSON(http.StatusOK, gin.H{"message": "registration success", "token": token})
+	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
+
+}
+
+func ResetPassword(c *gin.Context) {
+
+	var input ResetPasswordInput
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	u, err := models.GetUserByPhone(input.Phone)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error getting user"})
+		return
+	}
+	// u.Username = input.Username
+	u.Password = input.Password
+	// u.Phone = input.Phone
+
+	// u.ProfileImage = profileImagePath
+	// u.ExpirationMembershipDate = time.Now()
+	// u.IdMembership = 1
+
+	vc := models.VerificationCode{}
+	vc.Code = input.Code
+	vc.Phone = input.Phone
+
+	_, err = vc.CodeIsValid()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification code"})
+		return
+	}
+
+	_, err = u.UpdateUser()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := token.GenerateToken(u.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "update success", "token": token})
+	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
+
+}
+
+
+func UpdateUserName(c *gin.Context) {
+
+	var input UpdateUserNameInput
+	userID, _ := token.ExtractTokenID(c)
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	u, err := models.GetUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error getting user"})
+		return
+	}
+	u.Username = input.Username
+	// u.Password = input.Password
+	// u.Phone = input.Phone
+
+	// u.ProfileImage = profileImagePath
+	// u.ExpirationMembershipDate = time.Now()
+	// u.IdMembership = 1
+
+	// vc := models.VerificationCode{}
+	// vc.Code = input.Code
+	// vc.Phone = input.Phone
+
+	// _, err = vc.CodeIsValid()
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification code"})
+	// 	return
+	// }
+
+	_, err = u.UpdateUser()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// token, err := token.GenerateToken(u.ID)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+	// 	return
+	// }
+
+	c.JSON(http.StatusOK, gin.H{"message": "update success",})
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
 
 }
@@ -245,11 +332,7 @@ func ValidateVerificationCode(c *gin.Context) {
 		return
 	}
 
-
 	c.JSON(http.StatusOK, gin.H{"message": "code is valid"})
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
 
 }
-
-
-

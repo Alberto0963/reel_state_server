@@ -139,6 +139,24 @@ func GetUserByID(uid uint) (User, error) {
 
 }
 
+
+func GetUserByPhone(phone string) (User, error) {
+
+	var u User
+	// Obtain a connection from the pool
+	dbConn := Pool
+	// defer dbConn.Close()
+
+	if err := dbConn.Model(&User{}).Where("phone = ?", phone).Find(&u).Error; err != nil {
+		return u, errors.New("User not found!")
+	}
+
+	u.PrepareGive()
+
+	return u, nil
+
+}
+
 func UsernameExists(username string) bool {
 
 	var u PublicUser
@@ -167,6 +185,18 @@ func (u *User) SaveUser() (*User, error) {
 	dbConn := Pool
 
 	err = dbConn.Create(&u).Error
+	if err != nil {
+		return &User{}, err
+	}
+	return u, nil
+}
+
+func (u *User) UpdateUser() (*User, error) {
+
+	var err error
+	dbConn := Pool
+
+	err = dbConn.Save(&u).Error
 	if err != nil {
 		return &User{}, err
 	}

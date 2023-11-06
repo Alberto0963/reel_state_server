@@ -42,6 +42,8 @@ func main() {
 	public.POST("/ValidateUserName", controllers.ValidateUserName)
 	public.POST("/register", controllers.RegisterHandler)
 	public.POST("/login", controllers.LoginHandler)
+	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
+
 	
 	
 	
@@ -49,6 +51,8 @@ func main() {
 	protected.Use(middlewares.JwtAuthMiddleware())
 	protected.POST("/upload", controllers.HandleVideoUpload)
 	protected.POST("/edit", controllers.HandleVideoEdit)
+	protected.POST("/updateusername", controllers.UpdateUsernameHandler)
+
 
 	protected.POST("/UpdateProfileImageUserName", controllers.UpdateProfileImageUserName)
 	protected.POST("/UpdateCoverImageUserName", controllers.UpdateCoverImageUserName)

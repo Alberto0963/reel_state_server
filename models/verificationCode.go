@@ -5,7 +5,7 @@ type VerificationCode struct {
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
 	ID uint `gorm:"not null;unique" json:"id"`
 	Phone string `gorm:"size:13;not null;unique" json:"phone"`
-	Code     string `gorm:"size:255;not null;unique" json:"username"`
+	Code     string `gorm:"size:255;not null;unique" json:"code"`
 }
 
 func (VerificationCode) TableName() string {
