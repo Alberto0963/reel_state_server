@@ -578,21 +578,14 @@ func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName stri
 
 	url := os.Getenv("api_join_audio_video")
 
-	// jsonStr := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":"kk.jpg"}`)
-	// jsonStrign := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
-	// Create a map to hold the data
+	
 
 	data := RequestAudioVideoData{
 		Video_path: videoPath, //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
 		Audio_path: audioPath, //"/home/albert/Downloads/dreams.mp3",
 		Final_video_name: finalVideoName,
 	}
-	// var data = []byte(`{
-	// 		"video_path": videoPath,
-	// 		"audio_path": audioPath,
-	// 		"final_video_name":finalVideoName
-	// }`)
-	// Convert the data to JSON
+
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
