@@ -583,8 +583,8 @@ func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName stri
 	// Create a map to hold the data
 
 	data := RequestAudioVideoData{
-		Video_path: videoPath //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
-		Audio_path: audioPath //"/home/albert/Downloads/dreams.mp3",
+		Video_path: videoPath, //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
+		Audio_path: audioPath, //"/home/albert/Downloads/dreams.mp3",
 		Final_video_name: finalVideoName,
 	}
 	// var data = []byte(`{
