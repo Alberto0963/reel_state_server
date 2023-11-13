@@ -183,15 +183,11 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	audio, err := c.FormFile("audio")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	
+	audioFileName := c.PostForm("audio")
 
 	// Generate a random file name
-	audioFileName := models.GenerateRandomName()
+	// audioFileName := models.GenerateRandomName()
 	videoFileName := models.GenerateRandomName()
 	finalVideoName := models.GenerateRandomName() + filepath.Ext(video.Filename)
 
@@ -201,10 +197,10 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 
 	// fut := new(async.Future[error])
 
-	destAudioPath := filepath.Join(url, "/public/videos", audioFileName+filepath.Ext(audio.Filename))
+	destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 	destVideoPath := filepath.Join(url, "/public/videos", videoFileName+filepath.Ext(video.Filename))
 
-	saveVideoFile(audio, destAudioPath)
+	// saveVideoFile(audio, destAudioPath)
 	saveVideoFile(video, destVideoPath)
 
 	joinAudioWithVideo(destAudioPath,destVideoPath, finalVideoName)
