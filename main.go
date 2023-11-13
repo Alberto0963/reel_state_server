@@ -52,7 +52,7 @@ func main() {
 	protected.POST("/upload", controllers.HandleVideoUpload)
 	protected.POST("/edit", controllers.HandleVideoEdit)
 	protected.POST("/updateusername", controllers.UpdateUsernameHandler)
-
+	protected.POST("/uploadVideoWithAudioUpload", controllers.HandleVideoWithAudioUpload)
 
 	protected.POST("/UpdateProfileImageUserName", controllers.UpdateProfileImageUserName)
 	protected.POST("/UpdateCoverImageUserName", controllers.UpdateCoverImageUserName)

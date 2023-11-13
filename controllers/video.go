@@ -104,14 +104,10 @@ func HandleVideoUpload(c *gin.Context) {
 
 		async.ResolveFuture(fut, saveVideoFile(file, destPath), nil)
 
-	
 	}()
-// async.Awaiter()
-	// Block until the future is resolved.
-	// Block until the future is resolved.
+
 	async.Await(fut)
-	// frame, err := fut.Value()
-	// fmt.Println(frame, err)
+	
 	fmt.Println("/////////////// final ///////////////////")
 	d, err := os.Stat(destPath)
 
@@ -180,6 +176,92 @@ func HandleVideoUpload(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
 }
 
+func HandleVideoWithAudioUpload(c *gin.Context) {
+
+	video, err := c.FormFile("video")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	audio, err := c.FormFile("audio")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Generate a random file name
+	audioFileName := models.GenerateRandomName()
+	videoFileName := models.GenerateRandomName()
+	finalVideoName := models.GenerateRandomName() + filepath.Ext(video.Filename)
+
+	url := os.Getenv("MY_URL")
+	
+	// finalVideoName = filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(video.Filename))
+
+	// fut := new(async.Future[error])
+
+	destAudioPath := filepath.Join(url, "/public/videos", audioFileName+filepath.Ext(audio.Filename))
+	destVideoPath := filepath.Join(url, "/public/videos", videoFileName+filepath.Ext(video.Filename))
+
+	saveVideoFile(audio, destAudioPath)
+	saveVideoFile(video, destVideoPath)
+
+	joinAudioWithVideo(destAudioPath,destVideoPath, finalVideoName)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var input VideoInput
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	v := models.Video{}
+	v.Video_url = ("public/videos/" + videoFileName + filepath.Ext(video.Filename))
+	v.Image_cover = "public/video_cover/" + videoFileName + ".jpg"
+	v.Description = input.Description
+	v.Location = input.Location
+	v.Area = input.Area
+	v.Property_number = input.Property_number
+	v.Price = input.Price
+	userID, _ := token.ExtractTokenID(c)
+	v.Id_user = userID
+	v.Latitude = input.Latitude
+	v.Longitude = input.Longitude
+	
+	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
+	if err != nil {
+		// Handle the error if the conversion fails
+		fmt.Println("Error converting string to uint:", err)
+		return
+	}
+	v.Sale_type_id = int(sale_type_id)
+	sale_category_id, err := strconv.ParseUint(input.Sale_category_id, 10, 32)
+	if err != nil {
+		// Handle the error if the conversion fails
+		fmt.Println("Error converting string to uint:", err)
+		return
+	}
+	v.Sale_category_id = int(sale_category_id)
+	_, err = v.SaveVideo()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = getFrame(destVideoPath, videoFileName+".jpg")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
+}
 
 func HandleVideoEdit(c *gin.Context) {
 
@@ -486,6 +568,58 @@ func getFrame(filePath string, fileName string) error {
 	return nil
 }
 
+type RequestAudioVideoData struct {
+	Video_path string `json:"path_video"`
+	Audio_path string `json:"image_name"`
+	Final_video_name string `json:"final_video_name"`
+}
+
+func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName string) (string, error) {
+
+	url := os.Getenv("api_join_audio_video")
+
+	// jsonStr := []byte(`{"path_video":"/home/albert/Downloads/ssstik.io_1691458134586.mp4","image_name":"kk.jpg"}`)
+	// jsonStrign := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
+	// Create a map to hold the data
+
+	data := RequestAudioVideoData{
+		Video_path: videoPath,
+		Audio_path: audioPath,
+	}
+	// var data = []byte(`{
+	// 		"video_path": videoPath,
+	// 		"audio_path": audioPath,
+	// 		"final_video_name":finalVideoName
+	// }`)
+	// Convert the data to JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return "",err
+	}
+
+	fmt.Println("HTTP JSON POST URL:", url)
+
+	// var jsonData = []byte(`{
+	// 	"name": "morpheus",
+	// 	"job": "leader"
+	// }`)
+	request, error := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	client := &http.Client{}
+	response, error := client.Do(request)
+	if error != nil {
+		panic(error)
+	}
+	defer response.Body.Close()
+
+	fmt.Println("response Status:", response.Status)
+	fmt.Println("response Headers:", response.Header)
+	// body, _ := ioutil.ReadAll(response.Body)
+	// fmt.Println("response Body:", string(body))
+	return "",nil
+}
 
 func SetFavorite(c *gin.Context){
 
