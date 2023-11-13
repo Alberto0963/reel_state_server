@@ -569,8 +569,8 @@ func getFrame(filePath string, fileName string) error {
 }
 
 type RequestAudioVideoData struct {
-	Video_path string `json:"path_video"`
-	Audio_path string `json:"image_name"`
+	Video_path string `json:"video_path"`
+	Audio_path string `json:"audio_path"`
 	Final_video_name string `json:"final_video_name"`
 }
 
@@ -583,8 +583,9 @@ func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName stri
 	// Create a map to hold the data
 
 	data := RequestAudioVideoData{
-		Video_path: videoPath,
-		Audio_path: audioPath,
+		Video_path: videoPath //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
+		Audio_path: audioPath //"/home/albert/Downloads/dreams.mp3",
+		Final_video_name: finalVideoName,
 	}
 	// var data = []byte(`{
 	// 		"video_path": videoPath,
@@ -600,10 +601,6 @@ func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName stri
 
 	fmt.Println("HTTP JSON POST URL:", url)
 
-	// var jsonData = []byte(`{
-	// 	"name": "morpheus",
-	// 	"job": "leader"
-	// }`)
 	request, error := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 
