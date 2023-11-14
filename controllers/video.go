@@ -90,7 +90,7 @@ func HandleVideoUpload(c *gin.Context) {
 	// 	return
 	// }
 
-	fut := new(async.Future[error])
+	saveVideo := new(async.Future[error])
 
 	destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
@@ -101,11 +101,11 @@ func HandleVideoUpload(c *gin.Context) {
 		fmt.Println("/////////////// inicio ///////////////////")
 		// time.Sleep(50 * time.Second)
 
-		async.ResolveFuture(fut, saveVideoFile(file, destPath), nil)
+		async.ResolveFuture(saveVideo, saveVideoFile(file, destPath), nil)
 
 	}()
 
-	async.Await(fut)
+	async.Await(saveVideo)
 	
 	fmt.Println("/////////////// final ///////////////////")
 	d, err := os.Stat(destPath)
@@ -117,17 +117,18 @@ func HandleVideoUpload(c *gin.Context) {
 	if audioFileName !="" {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 		fileName = models.GenerateRandomName()
+		saveVideoWithAudio := new(async.Future[error])
 
 		go func() {
 			// err = saveVideoFile(file, destPath)
 			fmt.Println("/////////////// inicio ///////////////////")
 			// time.Sleep(50 * time.Second)
 	
-			async.ResolveFuture(fut,joinAudioWithVideo(destAudioPath,destPath, fileName+ filepath.Ext(file.Filename)), nil)
+			async.ResolveFuture(saveVideoWithAudio,joinAudioWithVideo(destAudioPath,destPath, fileName+ filepath.Ext(file.Filename)), nil)
 	
 		}()
 	
-		async.Await(fut)
+		async.Await(saveVideoWithAudio)
 		
 		fmt.Println("/////////////// final ///////////////////")
 		d, err = os.Stat(destPath)
