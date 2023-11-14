@@ -73,16 +73,15 @@ func HandleVideoUpload(c *gin.Context) {
 		return
 	}
 
+	audioFileName := c.PostForm("audio")
+
 	// Generate a random file name
 	fileName := models.GenerateRandomName()
 
 	// Create the destination file
 	//destPath := filepath.Join("", fileName)
 	// baseDir, err := os.Getwd() // Get the current working directory
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	// 	return
-	// }
+
 
 	url := os.Getenv("MY_URL")
 	// if url != nil {
@@ -114,6 +113,29 @@ func HandleVideoUpload(c *gin.Context) {
 	fmt.Println(d)
 
 
+
+	if audioFileName !="" {
+		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
+		fileName = models.GenerateRandomName()
+
+		go func() {
+			// err = saveVideoFile(file, destPath)
+			fmt.Println("/////////////// inicio ///////////////////")
+			// time.Sleep(50 * time.Second)
+	
+			async.ResolveFuture(fut,joinAudioWithVideo(destAudioPath,destPath, fileName+ filepath.Ext(file.Filename)), nil)
+	
+		}()
+	
+		async.Await(fut)
+		
+		fmt.Println("/////////////// final ///////////////////")
+		d, err = os.Stat(destPath)
+	
+		fmt.Println(d)
+
+
+	}
 	//  = saveVideoFile(file, destPath,uploadComplete)
 	// if err != nil {
 	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -220,7 +242,7 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 	}
 
 	v := models.Video{}
-	v.Video_url = ("public/videos/" + finalVideoName)
+	v.Video_url = ("public/videos/" + finalVideoName+ filepath.Ext(video.Filename))
 	v.Image_cover = "public/video_cover/" + videoFileName + ".jpg"
 	v.Description = input.Description
 	v.Location = input.Location
@@ -572,8 +594,9 @@ type RequestAudioVideoData struct {
 	Final_video_name string `json:"final_video_name"`
 }
 
-func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName string) (string, error) {
+func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName string)  error {
 
+	
 	url := os.Getenv("api_join_audio_video")
 
 	
@@ -587,7 +610,7 @@ func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName stri
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
-		return "",err
+		return err
 	}
 
 	fmt.Println("HTTP JSON POST URL:", url)
@@ -606,7 +629,7 @@ func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName stri
 	fmt.Println("response Headers:", response.Header)
 	// body, _ := ioutil.ReadAll(response.Body)
 	// fmt.Println("response Body:", string(body))
-	return "",nil
+	return nil
 }
 
 func SetFavorite(c *gin.Context){
