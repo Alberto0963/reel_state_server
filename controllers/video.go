@@ -199,6 +199,7 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 
 	destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 	destVideoPath := filepath.Join(url, "/public/videos", videoFileName+filepath.Ext(video.Filename))
+	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(video.Filename))
 
 	// saveVideoFile(audio, destAudioPath)
 	saveVideoFile(video, destVideoPath)
@@ -218,8 +219,8 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 	}
 
 	v := models.Video{}
-	v.Video_url = ("public/videos/" + videoFileName + filepath.Ext(video.Filename))
-	v.Image_cover = "public/video_cover/" + videoFileName + ".jpg"
+	v.Video_url = ("public/videos/" + finalVideoName)
+	v.Image_cover = "public/video_cover/" + finalVideoName + ".jpg"
 	v.Description = input.Description
 	v.Location = input.Location
 	v.Area = input.Area
@@ -250,7 +251,7 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 		return
 	}
 
-	err = getFrame(destVideoPath, videoFileName+".jpg")
+	err = getFrame(finalVideoPath, videoFileName+".jpg")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
