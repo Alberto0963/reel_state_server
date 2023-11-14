@@ -131,11 +131,12 @@ func HandleVideoUpload(c *gin.Context) {
 		async.Await(saveVideoWithAudio)
 		
 		fmt.Println("/////////////// final ///////////////////")
+		destPath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+
 		d, err = os.Stat(destPath)
 	
 		fmt.Println(d)
 
-		destPath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
 	}
 	//  = saveVideoFile(file, destPath,uploadComplete)
