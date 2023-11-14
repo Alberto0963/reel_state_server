@@ -199,7 +199,8 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 
 	destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 	destVideoPath := filepath.Join(url, "/public/videos", videoFileName+filepath.Ext(video.Filename))
-	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(video.Filename))
+	
+	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName)
 
 	// saveVideoFile(audio, destAudioPath)
 	saveVideoFile(video, destVideoPath)
