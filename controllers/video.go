@@ -189,7 +189,7 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 	// Generate a random file name
 	// audioFileName := models.GenerateRandomName()
 	videoFileName := models.GenerateRandomName()
-	finalVideoName := models.GenerateRandomName() + filepath.Ext(video.Filename)
+	finalVideoName := models.GenerateRandomName()
 
 	url := os.Getenv("MY_URL")
 	
@@ -200,12 +200,12 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 	destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 	destVideoPath := filepath.Join(url, "/public/videos", videoFileName+filepath.Ext(video.Filename))
 	
-	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName)
+	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName+ filepath.Ext(video.Filename))
 
 	// saveVideoFile(audio, destAudioPath)
 	saveVideoFile(video, destVideoPath)
 
-	joinAudioWithVideo(destAudioPath,destVideoPath, finalVideoName)
+	joinAudioWithVideo(destAudioPath,destVideoPath, finalVideoName+ filepath.Ext(video.Filename))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -221,7 +221,7 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 
 	v := models.Video{}
 	v.Video_url = ("public/videos/" + finalVideoName)
-	v.Image_cover = "public/video_cover/" + finalVideoName + ".jpg"
+	v.Image_cover = "public/video_cover/" + videoFileName + ".jpg"
 	v.Description = input.Description
 	v.Location = input.Location
 	v.Area = input.Area
@@ -252,7 +252,7 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 		return
 	}
 
-	err = getFrame(finalVideoPath, videoFileName+".jpg")
+	err = getFrame(finalVideoPath, finalVideoName+".jpg")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
