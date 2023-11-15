@@ -10,6 +10,7 @@ type Song struct {
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
 	ID                       int      `gorm:"not null;unique" json:"id"`
 	Name                    string    `gorm:"size:13;not null;unique" json:"name"`
+	Completename            string    `gorm:"size:13;not null;unique" json:"completename"`
 
 }
 
