@@ -66,6 +66,7 @@ func main() {
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 	protected.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
+	protected.GET("/getsongs", controllers.HandleGetAllSongs)
 
 	// type User struct {
 	// 	ID   int

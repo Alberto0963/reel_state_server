@@ -476,6 +476,17 @@ func HandleGetAllVideos(c *gin.Context) {
 
 }
 
+func HandleGetAllSongs(c *gin.Context) {
+
+	songs, err := models.GetAllSongs()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": songs})
+
+}
+
 func HandleGetAllCategoriesVideos(c *gin.Context) {
 	userID, _ := token.ExtractTokenID(c)
 
