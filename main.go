@@ -5,6 +5,7 @@ import (
 	// "fmt"
 	"log"
 	"net/http"
+	"os"
 	"reelState/controllers"
 	"reelState/middlewares"
 	"reelState/models"
@@ -28,7 +29,7 @@ func main() {
 
 	r.Use(middlewares.BlockFolderAccessMiddleware())
 	// Specify the directory containing your public files
-	publicDir := "./public"
+	publicDir :=  os.Getenv("MY_URL") +"./public"
 
 	// Create a file server handler for the public directory
 	fs := http.FileSystem(http.Dir(publicDir))
