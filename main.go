@@ -8,11 +8,14 @@ import (
 	"reelState/controllers"
 	"reelState/middlewares"
 	"reelState/models"
+
 	// "time"
 	"github.com/gin-gonic/gin"
 	// "github.com/ianlopshire/go-async"
-
 )
+
+const sampleRate = 44100
+const seconds = 2
 
 func main() {
 
@@ -24,12 +27,22 @@ func main() {
 	r.SetTrustedProxies(nil)
 
 	r.Use(middlewares.BlockFolderAccessMiddleware())
+	// Specify the directory containing your public files
+	publicDir := "./public"
+
+	// Create a file server handler for the public directory
+	fs := http.FileSystem(http.Dir(publicDir))
 
 	// Serve static files from the "public" directory
-	r.Static("/public", "home/reelstate/go/reel_state_server/public")
+	r.StaticFS("/public", fs)
+	// Specify the directory containing your public files
+
+	// Create a file server handler for the public directory
+
+	// Register the file server handler with a specific URL path
+	// Specify the directory containing your public files
 
 	public := r.Group("/api")
-
 
 	public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
 	public.GET("/getFeedCategoryVideos", controllers.HandleGetAllCategoriesVideos)
@@ -44,9 +57,6 @@ func main() {
 	public.POST("/login", controllers.LoginHandler)
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
 
-	
-	
-	
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
 	protected.POST("/upload", controllers.HandleVideoUpload)
@@ -72,14 +82,13 @@ func main() {
 	// 	ID   int
 	// 	Name string
 	// }
-	
-	
+
 	// output: {1 John Does} <nil>
 
+	
 	log.Fatal(http.ListenAndServe(":8080", r))
 
 }
-
 
 // func DoneAsync() int {
 // 	fmt.Println("Warming up ...")

@@ -29,6 +29,7 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-dap v0.9.1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/gordonklaus/portaudio v0.0.0-20230709114228-aafa478834f5 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/ianlopshire/go-async v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
