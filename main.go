@@ -57,6 +57,8 @@ func main() {
 	public.POST("/register", controllers.RegisterHandler)
 	public.POST("/login", controllers.LoginHandler)
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
+	public.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
+	
 
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
@@ -76,7 +78,6 @@ func main() {
 	protected.GET("/GetMemberShips", controllers.GetMemberShips)
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
-	protected.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
 	protected.GET("/getsongs", controllers.HandleGetAllSongs)
 
 	// type User struct {
