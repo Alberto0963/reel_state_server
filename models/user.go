@@ -40,7 +40,7 @@ type User struct {
 type PublicUser struct {
 	// gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
-	ID                       uint      `gorm:"not null;unique" json:"id"`
+	Id                       uint      `gorm:"not null;unique" json:"id"`
 	Phone                    string    `gorm:"size:13;not null;unique" json:"phone"`
 	Username                 string    `gorm:"size:255;not null;unique" json:"username"`
 	ProfileImage             string    `gorm:"size:255;not null;" json:"profileImage"`
@@ -155,7 +155,7 @@ func GetUserByIDWithVideos(uid uint) (PublicUser, error) {
 	dbConn := Pool
 	// defer dbConn.Close()
 
-	if err := dbConn.Model(&PublicUser{}).First(&u, uid).Error; err != nil {
+	if err := dbConn.Model(&PublicUser{}).Preload("Videos").First(&u, uid).Error; err != nil {
 		return u, errors.New("User not found!")
 	}
 
