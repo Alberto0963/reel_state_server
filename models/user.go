@@ -40,12 +40,12 @@ type User struct {
 type PublicUser struct {
 	// gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
-	Id                       uint      `gorm:"not null;unique" json:"id"`
+	ID                       uint      `gorm:"not null;unique" json:"id"`
 	Phone                    string    `gorm:"size:13;not null;unique" json:"phone"`
 	Username                 string    `gorm:"size:255;not null;unique" json:"username"`
 	ProfileImage             string    `gorm:"size:255;not null;" json:"profileImage"`
 	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
-	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
+	Id_Membership             int       `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Videos                   []MyVideo `gorm:"references:id; foreignKey:id_user"`
 	Description              string    `gorm:"size:255" json:"description"`
@@ -53,6 +53,10 @@ type PublicUser struct {
 }
 
 func (PublicUser) TableName() string {
+	return "users"
+}
+
+func (User) TableName() string {
 	return "users"
 }
 
@@ -143,6 +147,23 @@ func GetUserByID(uid uint) (User, error) {
 
 }
 
+
+func GetUserByIDWithVideos(uid uint) (PublicUser, error) {
+
+	var u PublicUser
+	// Obtain a connection from the pool
+	dbConn := Pool
+	// defer dbConn.Close()
+
+	if err := dbConn.Model(&PublicUser{}).First(&u, uid).Error; err != nil {
+		return u, errors.New("User not found!")
+	}
+
+	// u.PrepareGive()
+
+	return u, nil
+
+}
 
 func GetUserByPhone(phone string) (User, error) {
 

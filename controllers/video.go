@@ -58,14 +58,35 @@ type VideoInput struct {
 	Property_number string `json:"property_number" binding:"required"`
 	Price           string `json:"price" binding:"required"`
 	// Id_user string `json:"id_user" binding:"required"`
-	Sale_type_id     string `json:"sale_type_id" binding:"required"`
-	Sale_category_id string `json:"sale_category_id" binding:"required"`
-	Latitude float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
+	Sale_type_id     string  `json:"sale_type_id" binding:"required"`
+	Sale_category_id string  `json:"sale_category_id" binding:"required"`
+	Latitude         float64 `json:"latitude"`
+	Longitude        float64 `json:"longitude"`
+}
 
+func checkVideoSize(filePath string, maxSize int64) error {
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+
+	fileSize := fileInfo.Size()
+	if fileSize > maxSize {
+		return fmt.Errorf("Error: File size exceeds the maximum limit of %d MB", maxSize/(1024*1024))
+	}
+
+	return nil
+}
+
+// ErrorResponse represents a JSON error response structure
+type ErrorResponse struct {
+	Error string `json:"error"`
 }
 
 func HandleVideoUpload(c *gin.Context) {
+
+	// c.Request.Body = http.MaxBytesReader(c.Request.Response., c.Request.Body, 300*1024*1024)
+
 
 	file, err := c.FormFile("video")
 	if err != nil {
@@ -82,7 +103,6 @@ func HandleVideoUpload(c *gin.Context) {
 	//destPath := filepath.Join("", fileName)
 	// baseDir, err := os.Getwd() // Get the current working directory
 
-
 	url := os.Getenv("MY_URL")
 	// if url != nil {
 
@@ -90,12 +110,40 @@ func HandleVideoUpload(c *gin.Context) {
 	// 	return
 	// }
 
+
+
+	// Get the file size from the request
+	fileSize := c.Request.ContentLength
+	if fileSize <= 0 || fileSize > (300*1024*1024) {
+		// http.Error(w, "Error: Invalid file size", http.StatusBadRequest)
+		errorResponse := ErrorResponse{Error: fmt.Sprintf("File size exceeds the maximum limit of %d MB", (300*1024*1024)/(1024*1024))}
+		c.JSON(http.StatusRequestEntityTooLarge, errorResponse)
+		// c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": err.Error()})
+		// errorResponse := ErrorResponse{Error: "Invalid file size"}
+		// writeJSONResponse(w, errorResponse, http.StatusBadRequest)
+		
+		return
+	}
+
+	userID, _ := token.ExtractTokenID(c)
+	user,_ := models.GetUserByIDWithVideos(userID)
+	countuservideos := len(user.Videos)
+	if user.Id_Membership == 1 &&  countuservideos >= 1 {
+		// http.Error(w, "Error: Invalid file size", http.StatusBadRequest)
+		errorResponse := ErrorResponse{Error: fmt.Sprintf("exceeds the maximum limit of Videos")}
+		c.JSON(http.StatusPreconditionFailed, errorResponse)
+		// c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": err.Error()})
+		// errorResponse := ErrorResponse{Error: "Invalid file size"}
+		// writeJSONResponse(w, errorResponse, http.StatusBadRequest)
+		
+		return
+	}
 	saveVideo := new(async.Future[error])
 
 	destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
 	// Simulate long computation or IO by sleeping before and resolving the future.
-	
+
 	go func() {
 		// err = saveVideoFile(file, destPath)
 		fmt.Println("/////////////// inicio ///////////////////")
@@ -106,15 +154,13 @@ func HandleVideoUpload(c *gin.Context) {
 	}()
 
 	async.Await(saveVideo)
-	
+
 	fmt.Println("/////////////// final ///////////////////")
 	d, err := os.Stat(destPath)
 
 	fmt.Println(d)
 
-
-
-	if audioFileName !="" {
+	if audioFileName != "" {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 		fileName = models.GenerateRandomName()
 		saveVideoWithAudio := new(async.Future[error])
@@ -123,20 +169,19 @@ func HandleVideoUpload(c *gin.Context) {
 			// err = saveVideoFile(file, destPath)
 			fmt.Println("/////////////// inicio ///////////////////")
 			// time.Sleep(50 * time.Second)
-	
-			async.ResolveFuture(saveVideoWithAudio,joinAudioWithVideo(destAudioPath,destPath, fileName+ filepath.Ext(file.Filename)), nil)
-	
+
+			async.ResolveFuture(saveVideoWithAudio, joinAudioWithVideo(destAudioPath, destPath, fileName+filepath.Ext(file.Filename)), nil)
+
 		}()
-	
+
 		async.Await(saveVideoWithAudio)
-		
+
 		fmt.Println("/////////////// final ///////////////////")
 		destPath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
 		d, err = os.Stat(destPath)
-	
-		fmt.Println(d)
 
+		fmt.Println(d)
 
 	}
 	//  = saveVideoFile(file, destPath,uploadComplete)
@@ -167,11 +212,10 @@ func HandleVideoUpload(c *gin.Context) {
 	v.Area = input.Area
 	v.Property_number = input.Property_number
 	v.Price = input.Price
-	userID, _ := token.ExtractTokenID(c)
 	v.Id_user = userID
 	v.Latitude = input.Latitude
 	v.Longitude = input.Longitude
-	
+
 	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
 	if err != nil {
 		// Handle the error if the conversion fails
@@ -208,7 +252,7 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	audioFileName := c.PostForm("audio")
 
 	// Generate a random file name
@@ -217,20 +261,20 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 	finalVideoName := models.GenerateRandomName()
 
 	url := os.Getenv("MY_URL")
-	
+
 	// finalVideoName = filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(video.Filename))
 
 	// fut := new(async.Future[error])
 
 	destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 	destVideoPath := filepath.Join(url, "/public/videos", videoFileName+filepath.Ext(video.Filename))
-	
-	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName+ filepath.Ext(video.Filename))
+
+	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(video.Filename))
 
 	// saveVideoFile(audio, destAudioPath)
 	saveVideoFile(video, destVideoPath)
 
-	joinAudioWithVideo(destAudioPath,destVideoPath, finalVideoName+ filepath.Ext(video.Filename))
+	joinAudioWithVideo(destAudioPath, destVideoPath, finalVideoName+filepath.Ext(video.Filename))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -245,7 +289,7 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 	}
 
 	v := models.Video{}
-	v.Video_url = ("public/videos/" + finalVideoName+ filepath.Ext(video.Filename))
+	v.Video_url = ("public/videos/" + finalVideoName + filepath.Ext(video.Filename))
 	v.Image_cover = "public/video_cover/" + videoFileName + ".jpg"
 	v.Description = input.Description
 	v.Location = input.Location
@@ -256,7 +300,7 @@ func HandleVideoWithAudioUpload(c *gin.Context) {
 	v.Id_user = userID
 	v.Latitude = input.Latitude
 	v.Longitude = input.Longitude
-	
+
 	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
 	if err != nil {
 		// Handle the error if the conversion fails
@@ -312,7 +356,7 @@ func HandleVideoEdit(c *gin.Context) {
 	v.Id_user = userID
 	v.Latitude = input.Latitude
 	v.Longitude = input.Longitude
-	
+
 	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
 	if err != nil {
 		// Handle the error if the conversion fails
@@ -327,7 +371,7 @@ func HandleVideoEdit(c *gin.Context) {
 		return
 	}
 	v.Sale_category_id = int(sale_category_id)
-	
+
 	_, err = v.EditVideo()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -344,8 +388,7 @@ func HandleVideoEdit(c *gin.Context) {
 }
 
 func saveVideoFile(file *multipart.FileHeader, destination string) error {
-	
-	
+
 	src, err := file.Open()
 	if err != nil {
 		// return err
@@ -393,13 +436,13 @@ func HandleGetCategoriesAndTypes(c *gin.Context) {
 }
 
 func HandleGetAroundVideos(c *gin.Context) {
-	
+
 	lat := c.Query("latitude")
 	long := c.Query("longitude")
 	dist := c.Query("distance")
 
 	// p := c.Query("page")
-	
+
 	// page, err := strconv.ParseUint(p, 10, 64)
 	// if err != nil {
 	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
@@ -426,7 +469,7 @@ func HandleGetAroundVideos(c *gin.Context) {
 
 	userID, _ := token.ExtractTokenID(c)
 
-	vid, err := models.GetPlacesAroundLocation(latitude, longitude,distance,int(userID))
+	vid, err := models.GetPlacesAroundLocation(latitude, longitude, distance, int(userID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -436,7 +479,6 @@ func HandleGetAroundVideos(c *gin.Context) {
 	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	// 	return
 	// }23
-	
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "videos": vid})
 }
@@ -465,9 +507,7 @@ func HandleGetAllVideos(c *gin.Context) {
 		return
 	}
 
-
-
-	cat, err := models.FetchAllVideos(int(userID),int(sale_id),int(is_vip),int(page))
+	cat, err := models.FetchAllVideos(int(userID), int(sale_id), int(is_vip), int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
@@ -518,34 +558,32 @@ func HandleGetAllCategoriesVideos(c *gin.Context) {
 	// 	return
 	// }
 	switch cat {
-    case "Residencial":
-        category = 1
-    case "Comercial":
-        category = 2
-    case "Terreno":
-        category = 3
-    case "Corporativo":
-        category = 4
-    case "Industrial":
-        category = 5
+	case "Residencial":
+		category = 1
+	case "Comercial":
+		category = 2
+	case "Terreno":
+		category = 3
+	case "Corporativo":
+		category = 4
+	case "Industrial":
+		category = 5
 
 	case "Residential":
-        category = 1
-    case "Business":
-        category = 2
-    case "Land":
-        category = 3
-    case "corporate":
-        category = 4
-    case "industry":
-        category = 5
-    default:
-        category = 0
-    }
+		category = 1
+	case "Business":
+		category = 2
+	case "Land":
+		category = 3
+	case "corporate":
+		category = 4
+	case "industry":
+		category = 5
+	default:
+		category = 0
+	}
 
-
-
-	data, err := models.FetchAllCategoryVideos(int(userID),int(sale_id),int(is_vip),category,int(page))
+	data, err := models.FetchAllCategoryVideos(int(userID), int(sale_id), int(is_vip), category, int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
@@ -603,21 +641,18 @@ func getFrame(filePath string, fileName string) error {
 }
 
 type RequestAudioVideoData struct {
-	Video_path string `json:"video_path"`
-	Audio_path string `json:"audio_path"`
+	Video_path       string `json:"video_path"`
+	Audio_path       string `json:"audio_path"`
 	Final_video_name string `json:"final_video_name"`
 }
 
-func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName string)  error {
+func joinAudioWithVideo(audioPath string, videoPath string, finalVideoName string) error {
 
-	
 	url := os.Getenv("api_join_audio_video")
 
-	
-
 	data := RequestAudioVideoData{
-		Video_path: videoPath, //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
-		Audio_path: audioPath, //"/home/albert/Downloads/dreams.mp3",
+		Video_path:       videoPath, //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
+		Audio_path:       audioPath, //"/home/albert/Downloads/dreams.mp3",
 		Final_video_name: finalVideoName,
 	}
 
@@ -646,7 +681,7 @@ func  joinAudioWithVideo(audioPath string, videoPath string, finalVideoName stri
 	return nil
 }
 
-func SetFavorite(c *gin.Context){
+func SetFavorite(c *gin.Context) {
 
 	var input RegisterFavInput
 
@@ -655,7 +690,7 @@ func SetFavorite(c *gin.Context){
 		return
 	}
 	model := models.Favorites{}
-	
+
 	userID, _ := token.ExtractTokenID(c)
 	model.Id_user = int(userID)
 	model.Id_video = input.Id_video
@@ -673,7 +708,7 @@ func SetFavorite(c *gin.Context){
 	// 	return
 	// }
 
-	err := models.IsVideoFavorite(model.Id_user,model.Id_video)
+	err := models.IsVideoFavorite(model.Id_user, model.Id_video)
 	if err != nil {
 
 		//
@@ -684,21 +719,19 @@ func SetFavorite(c *gin.Context){
 		}
 		c.JSON(http.StatusOK, gin.H{"message": "success", "data": fav})
 		return
-	}else
-	{
-		err := models.DeleteFavoritetByID(model.Id_user,model.Id_video)
+	} else {
+		err := models.DeleteFavoritetByID(model.Id_user, model.Id_video)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "error to delete"})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"message": "success delete",})
+		c.JSON(http.StatusOK, gin.H{"message": "success delete"})
 		return
 		// c.JSON(http.StatusOK, gin.H{"message": "success"})
 
 	}
-	
-}
 
+}
 
 func HandleSearchVideos(c *gin.Context) {
 	userID, _ := token.ExtractTokenID(c)
@@ -717,9 +750,7 @@ func HandleSearchVideos(c *gin.Context) {
 	// 	return
 	// }
 
-
-
-	vid, err := models.SearchVideos(search_text,int(page),int(userID))
+	vid, err := models.SearchVideos(search_text, int(page), int(userID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
