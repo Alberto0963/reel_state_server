@@ -7,6 +7,8 @@ import (
 	// "fmt"
 	"bytes"
 	"encoding/json"
+	"os/exec"
+
 	// "time"
 
 	// "errors"
@@ -87,7 +89,6 @@ func HandleVideoUpload(c *gin.Context) {
 
 	// c.Request.Body = http.MaxBytesReader(c.Request.Response., c.Request.Body, 300*1024*1024)
 
-
 	file, err := c.FormFile("video")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -110,8 +111,6 @@ func HandleVideoUpload(c *gin.Context) {
 	// 	return
 	// }
 
-
-
 	// Get the file size from the request
 	fileSize := c.Request.ContentLength
 	if fileSize <= 0 || fileSize > (300*1024*1024) {
@@ -121,23 +120,24 @@ func HandleVideoUpload(c *gin.Context) {
 		// c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": err.Error()})
 		// errorResponse := ErrorResponse{Error: "Invalid file size"}
 		// writeJSONResponse(w, errorResponse, http.StatusBadRequest)
-		
+
 		return
 	}
 
 	userID, _ := token.ExtractTokenID(c)
-	user,_ := models.GetUserByIDWithVideos(userID)
+	user, _ := models.GetUserByIDWithVideos(userID)
 	countuservideos := len(user.Videos)
-	if user.Id_Membership == 1 &&  countuservideos >= 1 {
+	if user.Id_Membership == 1 && countuservideos >= 1 {
 		// http.Error(w, "Error: Invalid file size", http.StatusBadRequest)
 		errorResponse := ErrorResponse{Error: fmt.Sprintf("exceeds the maximum limit of Videos")}
 		c.JSON(http.StatusPreconditionFailed, errorResponse)
 		// c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": err.Error()})
 		// errorResponse := ErrorResponse{Error: "Invalid file size"}
 		// writeJSONResponse(w, errorResponse, http.StatusBadRequest)
-		
+
 		return
 	}
+
 	saveVideo := new(async.Future[error])
 
 	destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
@@ -153,12 +153,35 @@ func HandleVideoUpload(c *gin.Context) {
 
 	}()
 
+	// var finalpath = ("public/videos/" + fileName + filepath.Ext(file.Filename))
+
 	async.Await(saveVideo)
+	// Compress the video using FFmpeg
+	fileName = models.GenerateRandomName()
+	var compresspathvideo = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+
+	cmd := exec.Command("ffmpeg",
+		"-i", destPath,
+		"-vf", "scale=1080:1920,setsar=1:1",
+		"-b:v", "5000k",
+		compresspathvideo,
+	)
+	err = cmd.Run()
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to compress the video"})
+		return
+	}
 
 	fmt.Println("/////////////// final ///////////////////")
 	d, err := os.Stat(destPath)
 
 	fmt.Println(d)
+
+	err = os.Remove(destPath)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Failed to delete original video"})
+		return
+	}
 
 	if audioFileName != "" {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
@@ -170,7 +193,7 @@ func HandleVideoUpload(c *gin.Context) {
 			fmt.Println("/////////////// inicio ///////////////////")
 			// time.Sleep(50 * time.Second)
 
-			async.ResolveFuture(saveVideoWithAudio, joinAudioWithVideo(destAudioPath, destPath, fileName+filepath.Ext(file.Filename)), nil)
+			async.ResolveFuture(saveVideoWithAudio, joinAudioWithVideo(destAudioPath, compresspathvideo, fileName+filepath.Ext(file.Filename)), nil)
 
 		}()
 
@@ -197,6 +220,7 @@ func HandleVideoUpload(c *gin.Context) {
 		return
 	}
 
+	var finalpath = ("public/videos/" + fileName + filepath.Ext(file.Filename))
 	var input VideoInput
 
 	if err := c.ShouldBind(&input); err != nil {
@@ -205,7 +229,7 @@ func HandleVideoUpload(c *gin.Context) {
 	}
 
 	v := models.Video{}
-	v.Video_url = ("public/videos/" + fileName + filepath.Ext(file.Filename))
+	v.Video_url = finalpath
 	v.Image_cover = "public/video_cover/" + fileName + ".jpg"
 	v.Description = input.Description
 	v.Location = input.Location
