@@ -185,25 +185,21 @@ func HandleVideoUpload(c *gin.Context) {
 
 	/// end add audio to video
 
-	cmd := exec.Command("ffmpeg",
-		"-i", tempFilePath,
-		"-vf", "scale=1080:1920,setsar=1:1",
-		"-b:v", "5000k",
-		finalVideoPath,
-	)
+	// compress video
+	compressvideo := new(async.Future[error])
 
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to compress the video", "Message": output})
-		return
-	}
+		go func() {
+			// err = saveVideoFile(file, destPath)
+			fmt.Println("/////////////// inicio ///////////////////")
+			// time.Sleep(50 * time.Second)
 
-	err = os.Remove(tempFilePath)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to delete original video"})
-		return
-	}
+			async.ResolveFuture(compressvideo, compressVideo(tempFilePath, finalVideoPath, ), nil)
 
+		}()
+
+		async.Await(compressvideo)
+
+	// end compress video
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -218,7 +214,7 @@ func HandleVideoUpload(c *gin.Context) {
 	}
 
 	v := models.Video{}
-	v.Video_url = finalVideoPath
+	v.Video_url = filepath.Join("/public/videos", finalVideoName+filepath.Ext(file.Filename))
 	v.Image_cover = "public/video_cover/" + fileName + ".jpg"
 	v.Description = input.Description
 	v.Location = input.Location
@@ -258,89 +254,27 @@ func HandleVideoUpload(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
 }
 
-func HandleVideoWithAudioUpload(c *gin.Context) {
+func compressVideo(tempFilePath string, finalVideoPath string) error {
+	cmd := exec.Command("ffmpeg",
+		"-i", tempFilePath,
+		"-vf", "scale=1080:1920,setsar=1:1",
+		"-b:v", "5000k",
+		finalVideoPath,
+	)
 
-	video, err := c.FormFile("video")
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		
+		return err
 	}
+	fmt.Println(output)
 
-	audioFileName := c.PostForm("audio")
-
-	// Generate a random file name
-	// audioFileName := models.GenerateRandomName()
-	videoFileName := models.GenerateRandomName()
-	finalVideoName := models.GenerateRandomName()
-
-	url := os.Getenv("MY_URL")
-
-	// finalVideoName = filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(video.Filename))
-
-	// fut := new(async.Future[error])
-
-	destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
-	destVideoPath := filepath.Join(url, "/public/videos", videoFileName+filepath.Ext(video.Filename))
-
-	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(video.Filename))
-
-	// saveVideoFile(audio, destAudioPath)
-	saveVideoFile(video, destVideoPath)
-
-	joinAudioWithVideo(destAudioPath, destVideoPath, finalVideoName+filepath.Ext(video.Filename))
-
+	err = os.Remove(tempFilePath)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		// c.JSON(500, gin.H{"error": "Failed to delete original video"})
+		return fmt.Errorf("Error: Failed to delete original video %d MB", err)
 	}
-
-	var input VideoInput
-
-	if err := c.ShouldBind(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	v := models.Video{}
-	v.Video_url = ("public/videos/" + finalVideoName + filepath.Ext(video.Filename))
-	v.Image_cover = "public/video_cover/" + videoFileName + ".jpg"
-	v.Description = input.Description
-	v.Location = input.Location
-	v.Area = input.Area
-	v.Property_number = input.Property_number
-	v.Price = input.Price
-	userID, _ := token.ExtractTokenID(c)
-	v.Id_user = userID
-	v.Latitude = input.Latitude
-	v.Longitude = input.Longitude
-
-	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
-	if err != nil {
-		// Handle the error if the conversion fails
-		fmt.Println("Error converting string to uint:", err)
-		return
-	}
-	v.Sale_type_id = int(sale_type_id)
-	sale_category_id, err := strconv.ParseUint(input.Sale_category_id, 10, 32)
-	if err != nil {
-		// Handle the error if the conversion fails
-		fmt.Println("Error converting string to uint:", err)
-		return
-	}
-	v.Sale_category_id = int(sale_category_id)
-	_, err = v.SaveVideo()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	err = getFrame(finalVideoPath, finalVideoName+".jpg")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
+	return nil
 }
 
 func HandleVideoEdit(c *gin.Context) {
