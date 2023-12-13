@@ -156,6 +156,11 @@ func HandleVideoUpload(c *gin.Context) {
 	// var finalpath = ("public/videos/" + fileName + filepath.Ext(file.Filename))
 
 	async.Await(saveVideo)
+
+	fmt.Println("/////////////// final ///////////////////")
+	d, err := os.Stat(destPath)
+
+	fmt.Println(d)
 	// Compress the video using FFmpeg
 	fileName = models.GenerateRandomName()
 	var compresspathvideo = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
@@ -166,16 +171,14 @@ func HandleVideoUpload(c *gin.Context) {
 		"-b:v", "5000k",
 		compresspathvideo,
 	)
-	err = cmd.Run()
+
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		c.JSON(500, gin.H{"error": "Failed to compress the video"})
+		c.JSON(500, gin.H{"error": "Failed to compress the video", "Message": output})
 		return
 	}
 
-	fmt.Println("/////////////// final ///////////////////")
-	d, err := os.Stat(destPath)
 
-	fmt.Println(d)
 
 	err = os.Remove(destPath)
 	if err != nil {
