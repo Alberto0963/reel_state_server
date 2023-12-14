@@ -135,12 +135,6 @@ func HandleVideoUpload(c *gin.Context) {
 	}
 
 	saveVideo := new(async.Future[error])
-
-	err = getFrame(tempFilePath, fileName+".jpg")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
 	// destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
 	// save video.
@@ -165,6 +159,12 @@ func HandleVideoUpload(c *gin.Context) {
 
 	fmt.Println(d)
 	//// end save video
+
+	err = getFrame(tempFilePath, fileName+".jpg")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	//add audio to video
 	if audioFileName != "" {
