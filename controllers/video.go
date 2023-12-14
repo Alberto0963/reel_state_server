@@ -136,7 +136,7 @@ func HandleVideoUpload(c *gin.Context) {
 
 	saveVideo := new(async.Future[error])
 
-	err = getFrame(finalVideoPath, fileName+".jpg")
+	err = getFrame(tempFilePath, fileName+".jpg")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
