@@ -136,6 +136,11 @@ func HandleVideoUpload(c *gin.Context) {
 
 	saveVideo := new(async.Future[error])
 
+	err = getFrame(finalVideoPath, fileName+".jpg")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	// destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
 	// save video.
@@ -190,20 +195,12 @@ func HandleVideoUpload(c *gin.Context) {
 	/// end add audio to video
 
 	// compress video
-	compressvideo := new(async.Future[error])
 
-	go func() {
-		// err = saveVideoFile(file, destPath)
-		fmt.Println("/////////////// inicio ///////////////////")
-		// time.Sleep(50 * time.Second)
-		// var temp = "/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4"
-		// var final = "/home/albert/Downloads/ssstik.io_169.mp4"
-
-		async.ResolveFuture(compressvideo, compressVideo(tempFilePath, finalVideoPath), nil)
-
-	}()
-
-	async.Await(compressvideo)
+	err = compressVideo(tempFilePath, finalVideoPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	// end compress video
 
@@ -247,47 +244,21 @@ func HandleVideoUpload(c *gin.Context) {
 		return
 	}
 
-	err = getFrame(finalVideoPath, fileName+".jpg")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
 }
 
 type RequestCompressVideo struct {
 	Video_path       string `json:"video_path"`
-	Final_video_path       string `json:"final_video_path"`
+	Final_video_path string `json:"final_video_path"`
 }
 
 func compressVideo(tempFilePath string, finalVideoPath string) error {
-	// cmd := exec.Command("ffmpeg",
-	// 	"-i", tempFilePath,
-	// 	"-vf", "scale=1080:1920,setsar=1:1",
-	// 	"-b:v", "5000k",
-	// 	finalVideoPath,
-	// )
-
-	// output, err := cmd.CombinedOutput()
-	// if err != nil {
-
-	// 	return err
-	// }
-	// fmt.Println(output)
-
-	// err = os.Remove(tempFilePath)
-	// if err != nil {
-	// 	// c.JSON(500, gin.H{"error": "Failed to delete original video"})
-	// 	return fmt.Errorf("Error: Failed to delete original video %d MB", err)
-	// }
-	// return nil
 
 	url := os.Getenv("api_compress_video")
 
 	data := RequestCompressVideo{
-		Video_path:       tempFilePath, //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
-		Final_video_path:       finalVideoPath, //"/home/albert/Downloads/dreams.mp3",
+		Video_path:       tempFilePath,   //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
+		Final_video_path: finalVideoPath, //"/home/albert/Downloads/dreams.mp3",
 		// Final_video_name: finalVideoName,
 	}
 
