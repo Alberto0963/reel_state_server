@@ -3,12 +3,15 @@ package main
 import (
 	// "os/user"
 	// "fmt"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"reelState/controllers"
 	"reelState/middlewares"
 	"reelState/models"
+
+	"github.com/jrallison/go-workers"
 
 	// "time"
 	"github.com/gin-gonic/gin"
@@ -18,18 +21,51 @@ import (
 const sampleRate = 44100
 const seconds = 2
 
+func myJob(message *workers.Msg) {
+	// do something with your message
+	// message.Jid()
+	// message.Args() is a wrapper around go-simplejson (http://godoc.org/github.com/bitly/go-simplejson)
+}
+
+type myMiddleware struct{}
+
+func (r *myMiddleware) Call(queue string, message *workers.Msg, next func() bool) (acknowledge bool) {
+	// do something before each message is processed
+	fmt.Println("Procesando Video")
+	acknowledge = next()
+	// do something after each message is processed
+
+	fmt.Println("Video Procesado")
+	return
+}
+
 func main() {
 
-	gin.SetMode(gin.DebugMode)
+	// mode := os.Getenv("GIN_MODE")
+	
 
 	models.InitDB()
 
-	r := gin.Default()
-	r.SetTrustedProxies(nil)
+	// Start the worker process
+	workers.Configure(map[string]string{
+		// location of redis instance
+		"server": "localhost:6379",
+		// instance of the database
+		"database": "0",
+		// number of connections to keep open with redis
+		"pool": "30",
+		// unique process id for this instance of workers (for proper recovery of inprogress jobs on crash)
+		"process": "1",
+	})
 
+	workers.Middleware.Append(&myMiddleware{})
+
+	r := gin.Default()
+	
+	r.SetTrustedProxies(nil)
 	r.Use(middlewares.BlockFolderAccessMiddleware())
 	// Specify the directory containing your public files
-	publicDir :=  os.Getenv("MY_URL") +"./public"
+	publicDir := os.Getenv("MY_URL") + "./public"
 
 	// Create a file server handler for the public directory
 	fs := http.FileSystem(http.Dir(publicDir))
@@ -58,7 +94,6 @@ func main() {
 	public.POST("/login", controllers.LoginHandler)
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
 	public.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
-	
 
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
@@ -80,14 +115,18 @@ func main() {
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 	protected.GET("/getsongs", controllers.HandleGetAllSongs)
 
-	// type User struct {
-	// 	ID   int
-	// 	Name string
-	// }
+	// // pull messages from "myqueue" with concurrency of 10
+	// workers.Process("myqueue", myJob, 10)
 
-	// output: {1 John Does} <nil>
+	// // pull messages from "myqueue2" with concurrency of 20
+	// workers.Process("myqueue2", myJob, 20)
+	// stats will be available at http://localhost:8080/stats
+	// pull messages from "myqueue" with concurrency of 10
+	// workers.Process("myqueue", myJob, 10)
+	go workers.StatsServer(8081)
+	// Blocks until process is told to exit via unix signal
 
-	
+	workers.Run()
 	log.Fatal(http.ListenAndServe(":8080", r))
 
 }

@@ -7,6 +7,7 @@ import (
 	// "fmt"
 	"bytes"
 	"encoding/json"
+
 	// "os/exec"
 
 	// "time"
@@ -39,6 +40,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ianlopshire/go-async"
+	"github.com/jrallison/go-workers"
 	// "golang.org/x/crypto/nacl/auth"
 )
 
@@ -196,11 +198,18 @@ func HandleVideoUpload(c *gin.Context) {
 
 	// compress video
 
-	err = compressVideo(tempFilePath, finalVideoPath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+	// // Register the worker function for a specific queue
+	// workers.Process("myqueue", compressVideo(tempFilePath, finalVideoPath), 10)
+	// Add a job to a queue
+	workers.Enqueue("myqueue2", "Add", compressVideo(tempFilePath, finalVideoPath))
+	// Enqueue a job onto the specified queue
+	// workers.Enqueue("myqueue", "MyBackgroundTask", nil)
+
+	// err = compressVideo(tempFilePath, finalVideoPath)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	// 	return
+	// }
 
 	// end compress video
 
