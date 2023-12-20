@@ -170,10 +170,11 @@ func HandleVideoUpload(c *gin.Context) {
 		fileName = models.GenerateRandomName()
 		
 		workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath,fileName+filepath.Ext(file.Filename)))
+		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
 
 	}
-	
+
 	workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
 
 
