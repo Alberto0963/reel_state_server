@@ -162,64 +162,24 @@ func HandleVideoUpload(c *gin.Context) {
 
 	fmt.Println(d)
 	//// end save video
-	workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
 
-	// err = getFrame(tempFilePath, fileName+".jpg")
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	// 	return
-	// }
 
 	//add audio to video
 	if audioFileName != "" {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 		fileName = models.GenerateRandomName()
 		
-		// saveVideoWithAudio := new(async.Future[error])
-
-		// go func() {
-		// 	// err = saveVideoFile(file, destPath)
-		// 	fmt.Println("/////////////// inicio ///////////////////")
-		// 	// time.Sleep(50 * time.Second)
-
-		// 	async.ResolveFuture(saveVideoWithAudio, joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)), nil)
-
-		// }()
-
-		// async.Await(saveVideoWithAudio)
-
-		// fmt.Println("/////////////// final ///////////////////")
-		// tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
-
-		// d, err = os.Stat(tempFilePath)
-
-		// fmt.Println(d)
 		workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath,fileName+filepath.Ext(file.Filename)))
 
 
 	}
+	
+	workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
 
-	/// end add audio to video
 
-	// compress video
-
-	// // Register the worker function for a specific queue
-	// workers.Process("myqueue", compressVideo(tempFilePath, finalVideoPath), 10)
 	// Add a job to a queue
 	workers.Enqueue("myqueue", "Add", compressVideo(tempFilePath, finalVideoPath))
-	// Enqueue a job onto the specified queue
-	// workers.Enqueue("myqueue", "MyBackgroundTask", nil)
-	// go compressVideo(tempFilePath, finalVideoPath)
 
-	// err = compressVideo(tempFilePath, finalVideoPath)
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	// 	return
-	// }
-
-	// end compress video
-
-	// var finalpath = ("public/videos/" + fileName + filepath.Ext(file.Filename))
 	var input VideoInput
 
 	if err := c.ShouldBind(&input); err != nil {
