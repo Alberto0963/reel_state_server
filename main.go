@@ -126,8 +126,8 @@ func main() {
     // workers.Process("myqueue", MyBackgroundTask,10)
 	// workers.Enqueue("myqueue", "MyBackgroundTask", nil)
 	// // Register the background task
-	// // workers.Process("myqueue", MyBackgroundTask,1)
-	// go workers.StatsServer(8081)
+	workers.Process("myqueue", MyBackgroundTask,1)
+	go workers.StatsServer(8081)
 	// Blocks until process is told to exit via unix signal
 
 	// workers.Run()
