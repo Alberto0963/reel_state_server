@@ -40,7 +40,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ianlopshire/go-async"
-	"github.com/jrallison/go-workers"
+	// "github.com/jrallison/go-workers"
 	// "golang.org/x/crypto/nacl/auth"
 )
 
@@ -201,9 +201,10 @@ func HandleVideoUpload(c *gin.Context) {
 	// // Register the worker function for a specific queue
 	// workers.Process("myqueue", compressVideo(tempFilePath, finalVideoPath), 10)
 	// Add a job to a queue
-	workers.Enqueue("myqueue2", "Add", compressVideo(tempFilePath, finalVideoPath))
+	// workers.Enqueue("myqueue", "Add", compressVideo(tempFilePath, finalVideoPath))
 	// Enqueue a job onto the specified queue
 	// workers.Enqueue("myqueue", "MyBackgroundTask", nil)
+	go compressVideo(tempFilePath, finalVideoPath)
 
 	// err = compressVideo(tempFilePath, finalVideoPath)
 	// if err != nil {

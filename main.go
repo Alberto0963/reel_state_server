@@ -21,10 +21,9 @@ import (
 const sampleRate = 44100
 const seconds = 2
 
-func myJob(message *workers.Msg) {
-	// do something with your message
-	// message.Jid()
-	// message.Args() is a wrapper around go-simplejson (http://godoc.org/github.com/bitly/go-simplejson)
+func MyBackgroundTask(msg *workers.Msg) {
+	// Perform background task
+	fmt.Println("Background task is running...")
 }
 
 type myMiddleware struct{}
@@ -42,7 +41,6 @@ func (r *myMiddleware) Call(queue string, message *workers.Msg, next func() bool
 func main() {
 
 	// mode := os.Getenv("GIN_MODE")
-	
 
 	models.InitDB()
 
@@ -61,7 +59,7 @@ func main() {
 	workers.Middleware.Append(&myMiddleware{})
 
 	r := gin.Default()
-	
+
 	r.SetTrustedProxies(nil)
 	r.Use(middlewares.BlockFolderAccessMiddleware())
 	// Specify the directory containing your public files
@@ -123,10 +121,16 @@ func main() {
 	// stats will be available at http://localhost:8080/stats
 	// pull messages from "myqueue" with concurrency of 10
 	// workers.Process("myqueue", myJob, 10)
-	go workers.StatsServer(8081)
+	// Enqueue the background task
+	    // Register the background task
+    // workers.Process("myqueue", MyBackgroundTask,10)
+	// workers.Enqueue("myqueue", "MyBackgroundTask", nil)
+	// // Register the background task
+	// // workers.Process("myqueue", MyBackgroundTask,1)
+	// go workers.StatsServer(8081)
 	// Blocks until process is told to exit via unix signal
 
-	workers.Run()
+	// workers.Run()
 	log.Fatal(http.ListenAndServe(":8080", r))
 
 }
