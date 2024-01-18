@@ -603,14 +603,14 @@ func HandleGetAllVideos(c *gin.Context) {
 		return
 	}
 
-	vip := c.Query("isvip")
-	is_vip, err := strconv.ParseUint(vip, 10, 64)
+	typeV := c.Query("type")
+	TypeVideo, err := strconv.ParseUint(typeV, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid isvip"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type"})
 		return
 	}
 
-	cat, err := models.FetchAllVideos(int(userID), int(sale_id), int(is_vip), int(page))
+	cat, err := models.FetchAllVideos(int(userID), int(sale_id), int(TypeVideo), int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
@@ -647,10 +647,10 @@ func HandleGetAllCategoriesVideos(c *gin.Context) {
 		return
 	}
 
-	vip := c.Query("isvip")
-	is_vip, err := strconv.ParseUint(vip, 10, 64)
+	typeV := c.Query("type")
+	typeVideo, err := strconv.ParseUint(typeV, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid isvip"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type"})
 		return
 	}
 
@@ -686,7 +686,7 @@ func HandleGetAllCategoriesVideos(c *gin.Context) {
 		category = 0
 	}
 
-	data, err := models.FetchAllCategoryVideos(int(userID), int(sale_id), int(is_vip), category, int(page))
+	data, err := models.FetchAllCategoryVideos(int(userID), int(sale_id), int(typeVideo), category, int(page))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return

@@ -30,6 +30,7 @@ type Video struct {
 	Image_cover string `gorm:"size:255;not null;" json:"image_cover"`
 	Latitude float64 `gorm:"size:255;not null;" json:"latitude"`
 	Longitude float64 `gorm:"size:255;not null;" json:"longitude"`
+	Type float64 `gorm:"size:255;not null;" json:"type"`
 
 	
 
@@ -56,6 +57,7 @@ type FeedVideo struct {
 	Latitude float64 `gorm:"size:255;not null;" json:"latitude"`
 	Longitude float64 `gorm:"size:255;not null;" json:"longitude"`
 	Is_favorite string `gorm:"size:255;not null;" json:"is_favorite"`
+	Type float64 `gorm:"size:255;not null;" json:"type"`
 
 	
 
@@ -78,6 +80,7 @@ type MyVideo struct {
 	Sale_category_id int `gorm:"size:255;not null;" json:"sale_category_id"`
 	SaleCategory Category `gorm:"references:id; foreignKey:sale_category_id"`
 	Image_cover string `gorm:"size:255;not null;" json:"image_cover"`
+	Type float64 `gorm:"size:255;not null;" json:"type"`
 
 }
 
@@ -142,7 +145,7 @@ func (v *Video) EditVideo() (*Video, error) {
 
 }
 
-func  FetchAllVideos(id_user int ,sale_type int, isvip int,page int) ([]FeedVideo, error) {
+func  FetchAllVideos(id_user int ,sale_type int, typeV int,page int) ([]FeedVideo, error) {
 	var err error
 	dbConn := Pool
 	var vid []FeedVideo
@@ -162,7 +165,7 @@ func  FetchAllVideos(id_user int ,sale_type int, isvip int,page int) ([]FeedVide
 	result := dbConn.Table("videos").
 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-		Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().
+		Where("sale_type_id = ? && type = ?", sale_type, typeV).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().
 		Find(&vid).Error
 
 	if result != nil {
@@ -231,7 +234,7 @@ func  SearchVideos(search string, page int,id_user int ) ([]FeedVideo, error) {
 }
 
 
-func  FetchAllCategoryVideos(id_user int ,sale_type int, isvip int,categoryId,page int) ([]FeedVideo, error) {
+func  FetchAllCategoryVideos(id_user int ,sale_type int, typeV int,categoryId,page int) ([]FeedVideo, error) {
 	var err error
 	dbConn := Pool
 	var vid []FeedVideo
@@ -251,7 +254,7 @@ func  FetchAllCategoryVideos(id_user int ,sale_type int, isvip int,categoryId,pa
 	result := dbConn.Table("videos").
 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-		Where("sale_type_id = ? && is_vip = ? && sale_category_id = ? ", sale_type, isvip,categoryId).
+		Where("sale_type_id = ? && type = ? && sale_category_id = ? ", sale_type, typeV,categoryId).
 		// Where("sale_category_id = ? && is_vip = ?", sale_type, isvip).
 		Limit(pageSize).
 		Offset(offset).
