@@ -75,9 +75,16 @@ func GetMyVideos(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
 		return
 	}
+
+	typeV := c.Query("type")
+	typeVideo, err := strconv.ParseUint(typeV, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
 	// page, _ := strconv.Atoi(c.DefaultPostForm("page", "1"))
 
-	cat, err := models.GetMyVideos(int(userID), int(page))
+	cat, err := models.GetMyVideos(int(userID), int(page), int(typeVideo))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
@@ -95,6 +102,13 @@ func GetUserVideos(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
+
+	typeV := c.Query("type")
+	typeVideo, err := strconv.ParseUint(typeV, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		return
+	}
 	// userID, _ := token.ExtractTokenID(c)
 
 	p := c.Query("page")
@@ -104,7 +118,7 @@ func GetUserVideos(c *gin.Context) {
 		return
 	}
 
-	cat, err := models.GetMyVideos(int(userID), int(page))
+	cat, err := models.GetMyVideos(int(userID), int(page), int(typeVideo))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
@@ -177,7 +191,6 @@ func UpdateProfileImageUserName(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "image is updated"})
 }
 
-
 func UpdateCoverImageUserName(c *gin.Context) {
 
 	coverImage, err := c.FormFile("cover_image")
@@ -211,7 +224,6 @@ func UpdateCoverImageUserName(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "image is updated"})
 }
-
 
 func GetMemberShips(c *gin.Context) {
 
@@ -252,8 +264,6 @@ func GetMemberShips(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat, "user": u})
 }
 
-
-
 func DeleteUserVideo(c *gin.Context) {
 
 	// userID, _ := token.ExtractTokenID(c)
@@ -271,14 +281,11 @@ func DeleteUserVideo(c *gin.Context) {
 		return
 	}
 
-	
-
-	err = models.DeleteUserVideo(int(idVideo),int(user_id))
+	err = models.DeleteUserVideo(int(idVideo), int(user_id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}
 
-	
-	c.JSON(http.StatusOK, gin.H{"message": "success",})
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }

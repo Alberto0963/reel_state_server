@@ -244,7 +244,7 @@ func (u *User) BeforeSave(tx *gorm.DB) error {
 
 }
 
-func GetMyVideos(id_user int, page int) ([]FeedVideo, error) {
+func GetMyVideos(id_user int, page int, typeVideo int) ([]FeedVideo, error) {
 	var err error
 	dbConn := Pool
 	var vid []FeedVideo
@@ -264,6 +264,7 @@ func GetMyVideos(id_user int, page int) ([]FeedVideo, error) {
 		// Where("sale_type_id = ? && is_vip = ? && sale_category_id = ? ", sale_type, isvip,categoryId).
 		// Where("sale_category_id = ? && is_vip = ?", sale_type, isvip).
 		Where("videos.id_user = ?", id_user).
+		Where("videos.type = ?", typeVideo).
 		Limit(pageSize).
 		Offset(offset).
 		Preload("SaleType").
