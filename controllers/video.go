@@ -67,6 +67,8 @@ type VideoInput struct {
 	Sale_category_id string  `json:"sale_category_id" binding:"required"`
 	Latitude         float64 `json:"latitude"`
 	Longitude        float64 `json:"longitude"`
+	Type        float64 `json:"type"`
+
 }
 
 func checkVideoSize(filePath string, maxSize int64) error {
@@ -199,6 +201,7 @@ func HandleVideoUpload(c *gin.Context) {
 	v.Id_user = userID
 	v.Latitude = input.Latitude
 	v.Longitude = input.Longitude
+	v.Type = input.Type
 
 	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
 	if err != nil {
