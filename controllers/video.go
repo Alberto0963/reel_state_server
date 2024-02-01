@@ -67,8 +67,7 @@ type VideoInput struct {
 	Sale_category_id string  `json:"sale_category_id" binding:"required"`
 	Latitude         float64 `json:"latitude"`
 	Longitude        float64 `json:"longitude"`
-	Type        float64 `json:"type"`
-
+	Type             float64 `json:"type"`
 }
 
 func checkVideoSize(filePath string, maxSize int64) error {
@@ -165,20 +164,17 @@ func HandleVideoUpload(c *gin.Context) {
 	fmt.Println(d)
 	//// end save video
 
-
 	//add audio to video
 	if audioFileName != "" {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 		fileName = models.GenerateRandomName()
-		
-		workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath,fileName+filepath.Ext(file.Filename)))
-		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
+		workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)))
+		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
 	}
 
 	workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
-
 
 	// Add a job to a queue
 	workers.Enqueue("myqueue", "Add", compressVideo(tempFilePath, finalVideoPath))
@@ -382,7 +378,8 @@ func HandleVideoUpload(c *gin.Context) {
 // 	v.Sale_type_id = int(sale_type_id)
 // 	sale_category_id, err := strconv.ParseUint(input.Sale_category_id, 10, 32)
 // 	if err != nil {
-// 		// Handle the error if the conversion fails
+//
+// Handle the error if the conversion fails
 // 		fmt.Println("Error converting string to uint:", err)
 // 		return
 // 	}
