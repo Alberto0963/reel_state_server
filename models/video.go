@@ -148,7 +148,7 @@ func FetchAllVideos(id_user int, sale_type int, typeV int, page int) ([]FeedVide
 
 	}
 
-	pageSize := 5
+	pageSize := 10
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
 	// err = dbConn.Unscoped().Find(&vid).Error
@@ -260,10 +260,19 @@ func FetchAllCategoryVideos(id_user int, sale_type int, typeV int, categoryId, p
 	var err error
 	dbConn := Pool
 	var vid []FeedVideo
-	pageSize := 12
+	var ads []FeedVideo
 
+	pageSize := 12
+	var user User
+	typeUser := 0
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
+
+	user,err = GetUserByID(uint(id_user))
+	if(err == nil ){
+		typeUser = user.IdMembership
+
+	}
 	// err = dbConn.Unscoped().Find(&vid).Error
 
 	// err = dbConn.Model(&Video{}).Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
@@ -299,6 +308,36 @@ func FetchAllCategoryVideos(id_user int, sale_type int, typeV int, categoryId, p
 	rand.NewSource(time.Now().UnixNano())
 
 	rand.Shuffle(len(vid), func(i, j int) { vid[i], vid[j] = vid[j], vid[i] })
+
+		// Process videos with ads
+		if typeUser == 0 || typeUser == 1 || typeUser == 8 || typeUser == 2 || typeUser == 3 {
+			// var tempVideos []FeedVideo
+			adsIndex := 0
+			pageSize = 2
+			offset := (page - 1) * pageSize
+	
+			err = dbConn.Table("videos").
+				Select("videos.*").
+	
+				// Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+				Where("type = ?", 3).Limit(pageSize).Offset(offset).Unscoped().
+				Find(&ads).Error
+	
+			if len(ads) != 0{
+				vid = append(vid, ads[adsIndex])
+			}
+			// for i, video := range vid {
+			// 	// Add the new element to the end of the list
+			// 	tempVideos = append(tempVideos, video)
+			// 	if (i+1)%5 == 0 && video.Type != 2 {
+			// 		// Skip this video or handle as needed
+			// 		tempVideos = append(tempVideos, ads[adsIndex])
+			// 		adsIndex++
+			// 		// continue
+			// 	}
+			// }
+			// vid = tempVideos
+		}
 	return vid, nil
 
 }
