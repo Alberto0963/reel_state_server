@@ -682,6 +682,8 @@ func HandleGetAllCategoriesVideos(c *gin.Context) {
 		category = 4
 	case "industry":
 		category = 5
+	case "Vip":
+		category = 6
 	default:
 		category = 0
 	}
