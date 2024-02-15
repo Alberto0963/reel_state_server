@@ -863,3 +863,22 @@ func HandleSearchVideos(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": vid})
 
 }
+
+
+func HandleGetTypeRepors(c *gin.Context) {
+	rcode := c.Query("code")
+	// regioncode, err := strconv.ParseUint(rcode, 10, 64)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+	// 	return
+	// }
+
+
+	rep, err := models.GetReportsTypes(rcode)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": rep})
+
+}
