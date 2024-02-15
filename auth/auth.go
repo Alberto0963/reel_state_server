@@ -248,22 +248,7 @@ func UpdateUserName(c *gin.Context) {
 		return
 	}
 	u.Username = input.Username
-	// u.Password = input.Password
-	// u.Phone = input.Phone
 
-	// u.ProfileImage = profileImagePath
-	// u.ExpirationMembershipDate = time.Now()
-	// u.IdMembership = 1
-
-	// vc := models.VerificationCode{}
-	// vc.Code = input.Code
-	// vc.Phone = input.Phone
-
-	// _, err = vc.CodeIsValid()
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification code"})
-	// 	return
-	// }
 
 	_, err = u.UpdateUser()
 	if err != nil {

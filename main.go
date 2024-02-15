@@ -103,6 +103,8 @@ func main() {
 	// protected.POST("/uploadVideoWithAudioUpload", controllers.HandleVideoWithAudioUpload)
 
 	protected.POST("/UpdateProfileImageUserName", controllers.UpdateProfileImageUserName)
+	protected.POST("/updateUserName", controllers.UpdateUsernameHandler)
+
 	protected.POST("/UpdateCoverImageUserName", controllers.UpdateCoverImageUserName)
 	protected.POST("/SetFavorite", controllers.SetFavorite)
 	protected.POST("/DeleteUserVideo", controllers.DeleteUserVideo)
