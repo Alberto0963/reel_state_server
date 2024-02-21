@@ -111,6 +111,8 @@ func main() {
 
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)
+	protected.GET("/getVideoSponsors", controllers.HandleGetVideosSponsors)
+
 	protected.GET("/getMyFavoritesVideos", controllers.GetUserFavoritesVideos)
 	protected.GET("/GetMemberShips", controllers.GetMemberShips)
 	protected.GET("/user", controllers.CurrentUserHandler)

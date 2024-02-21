@@ -222,177 +222,6 @@ func HandleVideoUpload(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
 }
 
-// func HandleVideoUpload(c *gin.Context) {
-
-// 	// c.Request.Body = http.MaxBytesReader(c.Request.Response., c.Request.Body, 300*1024*1024)
-
-// 	file, err := c.FormFile("video")
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	audioFileName := c.PostForm("audio")
-// 	url := os.Getenv("MY_URL")
-
-// 	// Generate a random file name
-// 	fileName := models.GenerateRandomName()
-// 	tempFilePath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
-// 	finalVideoName := models.GenerateRandomName()
-// 	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(file.Filename))
-
-// 	// Create the destination file
-// 	//destPath := filepath.Join("", fileName)
-// 	// baseDir, err := os.Getwd() // Get the current working directory
-
-// 	// if url != nil {
-
-// 	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 	// 	return
-// 	// }
-
-// 	// Get the file size from the request
-// 	fileSize := c.Request.ContentLength
-// 	if fileSize <= 0 || fileSize > (300*1024*1024) {
-// 		// http.Error(w, "Error: Invalid file size", http.StatusBadRequest)
-// 		errorResponse := ErrorResponse{Error: fmt.Sprintf("File size exceeds the maximum limit of %d MB", (300*1024*1024)/(1024*1024))}
-// 		c.JSON(http.StatusRequestEntityTooLarge, errorResponse)
-
-// 		return
-// 	}
-
-// 	userID, _ := token.ExtractTokenID(c)
-// 	user, _ := models.GetUserByIDWithVideos(userID)
-// 	countuservideos := len(user.Videos)
-// 	if user.Id_Membership == 1 && countuservideos >= 1 {
-// 		// http.Error(w, "Error: Invalid file size", http.StatusBadRequest)
-// 		errorResponse := ErrorResponse{Error: fmt.Sprintf("exceeds the maximum limit of Videos")}
-// 		c.JSON(http.StatusPreconditionFailed, errorResponse)
-// 		return
-// 	}
-
-// 	saveVideo := new(async.Future[error])
-// 	// destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
-
-// 	// save video.
-
-// 	go func() {
-// 		// err = saveVideoFile(file, destPath)
-// 		fmt.Println("/////////////// inicio ///////////////////")
-// 		// time.Sleep(50 * time.Second)
-
-// 		async.ResolveFuture(saveVideo, saveVideoFile(file, tempFilePath), nil)
-
-// 	}()
-
-// 	async.Await(saveVideo)
-
-// 	fmt.Println("/////////////// final ///////////////////")
-// 	d, err := os.Stat(tempFilePath)
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	fmt.Println(d)
-// 	//// end save video
-
-// 	err = getFrame(tempFilePath, fileName+".jpg")
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	//add audio to video
-// 	if audioFileName != "" {
-// 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
-// 		fileName = models.GenerateRandomName()
-// 		saveVideoWithAudio := new(async.Future[error])
-
-// 		go func() {
-// 			// err = saveVideoFile(file, destPath)
-// 			fmt.Println("/////////////// inicio ///////////////////")
-// 			// time.Sleep(50 * time.Second)
-
-// 			async.ResolveFuture(saveVideoWithAudio, joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)), nil)
-
-// 		}()
-
-// 		async.Await(saveVideoWithAudio)
-
-// 		fmt.Println("/////////////// final ///////////////////")
-// 		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
-
-// 		d, err = os.Stat(tempFilePath)
-
-// 		fmt.Println(d)
-
-// 	}
-
-// 	/// end add audio to video
-
-// 	// compress video
-
-// 	// // Register the worker function for a specific queue
-// 	// workers.Process("myqueue", compressVideo(tempFilePath, finalVideoPath), 10)
-// 	// Add a job to a queue
-// 	// workers.Enqueue("myqueue", "Add", compressVideo(tempFilePath, finalVideoPath))
-// 	// Enqueue a job onto the specified queue
-// 	// workers.Enqueue("myqueue", "MyBackgroundTask", nil)
-// 	go compressVideo(tempFilePath, finalVideoPath)
-
-// 	// err = compressVideo(tempFilePath, finalVideoPath)
-// 	// if err != nil {
-// 	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 	// 	return
-// 	// }
-
-// 	// end compress video
-
-// 	// var finalpath = ("public/videos/" + fileName + filepath.Ext(file.Filename))
-// 	var input VideoInput
-
-// 	if err := c.ShouldBind(&input); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	v := models.Video{}
-// 	v.Video_url = filepath.Join("/public/videos", finalVideoName+filepath.Ext(file.Filename))
-// 	v.Image_cover = "public/video_cover/" + fileName + ".jpg"
-// 	v.Description = input.Description
-// 	v.Location = input.Location
-// 	v.Area = input.Area
-// 	v.Property_number = input.Property_number
-// 	v.Price = input.Price
-// 	v.Id_user = userID
-// 	v.Latitude = input.Latitude
-// 	v.Longitude = input.Longitude
-
-// 	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
-// 	if err != nil {
-// 		// Handle the error if the conversion fails
-// 		fmt.Println("Error converting string to uint:", err)
-// 		return
-// 	}
-// 	v.Sale_type_id = int(sale_type_id)
-// 	sale_category_id, err := strconv.ParseUint(input.Sale_category_id, 10, 32)
-// 	if err != nil {
-//
-// Handle the error if the conversion fails
-// 		fmt.Println("Error converting string to uint:", err)
-// 		return
-// 	}
-// 	v.Sale_category_id = int(sale_category_id)
-// 	_, err = v.SaveVideo()
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
-// }
-
 type RequestCompressVideo struct {
 	Video_path       string `json:"video_path"`
 	Final_video_path string `json:"final_video_path"`
@@ -536,6 +365,21 @@ func HandleGetCategoriesAndTypes(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "categories": cat, "types": types})
+}
+
+func HandleGetVideosSponsors(c *gin.Context) {
+
+	region_code := c.Query("code")
+
+
+	sponsors, err := models.GetSponsors(region_code)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": sponsors,})
 }
 
 func HandleGetAroundVideos(c *gin.Context) {
