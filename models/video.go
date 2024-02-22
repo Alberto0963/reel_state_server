@@ -226,7 +226,7 @@ func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 	result := dbConn.Model(&Video{}).
 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-		Where("location like ? type = 1", "%"+search+"%").
+		Where("location like ? && type = 1", "%"+search+"%").
 		Limit(pageSize).
 		Offset(offset).
 		Preload("SaleType").
