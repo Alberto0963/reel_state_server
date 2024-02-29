@@ -142,8 +142,8 @@ func FetchAllVideos(id_user int, sale_type int, typeV int, page int) ([]FeedVide
 	var user User
 	typeUser := 0
 
-	user,err = GetUserByID(uint(id_user))
-	if(err == nil ){
+	user, err = GetUserByID(uint(id_user))
+	if err == nil {
 		typeUser = user.IdMembership
 
 	}
@@ -181,7 +181,7 @@ func FetchAllVideos(id_user int, sale_type int, typeV int, page int) ([]FeedVide
 	rand.Shuffle(len(vid), func(i, j int) { vid[i], vid[j] = vid[j], vid[i] })
 
 	// Process videos with ads
-	if (typeUser == 0 || typeUser == 1 || typeUser == 8 || typeUser == 2 || typeUser == 3) && len(vid) > 0{
+	if (typeUser == 0 || typeUser == 1 || typeUser == 8 || typeUser == 2 || typeUser == 3) && len(vid) > 0 {
 		// var tempVideos []FeedVideo
 		adsIndex := 0
 		pageSize = 2
@@ -194,7 +194,7 @@ func FetchAllVideos(id_user int, sale_type int, typeV int, page int) ([]FeedVide
 			Where("type = ?", 3).Limit(pageSize).Offset(offset).Unscoped().
 			Find(&ads).Error
 
-		if len(ads) != 0{
+		if len(ads) != 0 {
 			vid = append(vid, ads[adsIndex])
 		}
 		// for i, video := range vid {
@@ -218,6 +218,8 @@ func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 	var err error
 	dbConn := Pool
 	var vid []FeedVideo
+	var videos []FeedVideo
+
 	pageSize := 12
 
 	// Calculate the offset based on the page number and page size
@@ -234,16 +236,34 @@ func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 		Preload("User").
 		Unscoped().
 		Find(&vid).Error
-
 	if result != nil {
 		// http.Error(w, "Database error", http.StatusInternalServerError)
-		return vid, err
+		return videos, err
 	}
+
+	videos = append(videos, vid...)
+
+	result = dbConn.Model(&Video{}).
+		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+		Where("description like ? && type = 1", "%"+search+"%").
+		Limit(pageSize).
+		Offset(offset).
+		Preload("SaleType").
+		Preload("SaleCategory").
+		Preload("User").
+		Unscoped().
+		Find(&vid).Error
+	if result != nil {
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		return videos, err
+	}
+	videos = append(videos, vid...)
 
 	rand.NewSource(time.Now().UnixNano())
 
-	rand.Shuffle(len(vid), func(i, j int) { vid[i], vid[j] = vid[j], vid[i] })
-	return vid, nil
+	rand.Shuffle(len(videos), func(i, j int) { videos[i], videos[j] = videos[j], videos[i] })
+	return videos, nil
 
 }
 
@@ -259,8 +279,8 @@ func FetchAllCategoryVideos(id_user int, sale_type int, typeV int, categoryId, p
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
 
-	user,err = GetUserByID(uint(id_user))
-	if(err == nil ){
+	user, err = GetUserByID(uint(id_user))
+	if err == nil {
 		typeUser = user.IdMembership
 
 	}
@@ -300,35 +320,35 @@ func FetchAllCategoryVideos(id_user int, sale_type int, typeV int, categoryId, p
 
 	rand.Shuffle(len(vid), func(i, j int) { vid[i], vid[j] = vid[j], vid[i] })
 
-		// Process videos with ads
-		if (typeUser == 0 || typeUser == 1 || typeUser == 8 || typeUser == 2 || typeUser == 3) && len(vid) > 0{
-			// var tempVideos []FeedVideo
-			adsIndex := 0
-			pageSize = 2
-			offset := (page - 1) * pageSize
-	
-			err = dbConn.Table("videos").
-				Select("videos.*").
-	
-				// Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-				Where("type = ?", 3).Limit(pageSize).Offset(offset).Unscoped().
-				Find(&ads).Error
-	
-			if len(ads) != 0{
-				vid = append(vid, ads[adsIndex])
-			}
-			// for i, video := range vid {
-			// 	// Add the new element to the end of the list
-			// 	tempVideos = append(tempVideos, video)
-			// 	if (i+1)%5 == 0 && video.Type != 2 {
-			// 		// Skip this video or handle as needed
-			// 		tempVideos = append(tempVideos, ads[adsIndex])
-			// 		adsIndex++
-			// 		// continue
-			// 	}
-			// }
-			// vid = tempVideos
+	// Process videos with ads
+	if (typeUser == 0 || typeUser == 1 || typeUser == 8 || typeUser == 2 || typeUser == 3) && len(vid) > 0 {
+		// var tempVideos []FeedVideo
+		adsIndex := 0
+		pageSize = 2
+		offset := (page - 1) * pageSize
+
+		err = dbConn.Table("videos").
+			Select("videos.*").
+
+			// Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+			Where("type = ?", 3).Limit(pageSize).Offset(offset).Unscoped().
+			Find(&ads).Error
+
+		if len(ads) != 0 {
+			vid = append(vid, ads[adsIndex])
 		}
+		// for i, video := range vid {
+		// 	// Add the new element to the end of the list
+		// 	tempVideos = append(tempVideos, video)
+		// 	if (i+1)%5 == 0 && video.Type != 2 {
+		// 		// Skip this video or handle as needed
+		// 		tempVideos = append(tempVideos, ads[adsIndex])
+		// 		adsIndex++
+		// 		// continue
+		// 	}
+		// }
+		// vid = tempVideos
+	}
 	return vid, nil
 
 }
