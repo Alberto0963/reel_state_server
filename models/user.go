@@ -138,7 +138,7 @@ func GetUserByID(uid uint) (User, error) {
 	// defer dbConn.Close()
 
 	if err := dbConn.Model(&User{}).First(&u, uid).Error; err != nil {
-		return u, errors.New("User not found!")
+		return u, errors.New("User not found! ")
 	}
 
 	u.PrepareGive()
@@ -156,7 +156,7 @@ func GetUserByIDWithVideos(uid uint) (PublicUser, error) {
 	// defer dbConn.Close()
 
 	if err := dbConn.Model(&PublicUser{}).Preload("Videos").First(&u, uid).Error; err != nil {
-		return u, errors.New("User not found!")
+		return u, errors.New("User not found! ")
 	}
 
 	// u.PrepareGive()
@@ -173,7 +173,7 @@ func GetUserByPhone(phone string) (User, error) {
 	// defer dbConn.Close()
 
 	if err := dbConn.Model(&User{}).Where("phone = ?", phone).Find(&u).Error; err != nil {
-		return u, errors.New("User not found!")
+		return u, errors.New("User not found! ")
 	}
 
 	u.PrepareGive()
@@ -181,6 +181,25 @@ func GetUserByPhone(phone string) (User, error) {
 	return u, nil
 
 }
+
+
+func SearchProfile(username string) ([]PublicUser, error) {
+
+	var u []PublicUser
+	// Obtain a connection from the pool
+	dbConn := Pool
+	// defer dbConn.Close()
+
+	if err := dbConn.Model(&PublicUser{}).Where("username like ?","%"+username+"%").Find(&u).Error; err != nil {
+		return u, errors.New("User not found! ")
+	}
+
+	// u.PrepareGive()
+
+	return u, nil
+
+}
+
 
 func UsernameExists(username string) bool {
 

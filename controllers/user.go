@@ -66,6 +66,23 @@ func ValidateVerificationCode(c *gin.Context) {
 	auth.ValidateVerificationCode(c)
 }
 
+func SearchProfile(c *gin.Context) {
+
+	// userID, _ := token.ExtractTokenID(c)
+	username := c.Query("username")
+	// username, err := strconv.ParseUint(p, 10, 64)
+
+	// page, _ := strconv.Atoi(c.DefaultPostForm("page", "1"))
+
+	cat, err := models.SearchProfile(username)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
+}
+
 func GetMyVideos(c *gin.Context) {
 
 	userID, _ := token.ExtractTokenID(c)

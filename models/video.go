@@ -235,16 +235,6 @@ func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 		Unscoped().
 		Find(&vid).Error
 
-	// Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
-	// Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-	// Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).
-	// Limit(pageSize).Offset(offset).
-	// Preload("SaleType").
-	// Preload("SaleCategory").
-	// Preload("User").
-	// Unscoped().
-	// Find(&vid).Error
-
 	if result != nil {
 		// http.Error(w, "Database error", http.StatusInternalServerError)
 		return vid, err

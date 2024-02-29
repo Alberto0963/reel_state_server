@@ -85,6 +85,7 @@ func main() {
 	public.GET("/UserByIdHandler/", controllers.UserByIdHandler)
 	public.GET("/getUserVideos", controllers.GetUserVideos)
 	public.GET("/getReportsTypes", controllers.HandleGetTypeRepors)
+	public.GET("/searchProfile", controllers.SearchProfile)
 
 
 	public.POST("/sendVerificationCode", controllers.SendVerificationCode)
