@@ -4,6 +4,10 @@ import (
 	// "encoding/json"
 	"math/rand"
 	"reelState/utils/location"
+	"regexp"
+	"strings"
+
+	// "strings"
 	"time"
 	// "gorm.io/gorm/utils"
 	// "gorm.io/gorm"
@@ -224,26 +228,11 @@ func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
+	locations := strings.Fields(search)
+
+
 
 	result := dbConn.Model(&Video{}).
-		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
-		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-		Where("location like ? && type = 1", "%"+search+"%").
-		Limit(pageSize).
-		Offset(offset).
-		Preload("SaleType").
-		Preload("SaleCategory").
-		Preload("User").
-		Unscoped().
-		Find(&vid).Error
-	if result != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
-		return videos, err
-	}
-
-	videos = append(videos, vid...)
-
-	result = dbConn.Model(&Video{}).
 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
 		Where("description like ? && type = 1", "%"+search+"%").
@@ -258,6 +247,53 @@ func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 		// http.Error(w, "Database error", http.StatusInternalServerError)
 		return videos, err
 	}
+	videos = append(videos, vid...)
+
+	price := findPrices(search)
+	if price != nil {
+
+		result = dbConn.Model(&Video{}).
+			Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+			Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+			Where("price IN ? && type = 1", price).
+			Limit(pageSize).
+			Offset(offset).
+			Preload("SaleType").
+			Preload("SaleCategory").
+			Preload("User").
+			Unscoped().
+			Find(&vid).Error
+		if result != nil {
+			// http.Error(w, "Database error", http.StatusInternalServerError)
+			return videos, err
+		}
+		videos = append(videos, vid...)
+	}
+
+		// Dynamically build the WHERE clause to use LIKE for each keyword
+	    // Dynamically build the query with LIKE conditions for each keyword
+		for _, keyword := range locations {
+			likePattern := "%" + keyword + "%"
+			dbConn = dbConn.Or(" type = 1 && location LIKE ?", likePattern)
+		}
+
+
+	result = dbConn.Model(&Video{}).
+		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+		// Where("?", whereClause).
+		Limit(pageSize).
+		Offset(offset).
+		Preload("SaleType").
+		Preload("SaleCategory").
+		Preload("User").
+		Unscoped().
+		Find(&vid).Error
+	if result != nil {
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		return videos, err
+	}
+
 	videos = append(videos, vid...)
 
 	rand.NewSource(time.Now().UnixNano())
@@ -397,4 +433,18 @@ func GetPlacesAroundLocation(centerLat, centerLon float64, maxDistance float64, 
 	}
 
 	return nearbyPlaces, nil
+}
+
+func findPrices(text string) []string {
+	// This regex pattern is quite basic and might need to be refined depending on your needs
+	// It's designed to match:
+	// - Optional currency symbols ($, €, etc.) or currency codes (USD, EUR, etc.) at the start
+	// - Numbers, which can include thousands separators (,) and decimal points (.)
+	// - Optional currency codes (USD, EUR, etc.) at the end
+	var pattern = `(?i)(\$\s*|€\s*|£\s*|¥\s*|usd\s*|eur\s*|mxn\s*|jpy\s*)?\d{1,3}(,\d{3})*(\.\d{1,2})?(\s*(usd|eur|gbp|mxn))?`
+
+	re := regexp.MustCompile(pattern)
+	matches := re.FindAllString(text, -1)
+
+	return matches
 }
