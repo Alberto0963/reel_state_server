@@ -79,8 +79,8 @@ func main() {
 
 	public := r.Group("/api")
 
+	// public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
 	public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
-	public.GET("/getFeedCategoryVideos", controllers.HandleGetAllCategoriesVideos)
 	public.GET("/getSearchVideos", controllers.HandleSearchVideos)
 	public.GET("/UserByIdHandler/", controllers.UserByIdHandler)
 	public.GET("/getUserVideos", controllers.GetUserVideos)

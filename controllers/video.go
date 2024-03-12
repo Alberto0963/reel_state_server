@@ -430,38 +430,38 @@ func HandleGetAroundVideos(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "videos": vid})
 }
 
-func HandleGetAllVideos(c *gin.Context) {
-	userID, _ := token.ExtractTokenID(c)
+// func HandleGetAllVideos(c *gin.Context) {
+// 	userID, _ := token.ExtractTokenID(c)
 
-	p := c.Query("page")
-	page, err := strconv.ParseUint(p, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
-		return
-	}
+// 	p := c.Query("page")
+// 	page, err := strconv.ParseUint(p, 10, 64)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+// 		return
+// 	}
 
-	sale := c.Query("sale")
-	sale_id, err := strconv.ParseUint(sale, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
-		return
-	}
+// 	sale := c.Query("sale")
+// 	sale_id, err := strconv.ParseUint(sale, 10, 64)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
+// 		return
+// 	}
 
-	typeV := c.Query("type")
-	TypeVideo, err := strconv.ParseUint(typeV, 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type"})
-		return
-	}
+// 	typeV := c.Query("type")
+// 	TypeVideo, err := strconv.ParseUint(typeV, 10, 64)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type"})
+// 		return
+// 	}
 
-	cat, err := models.FetchAllVideos(int(userID), int(sale_id), int(TypeVideo), int(page))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
+// 	cat, err := models.FetchAllVideos(int(userID), int(sale_id), int(TypeVideo), int(page))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+// 		return
+// 	}
+// 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
 
-}
+// }
 
 func HandleGetAllSongs(c *gin.Context) {
 
@@ -474,7 +474,7 @@ func HandleGetAllSongs(c *gin.Context) {
 
 }
 
-func HandleGetAllCategoriesVideos(c *gin.Context) {
+func HandleGetAllVideos(c *gin.Context) {
 	userID, _ := token.ExtractTokenID(c)
 
 	p := c.Query("page")
@@ -531,12 +531,27 @@ func HandleGetAllCategoriesVideos(c *gin.Context) {
 	default:
 		category = 0
 	}
+	
+	 var data []models.FeedVideo
 
-	data, err := models.FetchAllCategoryVideos(int(userID), int(sale_id), int(typeVideo), category, int(page))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-		return
+	if(category > 0){
+		data, err = models.FetchAllCategoryVideos(int(userID), int(sale_id), int(typeVideo), category, int(page))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+			return
+		}
+	} else {
+		data, err = models.FetchAllVideos(int(userID), int(sale_id), int(typeVideo), int(page))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+			return
+		}
 	}
+
+
+
+	
+
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": data})
 
 }
