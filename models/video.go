@@ -255,7 +255,7 @@ func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 		result = dbConn.Model(&Video{}).
 			Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
 			Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-			Where("price IN ? && type = 1", price).
+			Where("price IN (?) && type = 1", price).
 			Limit(pageSize).
 			Offset(offset).
 			Preload("SaleType").
@@ -441,7 +441,7 @@ func findPrices(text string) []string {
 	// - Optional currency symbols ($, €, etc.) or currency codes (USD, EUR, etc.) at the start
 	// - Numbers, which can include thousands separators (,) and decimal points (.)
 	// - Optional currency codes (USD, EUR, etc.) at the end
-	var pattern = `(?i)(\$\s*|€\s*|£\s*|¥\s*|usd\s*|eur\s*|mxn\s*|jpy\s*)?\d{1,3}(,\d{3})*(\.\d{1,2})?(\s*(usd|eur|gbp|mxn))?`
+	var pattern = `(?i)(\$\s*|€\s*|£\s*|¥\s*|usd\s*|eur\s*|mxn\s*|jpy\s*)?\d{1,8}(,\d{3})*(\.\d{1,2})?(\s*(usd|eur|gbp|mxn))?`
 
 	re := regexp.MustCompile(pattern)
 	matches := re.FindAllString(text, -1)
