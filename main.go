@@ -62,6 +62,8 @@ func main() {
 
 	r.SetTrustedProxies(nil)
 	r.Use(middlewares.BlockFolderAccessMiddleware())
+	// Apply CORS middleware to all routes
+	r.Use(middlewares.CORSMiddleware())
 	// Specify the directory containing your public files
 	publicDir := os.Getenv("MY_URL") + "./public"
 
@@ -86,7 +88,6 @@ func main() {
 	public.GET("/getUserVideos", controllers.GetUserVideos)
 	public.GET("/getReportsTypes", controllers.HandleGetTypeRepors)
 	public.GET("/searchProfile", controllers.SearchProfile)
-
 
 	public.POST("/sendVerificationCode", controllers.SendVerificationCode)
 	public.POST("/CodeIsValid", controllers.ValidateVerificationCode)
@@ -129,11 +130,11 @@ func main() {
 	// pull messages from "myqueue" with concurrency of 10
 	// workers.Process("myqueue", myJob, 10)
 	// Enqueue the background task
-	    // Register the background task
-    // workers.Process("myqueue", MyBackgroundTask,10)
+	// Register the background task
+	// workers.Process("myqueue", MyBackgroundTask,10)
 	// workers.Enqueue("myqueue", "MyBackgroundTask", nil)
 	// // Register the background task
-	workers.Process("myqueue", MyBackgroundTask,1)
+	workers.Process("myqueue", MyBackgroundTask, 1)
 	go workers.StatsServer(8081)
 	// Blocks until process is told to exit via unix signal
 
