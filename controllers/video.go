@@ -254,7 +254,7 @@ func compressVideo(tempFilePath string, finalVideoPath string) error {
 		panic(error)
 	}
 	defer response.Body.Close()
-
+	deleteTemporalVideo(tempFilePath)
 	fmt.Println("response Status:", response.Status)
 	fmt.Println("response Headers:", response.Header)
 	// body, _ := ioutil.ReadAll(response.Body)
@@ -371,15 +371,13 @@ func HandleGetVideosSponsors(c *gin.Context) {
 
 	region_code := c.Query("code")
 
-
 	sponsors, err := models.GetSponsors(region_code)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
 
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": sponsors,})
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": sponsors})
 }
 
 func HandleGetAroundVideos(c *gin.Context) {
@@ -531,10 +529,10 @@ func HandleGetAllVideos(c *gin.Context) {
 	default:
 		category = 0
 	}
-	
-	 var data []models.FeedVideo
 
-	if(category > 0){
+	var data []models.FeedVideo
+
+	if category > 0 {
 		data, err = models.FetchAllCategoryVideos(int(userID), int(sale_id), int(typeVideo), category, int(page))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
@@ -547,10 +545,6 @@ func HandleGetAllVideos(c *gin.Context) {
 			return
 		}
 	}
-
-
-
-	
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": data})
 
@@ -723,7 +717,6 @@ func HandleSearchVideos(c *gin.Context) {
 
 }
 
-
 func HandleGetTypeRepors(c *gin.Context) {
 	rcode := c.Query("code")
 	// regioncode, err := strconv.ParseUint(rcode, 10, 64)
@@ -732,12 +725,33 @@ func HandleGetTypeRepors(c *gin.Context) {
 	// 	return
 	// }
 
-
 	rep, err := models.GetReportsTypes(rcode)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": rep})
+
+}
+
+func deleteTemporalVideo(filePath string) {
+	// Verificar si el archivo existe
+	if _, err := os.Stat(filePath); err == nil {
+		// El archivo existe, proceder a eliminarlo
+		err := os.Remove(filePath)
+		if err != nil {
+			// Manejar el error en caso de que el archivo no pueda ser eliminado
+			fmt.Print(err)
+		} else {
+			// Confirmar la eliminación del archivo
+			fmt.Printf("El archivo %s ha sido eliminado exitosamente.\n", filePath)
+		}
+	} else if os.IsNotExist(err) {
+		// El archivo no existe, manejar según sea necesario
+		fmt.Printf("El archivo %s no existe.\n", filePath)
+	} else {
+		// Hubo un problema al verificar el archivo (permisos, etc.)
+		fmt.Print(err)
+	}
 
 }
