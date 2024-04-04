@@ -2,8 +2,10 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"html"
 	"os"
+
 	// "reelState/utils/token"
 
 	// "strconv"
@@ -34,7 +36,7 @@ type User struct {
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Description              string    `gorm:"size:255" json:"description"`
-
+	CanUpload                bool      `gorm:"not null;" json:"can_upload"`
 }
 
 type PublicUser struct {
@@ -45,11 +47,10 @@ type PublicUser struct {
 	Username                 string    `gorm:"size:255;not null;unique" json:"username"`
 	ProfileImage             string    `gorm:"size:255;not null;" json:"profileImage"`
 	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
-	Id_Membership             int       `gorm:"size:255;not null;" json:"id_membership"`
+	Id_Membership            int       `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Videos                   []MyVideo `gorm:"references:id; foreignKey:id_user"`
 	Description              string    `gorm:"size:255" json:"description"`
-
 }
 
 func (PublicUser) TableName() string {
@@ -136,8 +137,15 @@ func GetUserByID(uid uint) (User, error) {
 	// Obtain a connection from the pool
 	dbConn := Pool
 	// defer dbConn.Close()
+	// if err := dbConn.Model(&User{}).
+	// Define the subquery as a raw SQL string
+	// videosCountSubquery := "(SELECT id_user, COUNT(*) as video_count FROM videos GROUP BY id_user) as v"
 
-	if err := dbConn.Model(&User{}).First(&u, uid).Error; err != nil {
+	if err := dbConn.Table("view_user_upload_status").
+		// Joins("LEFT JOIN memberships ON memberships.id = users.id_membership").
+		// Joins("LEFT JOIN (SELECT id_user, COUNT(*) as video_count FROM videos GROUP BY id_user) as v ON v.id_user = users.id").
+		Where("id = ?", uid).Find(&u).
+		Error; err != nil {
 		return u, errors.New("User not found! ")
 	}
 
@@ -146,7 +154,6 @@ func GetUserByID(uid uint) (User, error) {
 	return u, nil
 
 }
-
 
 func GetUserByIDWithVideos(uid uint) (PublicUser, error) {
 
@@ -182,7 +189,6 @@ func GetUserByPhone(phone string) (User, error) {
 
 }
 
-
 func SearchProfile(username string) ([]PublicUser, error) {
 
 	var u []PublicUser
@@ -190,7 +196,7 @@ func SearchProfile(username string) ([]PublicUser, error) {
 	dbConn := Pool
 	// defer dbConn.Close()
 
-	if err := dbConn.Model(&PublicUser{}).Where("username like ?","%"+username+"%").Find(&u).Error; err != nil {
+	if err := dbConn.Model(&PublicUser{}).Where("username like ?", "%"+username+"%").Find(&u).Error; err != nil {
 		return u, errors.New("User not found! ")
 	}
 
@@ -199,7 +205,6 @@ func SearchProfile(username string) ([]PublicUser, error) {
 	return u, nil
 
 }
-
 
 func UsernameExists(username string) bool {
 
@@ -276,21 +281,21 @@ func GetMyVideos(id_user int, page int, typeVideo int) ([]FeedVideo, error) {
 	// Calculate the offset based on the page number and page size
 	offset := (page - 1) * pageSize
 	// err = dbConn.Unscoped().Find(&vid).Error
-	err = 
-	dbConn.Table("videos").
-		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
-		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-		// Where("sale_type_id = ? && is_vip = ? && sale_category_id = ? ", sale_type, isvip,categoryId).
-		// Where("sale_category_id = ? && is_vip = ?", sale_type, isvip).
-		Where("videos.id_user = ?", id_user).
-		Where("videos.type = ?", typeVideo).
-		Limit(pageSize).
-		Offset(offset).
-		Preload("SaleType").
-		Preload("SaleCategory").
-		Preload("User").
-		Unscoped().
-		Find(&vid).Error
+	err =
+		dbConn.Table("videos").
+			Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+			Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+			// Where("sale_type_id = ? && is_vip = ? && sale_category_id = ? ", sale_type, isvip,categoryId).
+			// Where("sale_category_id = ? && is_vip = ?", sale_type, isvip).
+			Where("videos.id_user = ?", id_user).
+			Where("videos.type = ?", typeVideo).
+			Limit(pageSize).
+			Offset(offset).
+			Preload("SaleType").
+			Preload("SaleCategory").
+			Preload("User").
+			Unscoped().
+			Find(&vid).Error
 	// dbConn.Model(&MyVideo{}).Where("id_user = ?", id_user).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
 	if err != nil {
 		return vid, err
@@ -339,25 +344,49 @@ func GetMyFavoritesVideos(id_user int, page int) ([]FeedVideo, error) {
 
 }
 
-
 func DeleteUserVideo(id_video int, id_user int) error {
 	var err error
 	dbConn := Pool
 	var vid Video
 
-	
-	if err = dbConn.Where("id_user = ? && id = ?", id_user,id_video).Find(&vid).Error; err != nil {
+	if err = dbConn.Where("id_user = ? && id = ?", id_user, id_video).Find(&vid).Error; err != nil {
 		return err
 	}
 	pathOldImage := os.Getenv("MY_URL")
 
-	deleteImage(pathOldImage + vid.Image_cover )
-	deleteImage(pathOldImage + vid.Video_url )
+	deleteImage(pathOldImage + vid.Image_cover)
+	deleteImage(pathOldImage + vid.Video_url)
 
-	if err = dbConn.Where("id_user = ? && id = ?", id_user,id_video).Delete(&vid).Error; err != nil {
+	if err = dbConn.Where("id_user = ? && id = ?", id_user, id_video).Delete(&vid).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
+func ValidateUserType(id_user int) error {
+	u, err := GetUserByIDWithVideos(uint(id_user))
+	if err != nil {
+		// Return the error as is if it's from GetUserByIDWithVideos
+		return err
+	}
+
+	countVideos := len(u.Videos)
+
+	switch {
+	case countVideos >= 1 && (u.Id_Membership == 1 || u.Id_Membership == 8):
+		// User has basic membership but trying to upload more than allowed
+		return fmt.Errorf("no puedes publicar mas videos, límite alcanzado para tu membresía")
+
+	case countVideos >= 20 && (u.Id_Membership == 2 || u.Id_Membership == 3):
+		// User has a mid-tier membership but is trying to upload more than allowed
+		return fmt.Errorf("no puedes publicar mas videos, límite alcanzado para tu membresía")
+
+	case countVideos >= 50 && (u.Id_Membership == 4 || u.Id_Membership == 5):
+		// User has a high-tier membership but is trying to upload more than allowed
+		return fmt.Errorf("no puedes publicar mas videos, límite alcanzado para tu membresía")
+	}
+
+	// If none of the conditions are met, then there's no error
+	return nil
+}

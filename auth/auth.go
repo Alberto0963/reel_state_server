@@ -4,6 +4,8 @@ import (
 	"net/http"
 	// "os"
 
+	// "os"
+
 	// "path/filepath"
 	"reelState/models"
 	SMS "reelState/utils"
@@ -57,7 +59,13 @@ func Login(c *gin.Context, db *gorm.DB) {
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
+	// hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+    // if err != nil {
+    //     panic(err)
+    // }
+
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(input.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}

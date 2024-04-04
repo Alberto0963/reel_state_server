@@ -98,7 +98,13 @@ func HandleVideoUpload(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	userID, _ := token.ExtractTokenID(c)
 
+	 err = models.ValidateUserType(int(userID))
+	if err != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": "no puedes publicar mas videos"})
+		return
+	}
 	audioFileName := c.PostForm("audio")
 	url := os.Getenv("MY_URL")
 
@@ -128,15 +134,14 @@ func HandleVideoUpload(c *gin.Context) {
 		return
 	}
 
-	userID, _ := token.ExtractTokenID(c)
-	user, _ := models.GetUserByIDWithVideos(userID)
-	countuservideos := len(user.Videos)
-	if user.Id_Membership == 1 && countuservideos >= 1 {
-		// http.Error(w, "Error: Invalid file size", http.StatusBadRequest)
-		errorResponse := ErrorResponse{Error: fmt.Sprintf("exceeds the maximum limit of Videos")}
-		c.JSON(http.StatusPreconditionFailed, errorResponse)
-		return
-	}
+	// user, _ := models.GetUserByIDWithVideos(userID)
+	// countuservideos := len(user.Videos)
+	// if user.Id_Membership == 1 && countuservideos >= 1 {
+	// 	// http.Error(w, "Error: Invalid file size", http.StatusBadRequest)
+	// 	errorResponse := ErrorResponse{Error: fmt.Sprintf("exceeds the maximum limit of Videos")}
+	// 	c.JSON(http.StatusPreconditionFailed, errorResponse)
+	// 	return
+	// }
 
 	saveVideo := new(async.Future[error])
 	// destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
