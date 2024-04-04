@@ -54,7 +54,7 @@ func Login(c *gin.Context, db *gorm.DB) {
 	}
 
 	user := models.User{}
-	if err := db.Where("phone = ?", input.Phone).First(&user).Error; err != nil {
+	if err := db.Table("view_user_upload_status").Where("phone = ?", input.Phone).First(&user).Error; err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
@@ -76,10 +76,10 @@ func Login(c *gin.Context, db *gorm.DB) {
 		return
 	}
 	isVip := false
-	if user.IdMembership == 4 || user.IdMembership == 5 {
+	if user.IdMembership == 6 || user.IdMembership == 7 {
 		isVip = true
 	}
-	c.JSON(http.StatusOK, gin.H{"token": token, "isVip": isVip})
+	c.JSON(http.StatusOK, gin.H{"token": token, "isVip": isVip,"canUpload": user.CanUpload})
 }
 
 type RegisterInput struct {
