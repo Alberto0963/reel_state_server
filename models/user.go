@@ -289,6 +289,7 @@ func GetMyVideos(id_user int, page int, typeVideo int) ([]FeedVideo, error) {
 			// Where("sale_category_id = ? && is_vip = ?", sale_type, isvip).
 			Where("videos.id_user = ?", id_user).
 			Where("videos.type = ?", typeVideo).
+			Order("videos.created_at DESC").
 			Limit(pageSize).
 			Offset(offset).
 			Preload("SaleType").

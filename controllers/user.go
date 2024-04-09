@@ -96,7 +96,7 @@ func GetMyVideos(c *gin.Context) {
 	typeV := c.Query("type")
 	typeVideo, err := strconv.ParseUint(typeV, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Type"})
 		return
 	}
 	// page, _ := strconv.Atoi(c.DefaultPostForm("page", "1"))
