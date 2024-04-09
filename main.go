@@ -26,6 +26,7 @@ func MyBackgroundTask(msg *workers.Msg) {
 	fmt.Println("Background task is running...")
 }
 
+
 type myMiddleware struct{}
 
 func (r *myMiddleware) Call(queue string, message *workers.Msg, next func() bool) (acknowledge bool) {

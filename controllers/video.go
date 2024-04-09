@@ -7,6 +7,7 @@ import (
 	// "fmt"
 	"bytes"
 	"encoding/json"
+	"sync"
 
 	// "os/exec"
 
@@ -43,6 +44,12 @@ import (
 	"github.com/jrallison/go-workers"
 	// "github.com/jrallison/go-workers"
 	// "golang.org/x/crypto/nacl/auth"
+)
+
+// Define a global map to track task statuses
+var (
+	taskStatusMap = make(map[string]string)
+	mutex         = &sync.Mutex{}
 )
 
 type RegisterFavInput struct {
@@ -89,8 +96,149 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-func HandleVideoUpload(c *gin.Context) {
+// func HandleVideoUpload(c *gin.Context) {
 
+// 	// c.Request.Body = http.MaxBytesReader(c.Request.Response., c.Request.Body, 300*1024*1024)
+
+// 	file, err := c.FormFile("video")
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	userID, _ := token.ExtractTokenID(c)
+
+// 	err = models.ValidateUserType(int(userID))
+// 	if err != nil {
+// 		c.JSON(http.StatusForbidden, gin.H{"error": "no puedes publicar mas videos"})
+// 		return
+// 	}
+// 	audioFileName := c.PostForm("audio")
+// 	url := os.Getenv("MY_URL")
+
+// 	// Generate a random file name
+// 	fileName := models.GenerateRandomName()
+// 	tempFilePath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+// 	finalVideoName := models.GenerateRandomName()
+// 	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(file.Filename))
+
+// 	// Create the destination file
+// 	//destPath := filepath.Join("", fileName)
+// 	// baseDir, err := os.Getwd() // Get the current working directory
+
+// 	// if url != nil {
+
+// 	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 	// 	return
+// 	// }
+
+// 	// Get the file size from the request
+// 	fileSize := c.Request.ContentLength
+// 	if fileSize <= 0 || fileSize > (300*1024*1024) {
+// 		// http.Error(w, "Error: Invalid file size", http.StatusBadRequest)
+// 		errorResponse := ErrorResponse{Error: fmt.Sprintf("File size exceeds the maximum limit of %d MB", (300*1024*1024)/(1024*1024))}
+// 		c.JSON(http.StatusRequestEntityTooLarge, errorResponse)
+
+// 		return
+// 	}
+
+// 	// user, _ := models.GetUserByIDWithVideos(userID)
+// 	// countuservideos := len(user.Videos)
+// 	// if user.Id_Membership == 1 && countuservideos >= 1 {
+// 	// 	// http.Error(w, "Error: Invalid file size", http.StatusBadRequest)
+// 	// 	errorResponse := ErrorResponse{Error: fmt.Sprintf("exceeds the maximum limit of Videos")}
+// 	// 	c.JSON(http.StatusPreconditionFailed, errorResponse)
+// 	// 	return
+// 	// }
+
+// 	saveVideo := new(async.Future[error])
+// 	// destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+
+// 	// save video.
+
+// 	go func() {
+// 		// err = saveVideoFile(file, destPath)
+// 		fmt.Println("/////////////// inicio ///////////////////")
+// 		// time.Sleep(50 * time.Second)
+
+// 		async.ResolveFuture(saveVideo, saveVideoFile(file, tempFilePath), nil)
+
+// 	}()
+
+// 	async.Await(saveVideo)
+
+// 	fmt.Println("/////////////// final ///////////////////")
+// 	d, err := os.Stat(tempFilePath)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	fmt.Println(d)
+// 	//// end save video
+
+// 	//add audio to video
+// 	if audioFileName != "" {
+// 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
+// 		fileName = models.GenerateRandomName()
+
+// 		workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)))
+// 		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+
+// 	}
+
+// 	workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
+
+// 	// Add a job to a queue
+// 	workers.Enqueue("myqueue", "Add", compressVideo(tempFilePath, finalVideoPath))
+
+// 	var input VideoInput
+
+// 	if err := c.ShouldBind(&input); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	v := models.Video{}
+// 	v.Video_url = filepath.Join("/public/videos", finalVideoName+filepath.Ext(file.Filename))
+// 	v.Image_cover = "public/video_cover/" + fileName + ".jpg"
+// 	v.Description = input.Description
+// 	v.Location = input.Location
+// 	v.Area = input.Area
+// 	v.Property_number = input.Property_number
+// 	v.Price = input.Price
+// 	v.Id_user = userID
+// 	v.Latitude = input.Latitude
+// 	v.Longitude = input.Longitude
+// 	v.Type = input.Type
+
+// 	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
+// 	if err != nil {
+// 		// Handle the error if the conversion fails
+// 		fmt.Println("Error converting string to uint:", err)
+// 		return
+// 	}
+// 	v.Sale_type_id = int(sale_type_id)
+// 	sale_category_id, err := strconv.ParseUint(input.Sale_category_id, 10, 32)
+// 	if err != nil {
+// 		// Handle the error if the conversion fails
+// 		fmt.Println("Error converting string to uint:", err)
+// 		return
+// 	}
+// 	v.Sale_category_id = int(sale_category_id)
+// 	_, err = v.SaveVideo()
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
+// }
+
+func HandleVideoUpload(c *gin.Context) {
+	file, _ := c.FormFile("video")
+	// Assuming the file is saved successfully in your server's file system
+
+	////////////////////////////
 	// c.Request.Body = http.MaxBytesReader(c.Request.Response., c.Request.Body, 300*1024*1024)
 
 	file, err := c.FormFile("video")
@@ -100,7 +248,7 @@ func HandleVideoUpload(c *gin.Context) {
 	}
 	userID, _ := token.ExtractTokenID(c)
 
-	 err = models.ValidateUserType(int(userID))
+	err = models.ValidateUserType(int(userID))
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": "no puedes publicar mas videos"})
 		return
@@ -182,7 +330,7 @@ func HandleVideoUpload(c *gin.Context) {
 	workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
 
 	// Add a job to a queue
-	workers.Enqueue("myqueue", "Add", compressVideo(tempFilePath, finalVideoPath))
+	// workers.Enqueue("myqueue", "Add", compressVideo(tempFilePath, finalVideoPath))
 
 	var input VideoInput
 
@@ -224,7 +372,75 @@ func HandleVideoUpload(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
+	// c.JSON(http.StatusOK, gin.H{"message": "Video uploaded successfully"})
+	/////////////////////////////
+	// Generate a unique task ID for tracking (for simplicity, using the filename, ensure uniqueness in your implementation)
+	taskId := filepath.Base(finalVideoPath)
+	mutex.Lock()
+	taskStatusMap[taskId] = "Started"
+	mutex.Unlock()
+
+	c.JSON(200, gin.H{
+		"message": "Upload received, processing started.",
+		"taskId":  taskId,
+	})
+
+	// Start the compression in a new goroutine
+	go compressVideos(taskId, tempFilePath, finalVideoPath)
+}
+
+func compressVideos(taskId, tempFilePath string, finalVideoPath string) error {
+	defer func() {
+		mutex.Lock()
+		taskStatusMap[taskId] = "Completed"
+		mutex.Unlock()
+	}()
+	url := os.Getenv("api_compress_video")
+
+	data := RequestCompressVideo{
+		Video_path:       tempFilePath,   //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
+		Final_video_path: finalVideoPath, //"/home/albert/Downloads/dreams.mp3",
+		// Final_video_name: finalVideoName,
+	}
+	// // Open the file to be sent
+	// file, err := os.Open(filePath)
+	// if err != nil {
+	//     mutex.Lock()
+	//     taskStatusMap[taskId] = "Failed to open file"
+	//     mutex.Unlock()
+	//     return
+	// }
+	// defer file.Close()
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return err
+	}
+	fmt.Println("HTTP JSON POST URL:", url)
+
+	request, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return err
+	}
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	// Perform the request
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		mutex.Lock()
+		taskStatusMap[taskId] = "Failed to send request"
+		mutex.Unlock()
+		return err
+	}
+	defer response.Body.Close()
+	deleteTemporalVideo(tempFilePath)
+	fmt.Println("response Status:", response.Status)
+	fmt.Println("response Headers:", response.Header)
+	// Here, you can check the response status, body, etc.
+	// For simplicity, this example doesn't do that.
+	return nil
 }
 
 type RequestCompressVideo struct {
