@@ -121,6 +121,7 @@ func main() {
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 	protected.GET("/getsongs", controllers.HandleGetAllSongs)
+    protected.GET("/status/:taskId", controllers.CheckStatus)
 
 	// // pull messages from "myqueue" with concurrency of 10
 	// workers.Process("myqueue", myJob, 10)

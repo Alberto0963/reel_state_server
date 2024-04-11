@@ -74,7 +74,7 @@ type VideoInput struct {
 	Sale_category_id string  `json:"sale_category_id" binding:"required"`
 	Latitude         float64 `json:"latitude"`
 	Longitude        float64 `json:"longitude"`
-	Type             float64 `json:"type"`
+	Type             int     `json:"type"`
 }
 
 func checkVideoSize(filePath string, maxSize int64) error {
@@ -85,7 +85,7 @@ func checkVideoSize(filePath string, maxSize int64) error {
 
 	fileSize := fileInfo.Size()
 	if fileSize > maxSize {
-		return fmt.Errorf("Error: File size exceeds the maximum limit of %d MB", maxSize/(1024*1024))
+		return fmt.Errorf("Error: File size exceeds the maximum limit of %d MB ", maxSize/(1024*1024))
 	}
 
 	return nil
@@ -350,7 +350,7 @@ func HandleVideoUpload(c *gin.Context) {
 	v.Id_user = userID
 	v.Latitude = input.Latitude
 	v.Longitude = input.Longitude
-	v.Type = input.Type
+	v.Type = 4
 
 	sale_type_id, err := strconv.ParseUint(input.Sale_type_id, 10, 32)
 	if err != nil {
@@ -386,10 +386,10 @@ func HandleVideoUpload(c *gin.Context) {
 	})
 
 	// Start the compression in a new goroutine
-	go compressVideos(taskId, tempFilePath, finalVideoPath)
+	go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath)
 }
 
-func compressVideos(taskId, tempFilePath string, finalVideoPath string) error {
+func compressVideos(idvideo int, typeV int, taskId, tempFilePath string, finalVideoPath string) error {
 	defer func() {
 		mutex.Lock()
 		taskStatusMap[taskId] = "Completed"
@@ -440,6 +440,8 @@ func compressVideos(taskId, tempFilePath string, finalVideoPath string) error {
 	fmt.Println("response Headers:", response.Header)
 	// Here, you can check the response status, body, etc.
 	// For simplicity, this example doesn't do that.
+	models.SetAvailable(idvideo, typeV)
+
 	return nil
 }
 
@@ -448,39 +450,53 @@ type RequestCompressVideo struct {
 	Final_video_path string `json:"final_video_path"`
 }
 
-func compressVideo(tempFilePath string, finalVideoPath string) error {
+// func compressVideo(tempFilePath string, finalVideoPath string) error {
 
-	url := os.Getenv("api_compress_video")
+// 	url := os.Getenv("api_compress_video")
 
-	data := RequestCompressVideo{
-		Video_path:       tempFilePath,   //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
-		Final_video_path: finalVideoPath, //"/home/albert/Downloads/dreams.mp3",
-		// Final_video_name: finalVideoName,
+// 	data := RequestCompressVideo{
+// 		Video_path:       tempFilePath,   //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
+// 		Final_video_path: finalVideoPath, //"/home/albert/Downloads/dreams.mp3",
+// 		// Final_video_name: finalVideoName,
+// 	}
+
+// 	jsonData, err := json.Marshal(data)
+// 	if err != nil {
+// 		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+// 		return err
+// 	}
+
+// 	fmt.Println("HTTP JSON POST URL:", url)
+
+// 	request, error := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+// 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+// 	client := &http.Client{}
+// 	response, error := client.Do(request)
+// 	if error != nil {
+// 		panic(error)
+// 	}
+// 	defer response.Body.Close()
+// 	deleteTemporalVideo(tempFilePath)
+// 	fmt.Println("response Status:", response.Status)
+// 	fmt.Println("response Headers:", response.Header)
+// 	// body, _ := ioutil.ReadAll(response.Body)
+// 	// fmt.Println("response Body:", string(body))
+// 	return nil
+// }
+
+func CheckStatus(c *gin.Context) {
+	taskId := c.Param("taskId")
+	mutex.Lock()
+	status, exists := taskStatusMap[taskId]
+	mutex.Unlock()
+
+	if !exists {
+		c.JSON(404, gin.H{"error": "Task not found"})
+		return
 	}
 
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
-		return err
-	}
-
-	fmt.Println("HTTP JSON POST URL:", url)
-
-	request, error := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
-
-	client := &http.Client{}
-	response, error := client.Do(request)
-	if error != nil {
-		panic(error)
-	}
-	defer response.Body.Close()
-	deleteTemporalVideo(tempFilePath)
-	fmt.Println("response Status:", response.Status)
-	fmt.Println("response Headers:", response.Header)
-	// body, _ := ioutil.ReadAll(response.Body)
-	// fmt.Println("response Body:", string(body))
-	return nil
+	c.JSON(200, gin.H{"status": status})
 }
 
 func HandleVideoEdit(c *gin.Context) {

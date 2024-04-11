@@ -33,7 +33,7 @@ type Video struct {
 	Image_cover      string     `gorm:"size:255;not null;" json:"image_cover"`
 	Latitude         float64    `gorm:"size:255;not null;" json:"latitude"`
 	Longitude        float64    `gorm:"size:255;not null;" json:"longitude"`
-	Type             float64    `gorm:"size:255;not null;" json:"type"`
+	Type             int    `gorm:"size:255;not null;" json:"type"`
 }
 
 type FeedVideo struct {
@@ -105,6 +105,25 @@ func (v *Video) SaveVideo() (*Video, error) {
 	}
 	return v, nil
 
+}
+
+func  SetAvailable(idvideo int, typev int)(Video, error) {
+	var err error
+	dbConn := Pool
+	var vid Video
+	err = dbConn.Where(" && id = ?", idvideo).Find(&vid).Error
+	if err != nil {
+		return vid, err
+	}
+
+	vid.Type = typev
+
+
+	err = dbConn.Save(&vid).Error
+	if err != nil {
+		return Video{}, err
+	}
+	return vid, nil
 }
 
 func (v *Video) EditVideo() (*Video, error) {
@@ -230,8 +249,6 @@ func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 	offset := (page - 1) * pageSize
 	locations := strings.Fields(search)
 
-
-
 	result := dbConn.Model(&Video{}).
 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
@@ -270,13 +287,12 @@ func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 		videos = append(videos, vid...)
 	}
 
-		// Dynamically build the WHERE clause to use LIKE for each keyword
-	    // Dynamically build the query with LIKE conditions for each keyword
-		for _, keyword := range locations {
-			likePattern := "%" + keyword + "%"
-			dbConn = dbConn.Or(" type = 1 && location LIKE ?", likePattern)
-		}
-
+	// Dynamically build the WHERE clause to use LIKE for each keyword
+	// Dynamically build the query with LIKE conditions for each keyword
+	for _, keyword := range locations {
+		likePattern := "%" + keyword + "%"
+		dbConn = dbConn.Or(" type = 1 && location LIKE ?", likePattern)
+	}
 
 	result = dbConn.Model(&Video{}).
 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
