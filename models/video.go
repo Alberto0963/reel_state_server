@@ -111,7 +111,7 @@ func  SetAvailable(idvideo int, typev int)(Video, error) {
 	var err error
 	dbConn := Pool
 	var vid Video
-	err = dbConn.Where(" && id = ?", idvideo).Find(&vid).Error
+	err = dbConn.Where("id = ?", idvideo).Find(&vid).Error
 	if err != nil {
 		return vid, err
 	}
@@ -119,7 +119,7 @@ func  SetAvailable(idvideo int, typev int)(Video, error) {
 	vid.Type = typev
 
 
-	err = dbConn.Save(&vid).Error
+	err = dbConn.Save(vid).Error
 	if err != nil {
 		return Video{}, err
 	}
