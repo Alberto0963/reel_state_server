@@ -60,12 +60,11 @@ func Login(c *gin.Context, db *gorm.DB) {
 	}
 
 	// hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-    // if err != nil {
-    //     panic(err)
-    // }
+	// if err != nil {
+	//     panic(err)
+	// }
 
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(input.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
@@ -79,7 +78,7 @@ func Login(c *gin.Context, db *gorm.DB) {
 	if user.IdMembership == 6 || user.IdMembership == 7 {
 		isVip = true
 	}
-	c.JSON(http.StatusOK, gin.H{"token": token, "isVip": isVip,"canUpload": user.CanUpload})
+	c.JSON(http.StatusOK, gin.H{"token": token, "isVip": isVip, "canUpload": user.CanUpload})
 }
 
 type RegisterInput struct {
@@ -239,7 +238,6 @@ func ResetPassword(c *gin.Context) {
 
 }
 
-
 func UpdateUserName(c *gin.Context) {
 
 	var input UpdateUserNameInput
@@ -250,13 +248,12 @@ func UpdateUserName(c *gin.Context) {
 		return
 	}
 
-	u, err := models.GetUserByID(userID)
+	u, err := models.GetUserByIdToUpdate(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error getting user"})
 		return
 	}
 	u.Username = input.Username
-
 
 	_, err = u.UpdateUser()
 	if err != nil {
@@ -270,7 +267,7 @@ func UpdateUserName(c *gin.Context) {
 	// 	return
 	// }
 
-	c.JSON(http.StatusOK, gin.H{"message": "update success",})
+	c.JSON(http.StatusOK, gin.H{"message": "update success"})
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
 
 }

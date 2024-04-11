@@ -36,24 +36,24 @@ type User struct {
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Description              string    `gorm:"size:255" json:"description"`
-	CanUpload                bool      `gorm: json:"can_upload"`
+	CanUpload                bool      `gorm:"" json:"can_upload"`
+
 }
 
-// type User struct {
-// 	// gorm.Model `gorm:"softDelete:false"`
-// 	// DeletedAt gorm.DeletedAt `gorm:"index"`
-// 	ID                       uint      `gorm:"not null;unique" json:"id"`
-// 	Phone                    string    `gorm:"size:13;not null;unique" json:"phone"`
-// 	Username                 string    `gorm:"size:255;not null;unique" json:"username"`
-// 	Password                 string    `gorm:"size:100;not null;" json:"password"`
-// 	ProfileImage             string    `gorm:"size:255;not null;" json:"profileImage"`
-// 	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
-// 	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
-// 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
-// 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
-// 	Description              string    `gorm:"size:255" json:"description"`
-// 	CanUpload                bool      `gorm:"not null;" json:"can_upload"`
-// }
+type UserUpdate struct {
+	// gorm.Model `gorm:"softDelete:false"`
+	// DeletedAt gorm.DeletedAt `gorm:"index"`
+	ID                       uint      `gorm:"not null;unique" json:"id"`
+	Phone                    string    `gorm:"size:13;not null;unique" json:"phone"`
+	Username                 string    `gorm:"size:255;not null;unique" json:"username"`
+	Password                 string    `gorm:"size:100;not null;" json:"password"`
+	ProfileImage             string    `gorm:"size:255;not null;" json:"profileImage"`
+	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
+	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
+	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
+	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
+	Description              string    `gorm:"size:255" json:"description"`
+}
 
 type PublicUser struct {
 	// gorm.Model `gorm:"softDelete:false"`
@@ -74,6 +74,10 @@ func (PublicUser) TableName() string {
 }
 
 func (User) TableName() string {
+	return "users"
+}
+
+func (UserUpdate) TableName() string {
 	return "users"
 }
 
@@ -171,6 +175,30 @@ func GetUserByID(uid uint) (User, error) {
 
 }
 
+func GetUserByIdToUpdate(uid uint) (UserUpdate, error) {
+
+	var u UserUpdate
+	// Obtain a connection from the pool
+	dbConn := Pool
+	// defer dbConn.Close()
+	// if err := dbConn.Model(&User{}).
+	// Define the subquery as a raw SQL string
+	// videosCountSubquery := "(SELECT id_user, COUNT(*) as video_count FROM videos GROUP BY id_user) as v"
+
+	if err := dbConn.Table("view_user_upload_status").
+		// Joins("LEFT JOIN memberships ON memberships.id = users.id_membership").
+		// Joins("LEFT JOIN (SELECT id_user, COUNT(*) as video_count FROM videos GROUP BY id_user) as v ON v.id_user = users.id").
+		Where("id = ?", uid).Find(&u).
+		Error; err != nil {
+		return u, errors.New("User not found! ")
+	}
+
+	// u.PrepareGive()
+
+	return u, nil
+
+}
+
 func GetUserByIDWithVideos(uid uint) (PublicUser, error) {
 
 	var u PublicUser
@@ -188,9 +216,9 @@ func GetUserByIDWithVideos(uid uint) (PublicUser, error) {
 
 }
 
-func GetUserByPhone(phone string) (User, error) {
+func GetUserByPhone(phone string) (UserUpdate, error) {
 
-	var u User
+	var u UserUpdate
 	// Obtain a connection from the pool
 	dbConn := Pool
 	// defer dbConn.Close()
@@ -199,7 +227,7 @@ func GetUserByPhone(phone string) (User, error) {
 		return u, errors.New("User not found! ")
 	}
 
-	u.PrepareGive()
+	// u.PrepareGive()
 
 	return u, nil
 
@@ -256,14 +284,14 @@ func (u *User) SaveUser() (*User, error) {
 	return u, nil
 }
 
-func (u *User) UpdateUser() (*User, error) {
+func (u *UserUpdate) UpdateUser() (*UserUpdate, error) {
 
 	var err error
 	dbConn := Pool
 
 	err = dbConn.Save(&u).Error
 	if err != nil {
-		return &User{}, err
+		return &UserUpdate{}, err
 	}
 	return u, nil
 }
