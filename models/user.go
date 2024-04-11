@@ -296,7 +296,7 @@ func (u *UserUpdate) UpdateUser() (*UserUpdate, error) {
 	return u, nil
 }
 
-func (u *User) BeforeSave(tx *gorm.DB) error {
+func (u *UserUpdate) BeforeSave(tx *gorm.DB) error {
 
 	//turn password into hash
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
