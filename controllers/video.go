@@ -259,6 +259,7 @@ func HandleVideoUpload(c *gin.Context) {
 	// Generate a random file name
 	fileName := models.GenerateRandomName()
 	tempFilePath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+
 	finalVideoName := models.GenerateRandomName()
 	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(file.Filename))
 
@@ -308,6 +309,7 @@ func HandleVideoUpload(c *gin.Context) {
 	async.Await(saveVideo)
 
 	fmt.Println("/////////////// final ///////////////////")
+
 	d, err := os.Stat(tempFilePath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -316,21 +318,6 @@ func HandleVideoUpload(c *gin.Context) {
 
 	fmt.Println(d)
 	//// end save video
-
-	//add audio to video
-	if audioFileName != "" {
-		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
-		fileName = models.GenerateRandomName()
-
-		workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)))
-		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
-
-	}
-
-	workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
-
-	// Add a job to a queue
-	// workers.Enqueue("myqueue", "Add", compressVideo(tempFilePath, finalVideoPath))
 
 	var input VideoInput
 
@@ -384,6 +371,20 @@ func HandleVideoUpload(c *gin.Context) {
 		"message": "Upload received, processing started.",
 		"taskId":  taskId,
 	})
+
+	//add audio to video//////
+	if audioFileName != "" {
+		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
+		fileName = models.GenerateRandomName()
+
+		workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)))
+		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+
+	}
+
+	workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
+
+	//end add audio to video//////
 
 	// Start the compression in a new goroutine
 	go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath)
@@ -873,6 +874,7 @@ func joinAudioWithVideo(audioPath string, videoPath string, finalVideoName strin
 	fmt.Println("response Headers:", response.Header)
 	// body, _ := ioutil.ReadAll(response.Body)
 	// fmt.Println("response Body:", string(body))
+
 	return nil
 }
 
