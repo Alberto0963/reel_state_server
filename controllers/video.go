@@ -41,7 +41,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ianlopshire/go-async"
-	"github.com/jrallison/go-workers"
+	// "github.com/jrallison/go-workers"
 	// "github.com/jrallison/go-workers"
 	// "golang.org/x/crypto/nacl/auth"
 )
@@ -377,17 +377,19 @@ func HandleVideoUpload(c *gin.Context) {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 		fileName = models.GenerateRandomName()
 
-		workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)))
-		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+		// workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)))
+		// tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+		go joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename), finalVideoPath, v.Id, input.Type)
+	} else {
+		go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath)
 
 	}
 
-	workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
+	// workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
 
 	//end add audio to video//////
 
 	// Start the compression in a new goroutine
-	go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath)
 }
 
 func compressVideos(idvideo int, typeV int, taskId, tempFilePath string, finalVideoPath string) error {
@@ -842,14 +844,14 @@ type RequestAudioVideoData struct {
 	Final_video_name string `json:"final_video_name"`
 }
 
-func joinAudioWithVideo(audioPath string, videoPath string, finalVideoName string) error {
+func joinAudioWithVideo(audioPath string, inputPath string, outputPath string, finalVideoPath string, idvideo int, typeV int) error {
 
 	url := os.Getenv("api_join_audio_video")
 
 	data := RequestAudioVideoData{
-		Video_path:       videoPath, //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
+		Video_path:       inputPath, //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
 		Audio_path:       audioPath, //"/home/albert/Downloads/dreams.mp3",
-		Final_video_name: finalVideoName,
+		Final_video_name: outputPath,
 	}
 
 	jsonData, err := json.Marshal(data)
@@ -874,7 +876,14 @@ func joinAudioWithVideo(audioPath string, videoPath string, finalVideoName strin
 	fmt.Println("response Headers:", response.Header)
 	// body, _ := ioutil.ReadAll(response.Body)
 	// fmt.Println("response Body:", string(body))
+	// Start the compression in a new goroutine
+	tempFilePath := filepath.Join(url, "/public/videos", outputPath)
+	taskId := filepath.Base(finalVideoPath)
+	mutex.Lock()
+	taskStatusMap[taskId] = "Started"
+	mutex.Unlock()
 
+	go compressVideos(idvideo, typeV, taskId, tempFilePath, finalVideoPath)
 	return nil
 }
 
