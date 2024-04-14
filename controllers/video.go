@@ -41,6 +41,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ianlopshire/go-async"
+	"github.com/jrallison/go-workers"
 	// "github.com/jrallison/go-workers"
 	// "github.com/jrallison/go-workers"
 	// "golang.org/x/crypto/nacl/auth"
@@ -377,9 +378,11 @@ func HandleVideoUpload(c *gin.Context) {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 		fileName = models.GenerateRandomName()
 
-		// workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)))
-		// tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
-		go joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename), finalVideoPath, v.Id, input.Type)
+		workers.Enqueue("myqueue", "Add", joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)))
+		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+		workers.Enqueue("myqueue", "Add", compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath))
+
+		// go joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename), finalVideoPath, v.Id, input.Type)
 	} else {
 		go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath)
 
@@ -844,7 +847,7 @@ type RequestAudioVideoData struct {
 	Final_video_name string `json:"final_video_name"`
 }
 
-func joinAudioWithVideo(audioPath string, inputPath string, outputPath string, finalVideoPath string, idvideo int, typeV int) error {
+func joinAudioWithVideo(audioPath string, inputPath string, outputPath string,) error {
 
 	url := os.Getenv("api_join_audio_video")
 
@@ -877,13 +880,13 @@ func joinAudioWithVideo(audioPath string, inputPath string, outputPath string, f
 	// body, _ := ioutil.ReadAll(response.Body)
 	// fmt.Println("response Body:", string(body))
 	// Start the compression in a new goroutine
-	tempFilePath := filepath.Join(url, "/public/videos", outputPath)
-	taskId := filepath.Base(finalVideoPath)
-	mutex.Lock()
-	taskStatusMap[taskId] = "Started"
-	mutex.Unlock()
+	// tempFilePath := filepath.Join(url, "/public/videos", outputPath)
+	// taskId := filepath.Base(finalVideoPath)
+	// mutex.Lock()
+	// taskStatusMap[taskId] = "Started"
+	// mutex.Unlock()
 
-	go compressVideos(idvideo, typeV, taskId, tempFilePath, finalVideoPath)
+	// go compressVideos(idvideo, typeV, taskId, tempFilePath, finalVideoPath)
 	return nil
 }
 
