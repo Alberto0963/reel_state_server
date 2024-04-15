@@ -329,7 +329,7 @@ func HandleVideoUpload(c *gin.Context) {
 
 	v := models.Video{}
 	v.Video_url = filepath.Join("/public/videos", finalVideoName+filepath.Ext(file.Filename))
-	v.Image_cover = "public/video_cover/" + fileName + ".jpg"
+	v.Image_cover = "public/video_cover/" + finalVideoName + ".jpg"
 	v.Description = input.Description
 	v.Location = input.Location
 	v.Area = input.Area
@@ -373,7 +373,8 @@ func HandleVideoUpload(c *gin.Context) {
 		"taskId":  taskId,
 	})
 
-	//add audio to video//////
+	go getFrame(tempFilePath, finalVideoName+".jpg")
+
 	if audioFileName != "" {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 		fileName = models.GenerateRandomName()
@@ -387,8 +388,6 @@ func HandleVideoUpload(c *gin.Context) {
 		go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath)
 
 	}
-
-	// workers.Enqueue("myqueue", "Add", getFrame(tempFilePath, fileName+".jpg"))
 
 	//end add audio to video//////
 
