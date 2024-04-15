@@ -379,7 +379,25 @@ func HandleVideoUpload(c *gin.Context) {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 		fileName = models.GenerateRandomName()
 
-		go joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename))
+		joinAudioVideo := new(async.Future[error])
+		// destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+	
+		// save video.
+	
+		go func() {
+			// err = saveVideoFile(file, destPath)
+			fmt.Println("/////////////// inicio Join Audio video///////////////////")
+			// time.Sleep(50 * time.Second)
+	
+			async.ResolveFuture(joinAudioVideo, joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)), nil)
+	
+		}()
+	
+		async.Await(joinAudioVideo)
+	
+		fmt.Println("/////////////// final join audio Video///////////////////")
+
+	
 		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 		go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath)
 
