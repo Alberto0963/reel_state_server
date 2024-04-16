@@ -377,33 +377,33 @@ func HandleVideoUpload(c *gin.Context) {
 
 	if audioFileName != "" {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
-		fileName = models.GenerateRandomName()
+		// fileName = models.GenerateRandomName()
 
-		joinAudioVideo := new(async.Future[error])
-		// destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+		// joinAudioVideo := new(async.Future[error])
+		// // destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 	
-		// save video.
+		// // save video.
 	
-		go func() {
-			// err = saveVideoFile(file, destPath)
-			fmt.Println("/////////////// inicio Join Audio video///////////////////")
-			// time.Sleep(50 * time.Second)
+		// go func() {
+		// 	// err = saveVideoFile(file, destPath)
+		// 	fmt.Println("/////////////// inicio Join Audio video///////////////////")
+		// 	// time.Sleep(50 * time.Second)
 	
-			async.ResolveFuture(joinAudioVideo, joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)), nil)
+		// 	async.ResolveFuture(joinAudioVideo, joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)), nil)
 	
-		}()
+		// }()
 	
-		async.Await(joinAudioVideo)
+		// async.Await(joinAudioVideo)
 	
-		fmt.Println("/////////////// final join audio Video///////////////////")
+		// fmt.Println("/////////////// final join audio Video///////////////////")
 
 	
-		tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
-		go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath)
+		// tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+		go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath,destAudioPath,true)
 
 		// go joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename), finalVideoPath, v.Id, input.Type)
 	} else {
-		go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath)
+		go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath,"",false)
 
 	}
 
@@ -412,7 +412,7 @@ func HandleVideoUpload(c *gin.Context) {
 	// Start the compression in a new goroutine
 }
 
-func compressVideos(idvideo int, typeV int, taskId, tempFilePath string, finalVideoPath string) error {
+func compressVideos(idvideo int, typeV int, taskId, tempFilePath string, finalVideoPath string,audio_path string,has_audio bool ) error {
 	defer func() {
 		mutex.Lock()
 		taskStatusMap[taskId] = "Completed"
@@ -423,6 +423,8 @@ func compressVideos(idvideo int, typeV int, taskId, tempFilePath string, finalVi
 	data := RequestCompressVideo{
 		Video_path:       tempFilePath,   //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
 		Final_video_path: finalVideoPath, //"/home/albert/Downloads/dreams.mp3",
+		Audio_path:audio_path ,
+		Has_audio: has_audio,
 		// Final_video_name: finalVideoName,
 	}
 	// // Open the file to be sent
@@ -471,6 +473,9 @@ func compressVideos(idvideo int, typeV int, taskId, tempFilePath string, finalVi
 type RequestCompressVideo struct {
 	Video_path       string `json:"video_path"`
 	Final_video_path string `json:"final_video_path"`
+	Audio_path       string `json:"audio_path"`
+	Has_audio       bool `json:"has_audio"`
+
 }
 
 // func compressVideo(tempFilePath string, finalVideoPath string) error {
