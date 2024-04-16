@@ -375,6 +375,8 @@ func HandleVideoUpload(c *gin.Context) {
 
 	go getFrame(tempFilePath, finalVideoName+".jpg")
 
+	 fmt.Println("/////////////// audio file $///////////////////", audioFileName)
+
 	if audioFileName != "" {
 		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
 		// fileName = models.GenerateRandomName()
