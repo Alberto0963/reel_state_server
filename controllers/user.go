@@ -23,8 +23,17 @@ func LoginHandler(c *gin.Context) {
 	auth.Login(c, models.Pool) // Pass the DB connection and secret key to the Login function
 }
 
+func LoginWithGoogleHandler(c *gin.Context) {
+	// secretKey := []byte("your-secret-key") // Replace with your own secret key
+	auth.HandleGoogleLogin(c) // Pass the DB connection and secret key to the Login function
+}
+
 func RegisterHandler(c *gin.Context) {
 	auth.Register(c)
+}
+
+func RegisterHandlerWithGogle(c *gin.Context) {
+	auth.HandleGoogleRegister(c)
 }
 
 func UpdatePasswordHandler(c *gin.Context) {

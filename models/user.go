@@ -37,7 +37,7 @@ type User struct {
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Description              string    `gorm:"size:255" json:"description"`
 	CanUpload                bool      `gorm:"" json:"can_upload"`
-
+	Email                    string    `gorm:"" json:"email"`
 }
 
 type UserUpdate struct {
@@ -53,6 +53,8 @@ type UserUpdate struct {
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Description              string    `gorm:"size:255" json:"description"`
+	Email                    string    `gorm:"" json:"email"`
+
 }
 
 type PublicUser struct {
@@ -233,6 +235,32 @@ func GetUserByPhone(phone string) (UserUpdate, error) {
 
 }
 
+func GetUserByEmail(email string) (User, error) {
+
+	var u User
+	// Obtain a connection from the pool
+	dbConn := Pool
+	// defer dbConn.Close()
+	result := dbConn.Where("email = ?", email).First(&u)
+
+	// if err := dbConn.Model(&User{}).Where("email = ?", email).Find(&u).Error; err != nil {
+	// 	return u, errors.New("User not found! ")
+	// }
+	// Check the type of error returned
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		// User not found is not a database error but a "normal" flow error
+		return User{}, errors.New("User not found! ")
+	} else if result.Error != nil {
+		// Some other error occurred during the query execution
+		return User{}, result.Error
+	}
+
+	// u.PrepareGive()
+
+	return u, nil
+
+}
+
 func SearchProfile(username string) ([]PublicUser, error) {
 
 	var u []PublicUser
@@ -272,14 +300,14 @@ func (u *User) PrepareGive() {
 	u.Password = ""
 }
 
-func (u *User) SaveUser() (*User, error) {
+func (u *UserUpdate) SaveUser() (*UserUpdate, error) {
 
 	var err error
 	dbConn := Pool
 
 	err = dbConn.Create(&u).Error
 	if err != nil {
-		return &User{}, err
+		return &UserUpdate{}, err
 	}
 	return u, nil
 }

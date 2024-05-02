@@ -1,7 +1,14 @@
 package auth
 
 import (
+	// "io/ioutil"
+	// "io"
+	// "database/sql"
+	"encoding/json"
+	"io"
+	"log"
 	"net/http"
+
 	// "os"
 
 	// "os"
@@ -16,10 +23,23 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"gorm.io/gorm"
 	// "gorm.io/gorm"
 	// "gorm.io/gorm"
 )
+
+type GoogleUserInfo struct {
+	ID            string `json:"id"`
+	Email         string `json:"email"`
+	VerifiedEmail bool   `json:"verified_email"`
+	Name          string `json:"name"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+	Picture       string `json:"picture"`
+	Locale        string `json:"locale"`
+}
 
 func CurrentUser(c *gin.Context) {
 
@@ -78,6 +98,7 @@ func Login(c *gin.Context, db *gorm.DB) {
 	if user.IdMembership == 6 || user.IdMembership == 7 {
 		isVip = true
 	}
+
 	c.JSON(http.StatusOK, gin.H{"token": token, "isVip": isVip, "canUpload": user.CanUpload})
 }
 
@@ -86,6 +107,13 @@ type RegisterInput struct {
 	Password string `json:"password" binding:"required"`
 	Phone    string `json:"phone" binding:"required"`
 	Code     string `json:"code" binding:""`
+}
+
+type LoginWithGoogle struct {
+	Token string `json:"token " binding:"required"`
+	// Password string `json:"password" binding:"required"`
+	// Phone    string `json:"phone" binding:"required"`
+	// Code     string `json:"code" binding:""`
 }
 
 type ResetPasswordInput struct {
@@ -133,7 +161,7 @@ func Register(c *gin.Context) {
 	// Create the destination path for saving the image
 	// profileImagePath := filepath.Join("public/profile_images", imageFileName)
 
-	u := models.User{}
+	u := models.UserUpdate{}
 
 	u.Username = input.Username
 	u.Password = input.Password
@@ -325,4 +353,173 @@ func ValidateVerificationCode(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "code is valid"})
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
 
+}
+
+var googleOauthConfig = &oauth2.Config{
+	ClientID:     "863989854330-88369t3et8090geknm71tj9rjve196ti.apps.googleusercontent.com",
+	ClientSecret: "com.reel_state_mx",
+	Endpoint:     google.Endpoint,
+	Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
+}
+
+func HandleGoogleLogin(c *gin.Context) {
+	// ctx := r.Context()
+	var input LoginWithGoogle
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	tokenSource := googleOauthConfig.TokenSource(c, &oauth2.Token{
+		AccessToken: input.Token,
+	})
+
+	newToken, err := tokenSource.Token() // Verifica y posiblemente refresca el token
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	print(newToken)
+
+	client := oauth2.NewClient(c, tokenSource)
+	userData, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
+	if userData.StatusCode != 200 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	defer userData.Body.Close()
+	userInfo, err := io.ReadAll(userData.Body)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	var userInfoModel GoogleUserInfo
+	if err := json.Unmarshal(userInfo, &userInfoModel); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	//  var localuser  models.User
+	localuser, err := models.GetUserByEmail(userInfoModel.Email)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := token.GenerateToken(localuser.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+	isVip := false
+	if localuser.IdMembership == 6 || localuser.IdMembership == 7 {
+		isVip = true
+	}
+
+	// Envía userInfo al cliente Flutter o procesa según necesites
+	c.JSON(http.StatusOK, gin.H{"message": "token is valid", "GoogleUser": userInfoModel, "ReelStateUser": localuser, "token": token, "isVip": isVip})
+	// return
+}
+
+func googleService(c *gin.Context, token string) (GoogleUserInfo, error) {
+	// ctx := r.Context()
+	// var input LoginWithGoogle
+	var userGoogle GoogleUserInfo
+
+	tokenSource := googleOauthConfig.TokenSource(c, &oauth2.Token{
+		AccessToken: token,
+	})
+
+	newToken, err := tokenSource.Token() // Verifica y posiblemente refresca el token
+	if err != nil {
+		return userGoogle, err
+
+	}
+	print(newToken)
+
+	client := oauth2.NewClient(c, tokenSource)
+	userData, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
+	if userData.StatusCode != 200 {
+		return userGoogle, err
+
+	}
+
+	defer userData.Body.Close()
+	userInfo, err := io.ReadAll(userData.Body)
+	if err != nil {
+		return userGoogle, err
+
+	}
+	// var userInfoModel GoogleUserInfo
+	if err := json.Unmarshal(userInfo, &userGoogle); err != nil {
+		return userGoogle, err
+
+	}
+
+	return userGoogle, nil
+
+}
+
+func HandleGoogleRegister(c *gin.Context) {
+
+	var input LoginWithGoogle
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	userInfoModel, err := googleService(c, input.Token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	//  var localuser  models.User
+	// Check if user already exists in database by email
+	localuser, err := models.GetUserByEmail(userInfoModel.Email)
+	log.Printf("user:",localuser)
+	// log
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 	return
+	// }
+
+	if err != nil {
+
+		// No existing user, let's register a new one
+		var saveUser models.UserUpdate
+
+		saveUser.Email = userInfoModel.Email
+		saveUser.Username = userInfoModel.Name
+		// saveUser.Username = userInfoModel.Name
+		saveUser.ExpirationMembershipDate = time.Now()
+		saveUser.IdMembership = 1
+		usr, err := saveUser.SaveUser()
+		print(usr)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Database error:": err})
+			return
+		}
+
+		token, err := token.GenerateToken(saveUser.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Database error:": err})
+			return
+		}
+		isVip := false
+		if saveUser.IdMembership == 6 || saveUser.IdMembership == 7 {
+			isVip = true
+		}
+
+		// Envía userInfo al cliente Flutter o procesa según necesites
+		c.JSON(http.StatusOK, gin.H{"GoogleUser": userInfoModel, "ReelStateUser": saveUser, "token": token, "isVip": isVip})
+
+	} else {
+		// User already registered
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User already registered"})
+		return
+	}
+
+	// return
 }

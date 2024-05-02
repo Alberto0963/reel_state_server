@@ -89,11 +89,14 @@ func main() {
 	public.GET("/getUserVideos", controllers.GetUserVideos)
 	public.GET("/getReportsTypes", controllers.HandleGetTypeRepors)
 	public.GET("/searchProfile", controllers.SearchProfile)
+	public.POST("/loginWithGoogle", controllers.LoginWithGoogleHandler)
 
 	public.POST("/sendVerificationCode", controllers.SendVerificationCode)
 	public.POST("/CodeIsValid", controllers.ValidateVerificationCode)
 	public.POST("/ValidateUserName", controllers.ValidateUserName)
 	public.POST("/register", controllers.RegisterHandler)
+	public.POST("/registerWithGoogle", controllers.RegisterHandlerWithGogle)
+
 	public.POST("/login", controllers.LoginHandler)
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
 	public.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
