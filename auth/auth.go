@@ -362,7 +362,7 @@ var googleOauthConfig = &oauth2.Config{
 	Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
 }
 
-func HandleGoogleLogin(c *gin.Context) {
+func HandleGoogleLogin(c *gin.Context,db *gorm.DB) {
 	// ctx := r.Context()
 	var input LoginWithGoogle
 
@@ -401,9 +401,9 @@ func HandleGoogleLogin(c *gin.Context) {
 		return
 	}
 	//  var localuser  models.User
-	localuser, err := models.GetUserByEmail(userInfoModel.Email)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	localuser := models.User{}
+	if err := db.Table("view_user_upload_status").Where("email = ?", userInfoModel.Email).First(&localuser).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
@@ -418,7 +418,7 @@ func HandleGoogleLogin(c *gin.Context) {
 	}
 
 	// Envía userInfo al cliente Flutter o procesa según necesites
-	c.JSON(http.StatusOK, gin.H{"message": "token is valid", "GoogleUser": userInfoModel, "ReelStateUser": localuser, "token": token, "isVip": isVip})
+	c.JSON(http.StatusOK, gin.H{"message": "token is valid", "GoogleUser": userInfoModel, "ReelStateUser": localuser, "token": token, "isVip": isVip,"canUpload": localuser.CanUpload})
 	// return
 }
 
