@@ -157,6 +157,45 @@ func (v *Video) EditVideo() (*Video, error) {
 
 }
 
+func GetVideo(id int, id_user int) (FeedVideo, error) {
+	var err error
+	dbConn := Pool
+	var vid FeedVideo
+	// var ads []FeedVideo
+	// var user User
+	// typeUser := 0
+
+
+
+
+	// err = dbConn.Unscoped().Find(&vid).Error
+
+	// err = dbConn.Model(&Video{}).Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
+	// if err != nil {
+	// 	return vid, err
+	// }
+
+	// var videos []Video
+	result := dbConn.Table("videos").
+		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+		Where("videos.id = ?", id).
+		Preload("SaleType").
+		Preload("SaleCategory").
+		Preload("User").
+		Unscoped().
+		Find(&vid).Error
+
+	if result != nil {
+		// http.Error(w, "Database error", http.StatusInternalServerError)
+		return vid, err
+	}
+
+	return vid, nil
+
+}
+
+
 func FetchAllVideos(id_user int, sale_type int, typeV int, page int) ([]FeedVideo, error) {
 	var err error
 	dbConn := Pool

@@ -83,15 +83,7 @@ func main() {
 	public := r.Group("/api")
 
 	r.LoadHTMLGlob(os.Getenv("MY_URL")+"templates/*")
-	r.GET("/video/:videoID", func(c *gin.Context) {
-		// videoURL := c.DefaultQuery("url", "https://www.youtube.com/embed/DEFAULT_VIDEO") // Provide a default video or handle the absence as needed
-		videoID := c.Param("videoID")
-		videoURL := "https://reelstate.mx/public/videos/" + videoID
-		c.HTML(200, "playVideo.html", gin.H{
-			"title": "Video Showcase",
-			"VideoURL": videoURL,
-		})
-	})
+	r.GET("/video/:videoID",controllers.GetVideoFromLink)
 	// public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
 	public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
 	public.GET("/getSearchVideos", controllers.HandleSearchVideos)
