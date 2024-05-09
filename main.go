@@ -82,7 +82,7 @@ func main() {
 
 	public := r.Group("/api")
 
-	r.LoadHTMLGlob("templates/*")
+	r.LoadHTMLGlob(os.Getenv("MY_URL")+"templates/*")
 	r.GET("/video/:videoID", func(c *gin.Context) {
 		// videoURL := c.DefaultQuery("url", "https://www.youtube.com/embed/DEFAULT_VIDEO") // Provide a default video or handle the absence as needed
 		videoID := c.Param("videoID")
