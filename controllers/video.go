@@ -94,7 +94,7 @@ func GetVideoFromLink(c *gin.Context) {
 	c.HTML(200, "playVideo.html", gin.H{
 		"title":    "Video Showcase",
 		"VideoURL": videoURL,
-		"User": data.User,
+		"User": data.User.Username,
 		"Description": data.Description,
 		"Img": img,
 
