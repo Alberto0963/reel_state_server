@@ -4,7 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Showcase</title>
+    <title>Video Preview</title>
+    <meta property="og:title" content="Amazing Video" />
+    <meta property="og:description" content="Check out this amazing video!" />
+    <meta property="og:image" content="https://example.com/path/to/image.jpg" />
+    <meta property="og:url" content="https://example.com/video-page" />
+    <meta property="og:type" content="video.movie" />
+    <meta property="og:video" content="https://example.com/path/to/video.mp4" />
+    <!-- Other tags for Twitter etc. -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Amazing Video">
+    <meta name="twitter:description" content="Check out this amazing video!">
+    <meta name="twitter:image" content="https://example.com/path/to/image.jpg">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -45,8 +56,7 @@
     <div class="container">
         <h1>Featured Videos</h1>
         <div class="video-wrapper">
-            <iframe src="{{.VideoURL}}"
-                frameborder="0"
+            <iframe src="{{.VideoURL}}" frameborder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowfullscreen></iframe>
         </div>
