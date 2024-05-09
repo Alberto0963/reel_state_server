@@ -89,8 +89,8 @@ func GetVideoFromLink(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}
-	videoURL := "https://reelstate.mx/public/videos/" + data.Video_url
-	img := "https://reelstate.mx/public/video_cover/" + data.Image_cover
+	videoURL := "https://reelstate.mx/" + data.Video_url
+	img := "https://reelstate.mx/" + data.Image_cover
 	c.HTML(200, "playVideo.html", gin.H{
 		"title":    "Video Showcase",
 		"VideoURL": videoURL,
