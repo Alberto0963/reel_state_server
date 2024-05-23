@@ -26,7 +26,6 @@ func MyBackgroundTask(msg *workers.Msg) {
 	fmt.Println("Background task is running...")
 }
 
-
 type myMiddleware struct{}
 
 func (r *myMiddleware) Call(queue string, message *workers.Msg, next func() bool) (acknowledge bool) {
@@ -82,9 +81,11 @@ func main() {
 
 	public := r.Group("/api")
 
-	r.LoadHTMLGlob(os.Getenv("MY_URL")+"templates/*")
-	r.GET("/video/:videoID",controllers.GetVideoFromLink)
+	r.LoadHTMLGlob(os.Getenv("MY_URL") + "templates/*")
+	r.GET("/video/:videoID", controllers.GetVideoFromLink)
 	// public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
+	public.GET("/GetMemberShips", controllers.GetMemberShips)
+
 	public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
 	public.GET("/getSearchVideos", controllers.HandleSearchVideos)
 	public.GET("/UserByIdHandler/", controllers.UserByIdHandler)
@@ -122,11 +123,10 @@ func main() {
 	protected.GET("/getVideoSponsors", controllers.HandleGetVideosSponsors)
 
 	protected.GET("/getMyFavoritesVideos", controllers.GetUserFavoritesVideos)
-	protected.GET("/GetMemberShips", controllers.GetMemberShips)
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 	protected.GET("/getsongs", controllers.HandleGetAllSongs)
-    protected.GET("/status/:taskId", controllers.CheckStatus)
+	protected.GET("/status/:taskId", controllers.CheckStatus)
 
 	// // pull messages from "myqueue" with concurrency of 10
 	// workers.Process("myqueue", myJob, 10)
