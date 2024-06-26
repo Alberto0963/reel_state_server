@@ -11,6 +11,7 @@ import (
 	"reelState/middlewares"
 	"reelState/models"
 
+	"github.com/joho/godotenv"
 	"github.com/jrallison/go-workers"
 
 	// "time"
@@ -25,7 +26,6 @@ func MyBackgroundTask(msg *workers.Msg) {
 	// Perform background task
 	fmt.Println("Background task is running...")
 }
-
 
 type myMiddleware struct{}
 
@@ -59,6 +59,12 @@ func main() {
 
 	workers.Middleware.Append(&myMiddleware{})
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	gin.SetMode(gin.ReleaseMode)
+
 	r := gin.Default()
 
 	r.SetTrustedProxies(nil)
@@ -82,8 +88,8 @@ func main() {
 
 	public := r.Group("/api")
 
-	r.LoadHTMLGlob(os.Getenv("MY_URL")+"templates/*")
-	r.GET("/video/:videoID",controllers.GetVideoFromLink)
+	r.LoadHTMLGlob(os.Getenv("MY_URL") + "templates/*")
+	r.GET("/video/:videoID", controllers.GetVideoFromLink)
 	// public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
 	public.GET("/GetMemberShips", controllers.GetPublicMemberShips)
 
@@ -128,7 +134,7 @@ func main() {
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 	protected.GET("/getsongs", controllers.HandleGetAllSongs)
-    protected.GET("/status/:taskId", controllers.CheckStatus)
+	protected.GET("/status/:taskId", controllers.CheckStatus)
 
 	// // pull messages from "myqueue" with concurrency of 10
 	// workers.Process("myqueue", myJob, 10)
