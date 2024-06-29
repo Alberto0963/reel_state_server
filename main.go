@@ -59,11 +59,12 @@ func main() {
 
 	workers.Middleware.Append(&myMiddleware{})
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	gin.SetMode(gin.DebugMode)
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
+
+	// gin.SetMode(gin.DebugMode)
 
 	r := gin.Default()
 
