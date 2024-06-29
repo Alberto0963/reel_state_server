@@ -879,8 +879,8 @@ func getFrame(filePath string, fileName string) error {
 	}
 	defer response.Body.Close()
 
-	fmt.Println("response Status:", response.Status)
-	fmt.Println("response Headers:", response.Header)
+	fmt.Println("response Status get Frame:", response.Status)
+	fmt.Println("response Headers get Frame:", response.Header)
 	// body, _ := ioutil.ReadAll(response.Body)
 	// fmt.Println("response Body:", string(body))
 	return nil
