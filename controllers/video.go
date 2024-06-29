@@ -485,8 +485,8 @@ func compressVideos(idvideo int, typeV int, taskId, tempFilePath string, finalVi
 	}
 	defer response.Body.Close()
 	deleteTemporalVideo(tempFilePath)
-	fmt.Println("response Status:", response.Status)
-	fmt.Println("response Headers:", response.Header)
+	fmt.Println("response Status compress:", response.Status)
+	fmt.Println("response Headers compress:", response.Header)
 	// Here, you can check the response status, body, etc.
 	// For simplicity, this example doesn't do that.
 	models.SetAvailable(idvideo, typeV)
