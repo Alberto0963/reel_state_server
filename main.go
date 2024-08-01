@@ -125,6 +125,7 @@ func main() {
 	protected.POST("/UpdateCoverImageUserName", controllers.UpdateCoverImageUserName)
 	protected.POST("/SetFavorite", controllers.SetFavorite)
 	protected.POST("/DeleteUserVideo", controllers.DeleteUserVideo)
+	protected.POST("/setProfileLike", controllers.Setlike)
 
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)

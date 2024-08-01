@@ -52,7 +52,6 @@ func UserByIdHandler(c *gin.Context) {
 
 	actualUserID, _ := token.ExtractTokenID(c)
 
-	
 	id := c.Query("id")
 
 	profileId, err := strconv.ParseUint(id, 10, 64)
@@ -83,9 +82,9 @@ func UserByIdHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "success", 
-		"data": result, 
-		"followers": followers, 
+		"message":    "success",
+		"data":       result,
+		"followers":  followers,
 		"actualUser": actualUserID,
 		"imFollower": imFollower,
 	})
@@ -364,4 +363,56 @@ func DeleteUserVideo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func Setlike(c *gin.Context) {
+
+	actualUserID, _ := token.ExtractTokenID(c)
+	// var u *models.Likes
+	id := c.Query("id")
+	profileId, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	u, err := models.GetProfilefollowers(int(profileId), int(actualUserID))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error getting user"})
+		return
+	}
+
+	if u.Id == 0 {
+		u = models.Likes{}
+		u.Id_profile = uint(profileId)
+		u.Id_user = actualUserID
+		models.SaveLikeProfile(&u)
+
+	} else {
+		models.UpdateLikeProfile(&u)
+	}
+
+	// if(u == nil){
+	// 	u = *models.Likes{}
+
+	// 	u.Id_profile = uint(profileId)
+	// 	u.Id_user = actualUserID
+	// 	models.SaveLikeProfile(u)
+	// }
+
+	// _, err = u.UpdateUser()
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 	return
+	// }
+
+	// token, err := token.GenerateToken(u.ID)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+	// 	return
+	// }
+
+	c.JSON(http.StatusOK, gin.H{"message": "update success", "d": u})
+	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
+
 }

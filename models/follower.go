@@ -4,7 +4,7 @@ import (
 
 )
 
-type likes struct {
+type Likes struct {
 	// gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
 	Id              int    `gorm:"not null;unique" json:"id"`

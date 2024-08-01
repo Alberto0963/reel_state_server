@@ -481,6 +481,23 @@ func Getfollowers(id_profile int) (int, error) {
 
 }
 
+func GetProfilefollowers(id_profile int, userid int) (Likes, error) {
+	var err error
+	dbConn := Pool
+	var foll Likes
+
+	err =
+		dbConn.Where("id_profile = ? && id_user = ?", id_profile, userid).
+			Find(&foll).Error
+	// dbConn.Model(&MyVideo{}).Where("id_user = ?", id_user).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
+	if err != nil {
+		return foll, err
+	}
+
+	return foll, nil
+
+}
+
 func Imfollower(id_profile int, id_user int) (bool, error) {
 	var err error
 	dbConn := Pool
@@ -502,3 +519,28 @@ func Imfollower(id_profile int, id_user int) (bool, error) {
 	return false, nil
 
 }
+
+func SaveLikeProfile(like *Likes) (*Likes, error) {
+	var err error
+	dbConn := Pool
+
+	dbConn.Save(&like)
+
+	if err != nil {
+		return &Likes{}, err
+	}
+	return like, nil
+}
+
+func UpdateLikeProfile(like *Likes) (*Likes, error) {
+	var err error
+	dbConn := Pool
+
+	dbConn.Delete(&like)
+
+	if err != nil {
+		return &Likes{}, err
+	}
+	return like, nil
+}
+
