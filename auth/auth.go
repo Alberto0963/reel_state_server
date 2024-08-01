@@ -52,12 +52,26 @@ func CurrentUser(c *gin.Context) {
 
 	u, err := models.GetUserByID(user_id)
 
+	followers, err := models.Getfollowers(int(user_id))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	imFollower, err := models.Imfollower(int(user_id), int(user_id))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": u})
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": u, "followers": followers, "imfollower": imFollower})
 }
 
 type LoginInput struct {

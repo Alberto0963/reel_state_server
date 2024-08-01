@@ -25,7 +25,7 @@ func LoginHandler(c *gin.Context) {
 
 func LoginWithGoogleHandler(c *gin.Context) {
 	// secretKey := []byte("your-secret-key") // Replace with your own secret key
-	auth.HandleGoogleLogin(c,models.Pool) // Pass the DB connection and secret key to the Login function
+	auth.HandleGoogleLogin(c, models.Pool) // Pass the DB connection and secret key to the Login function
 }
 
 func RegisterHandler(c *gin.Context) {
@@ -50,21 +50,45 @@ func CurrentUserHandler(c *gin.Context) {
 
 func UserByIdHandler(c *gin.Context) {
 
+	actualUserID, _ := token.ExtractTokenID(c)
+
+	
 	id := c.Query("id")
 
-	userID, err := strconv.ParseUint(id, 10, 64)
+	profileId, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
-	result, err := models.GetUserByID(uint(userID))
+	result, err := models.GetUserByID(uint(profileId))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": result})
+
+	followers, err := models.Getfollowers(int(profileId))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	imFollower, err := models.Imfollower(int(profileId), int(actualUserID))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "success", 
+		"data": result, 
+		"followers": followers, 
+		"actualUser": actualUserID,
+		"imFollower": imFollower,
+	})
 }
 
 func SendVerificationCode(c *gin.Context) {
@@ -274,7 +298,7 @@ func GetPublicMemberShips(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat,})
+	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
 }
 
 func GetMemberShips(c *gin.Context) {
@@ -341,5 +365,3 @@ func DeleteUserVideo(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
-
-

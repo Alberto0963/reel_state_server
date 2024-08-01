@@ -54,7 +54,6 @@ type UserUpdate struct {
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Description              string    `gorm:"size:255" json:"description"`
 	Email                    string    `gorm:"" json:"email"`
-
 }
 
 type PublicUser struct {
@@ -462,4 +461,44 @@ func ValidateUserType(id_user int) error {
 
 	// If none of the conditions are met, then there's no error
 	return nil
+}
+
+func Getfollowers(id_profile int) (int, error) {
+	var err error
+	dbConn := Pool
+	var foll int //[]likes
+
+	err =
+		dbConn.Table("likes").
+			Select("count(*) AS followers").Where("id_profile = ?", id_profile).
+			Find(&foll).Error
+	// dbConn.Model(&MyVideo{}).Where("id_user = ?", id_user).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
+	if err != nil {
+		return foll, err
+	}
+
+	return foll, nil
+
+}
+
+func Imfollower(id_profile int, id_user int) (bool, error) {
+	var err error
+	dbConn := Pool
+	// var foll bool//[]likes
+	var count int
+
+	err =
+		dbConn.Table("likes").
+			Select("count(*)").Where("id_profile = ? && id_user = ?", id_profile, id_user).
+			Find(&count).Error
+	// dbConn.Model(&MyVideo{}).Where("id_user = ?", id_user).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
+	if err != nil {
+		return false, err
+	}
+	if count >= 1 {
+		return true, nil
+	}
+
+	return false, nil
+
 }
