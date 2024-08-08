@@ -86,7 +86,7 @@ func UserByIdHandler(c *gin.Context) {
 		"data":       result,
 		"followers":  followers,
 		"actualUser": actualUserID,
-		"imFollower": imFollower,
+		"imfollower": imFollower,
 	})
 }
 
