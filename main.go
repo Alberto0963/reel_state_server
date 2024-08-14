@@ -108,6 +108,8 @@ func main() {
 	public.POST("/register", controllers.RegisterHandler)
 	public.POST("/registerWithGoogle", controllers.RegisterHandlerWithGogle)
 
+	public.POST("/addUserSubscription", controllers.HandleWebhook)
+
 	public.POST("/login", controllers.LoginHandler)
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
 	public.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
@@ -127,7 +129,6 @@ func main() {
 	protected.POST("/DeleteUserVideo", controllers.DeleteUserVideo)
 	protected.POST("/setProfileLike", controllers.Setlike)
 
-	protected.POST("/addUserSubscription", controllers.HandleWebhook)
 	protected.POST("/createSubscription", controllers.CreateSubscription)
 
 	// protected.GET("/user", controllers.CurrentUserHandler)
