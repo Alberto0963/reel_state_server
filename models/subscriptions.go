@@ -26,6 +26,8 @@ type Createsubscription struct {
 	MembershipId         int       `gorm:"not null" json:"membership_id"`
 	Renewal              bool      `json:"renewal"`
 	PaypalSubscriptionId string    `gorm:"size:255" json:"paypal_subscription_id"`
+	CurrencyCode string    `gorm:"size:255" json:"currency_code"`
+
 	// RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
 }
 

@@ -427,6 +427,7 @@ func CreateSubscription(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	
 	sub.IdUser = int(actualUserID)
 
 	_, err := sub.CreateSubscription()
