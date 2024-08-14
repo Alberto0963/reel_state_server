@@ -127,6 +127,9 @@ func main() {
 	protected.POST("/DeleteUserVideo", controllers.DeleteUserVideo)
 	protected.POST("/setProfileLike", controllers.Setlike)
 
+	protected.POST("/addUserSubscription", controllers.HandleWebhook)
+	protected.POST("/createSubscription", controllers.CreateSubscription)
+
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)
 	protected.GET("/getVideoSponsors", controllers.HandleGetVideosSponsors)

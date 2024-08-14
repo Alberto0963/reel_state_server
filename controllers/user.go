@@ -416,3 +416,42 @@ func Setlike(c *gin.Context) {
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
 
 }
+
+func CreateSubscription(c *gin.Context) {
+	var sub models.Subscription
+
+	// Bind JSON to struct
+	if err := c.ShouldBind(&sub); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err := sub.CreateSubscription()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	// Respond with success
+	c.JSON(http.StatusCreated, gin.H{"message": "Subscription created successfully"})
+}
+
+
+// func CancelSubscription(c *gin.Context) {
+// 	var sub models.Subscription
+
+// 	// Bind JSON to struct
+// 	if err := c.ShouldBind(&sub); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	_, err := sub.CreateSubscription()
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+// 		return
+// 	}
+
+// 	// Respond with success
+// 	c.JSON(http.StatusCreated, gin.H{"message": "Subscription created successfully"})
+// }
