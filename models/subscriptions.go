@@ -14,18 +14,18 @@ import (
 type Subscription struct {
 	ID                   int       `gorm:"primaryKey;autoIncrement" json:"id"`
 	IdUser               int       `gorm:"not null" json:"id_user"`
-	MembershipID         int       `gorm:"not null" json:"membership_id"`
+	MembershipId         int       `gorm:"not null" json:"membership_id"`
 	Renewal              bool      `json:"renewal"`
-	PaypalSubscriptionID string    `gorm:"size:255" json:"paypal_subscription_id"`
+	PaypalSubscriptionId string    `gorm:"size:255" json:"paypal_subscription_id"`
 	RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
 }
 
 type Createsubscription struct {
 	ID                   int       `gorm:"primaryKey;autoIncrement" json:"id"`
 	IdUser               int       `gorm:"not null" json:"id_user"`
-	MembershipID         int       `gorm:"not null" json:"membership_id"`
+	MembershipId         int       `gorm:"not null" json:"membership_id"`
 	Renewal              bool      `json:"renewal"`
-	PaypalSubscriptionID string    `gorm:"size:255" json:"paypal_subscription_id"`
+	PaypalSubscriptionId string    `gorm:"size:255" json:"paypal_subscription_id"`
 	// RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
 }
 

@@ -418,6 +418,7 @@ func Setlike(c *gin.Context) {
 }
 
 func CreateSubscription(c *gin.Context) {
+	
 	var sub models.Createsubscription
 	actualUserID, _ := token.ExtractTokenID(c)
 
