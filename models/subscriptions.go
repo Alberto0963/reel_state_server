@@ -20,16 +20,29 @@ type Subscription struct {
 	RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
 }
 
+type Createsubscription struct {
+	ID                   int       `gorm:"primaryKey;autoIncrement" json:"id"`
+	IdUser               int       `gorm:"not null" json:"id_user"`
+	MembershipID         int       `gorm:"not null" json:"membership_id"`
+	Renewal              bool      `json:"renewal"`
+	PaypalSubscriptionID string    `gorm:"size:255" json:"paypal_subscription_id"`
+	// RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
+}
+
 func (Subscription) TableName() string {
 	return "paypal_subscriptions"
 }
 
-func (sub *Subscription) CreateSubscription() (*Subscription, error) {
+func (Createsubscription) TableName() string {
+	return "paypal_subscriptions"
+}
+
+func (sub *Createsubscription) CreateSubscription() (*Createsubscription, error) {
 	var err error
 	dbConn := Pool
 
 	if err = dbConn.Create(&sub).Error; err != nil {
-		return &Subscription{}, err
+		return &Createsubscription{}, err
 	}
 	return sub, nil
 }

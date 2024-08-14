@@ -418,13 +418,15 @@ func Setlike(c *gin.Context) {
 }
 
 func CreateSubscription(c *gin.Context) {
-	var sub models.Subscription
+	var sub models.Createsubscription
+	actualUserID, _ := token.ExtractTokenID(c)
 
 	// Bind JSON to struct
 	if err := c.ShouldBind(&sub); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	sub.IdUser = int(actualUserID)
 
 	_, err := sub.CreateSubscription()
 	if err != nil {
