@@ -23,12 +23,25 @@ type Subscription struct {
 	Renewal              bool      `json:"renewal"`
 	PaypalSubscriptionId string    `gorm:"size:255" json:"paypal_subscription_id"`
 	RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
-	NextBillingTime      time.Time  `json:"next_billing_time"` 
-	StartedAt			 time.Time  `json:"started_at"` 
+	NextBillingTime      time.Time `json:"next_billing_time"`
+	StartedAt            time.Time `json:"started_at"`
+}
+
+type SubscriptionView struct {
+	ID           int `gorm:"primaryKey;autoIncrement" json:"id"`
+	IdUser       int `gorm:"not null" json:"id_user"`
+	MembershipId int `gorm:"not null" json:"membership_id"`
+	Membership   string `gorm:"not null" json:"membership"`
+	Price        int `gorm:"not null" json:"price"`
+	Renewal bool `json:"renewal"`
+	PaypalSubscriptionId string    `gorm:"size:255" json:"paypal_subscription_id"`
+	RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
+	NextBillingTime      time.Time `json:"next_billing_time"`
+	StartedAt            time.Time `json:"started_at"`
 }
 
 type CancelSubscription struct {
-	PaypalSubscriptionId string  `json:"paypal_subscription_id"`
+	PaypalSubscriptionId string `json:"paypal_subscription_id"`
 	Reason               string `json:"reason"`
 }
 
@@ -41,6 +54,10 @@ type Createsubscription struct {
 	CurrencyCode         string `gorm:"size:255" json:"currency_code"`
 
 	// RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
+}
+
+func (SubscriptionView) TableName() string {
+	return "UserMemberships"
 }
 
 func (Subscription) TableName() string {
@@ -145,15 +162,14 @@ func CancelPaypalSubscription(subscriptionID, reason string) error {
 	return nil
 }
 
-
-func GetSubscription(userId int) ([]Subscription, error) {
+func GetSubscription(userId int) ([]SubscriptionView, error) {
 	var err error
 	dbConn := Pool
 
-	var subscriber []Subscription
+	var subscriber []SubscriptionView
 
 	if err = dbConn.Where("id_user = ? && renewal = 1", userId).Find(&subscriber).Error; err != nil {
-		return []Subscription{} ,err
+		return []SubscriptionView{}, err
 	}
 
 	return subscriber, nil
