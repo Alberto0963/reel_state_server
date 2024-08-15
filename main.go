@@ -130,7 +130,9 @@ func main() {
 	protected.POST("/setProfileLike", controllers.Setlike)
 
 	protected.POST("/createSubscription", controllers.CreateSubscription)
+	protected.POST("/cancelSubscription", controllers.CancelSubscription)
 
+	
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)
 	protected.GET("/getVideoSponsors", controllers.HandleGetVideosSponsors)
@@ -141,7 +143,9 @@ func main() {
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 	protected.GET("/getsongs", controllers.HandleGetAllSongs)
 	protected.GET("/status/:taskId", controllers.CheckStatus)
+	protected.GET("/getUserSubscription", controllers.GetUserSubscription)
 
+	
 	// // pull messages from "myqueue" with concurrency of 10
 	// workers.Process("myqueue", myJob, 10)
 

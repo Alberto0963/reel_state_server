@@ -13,6 +13,7 @@ import (
 	"reelState/models"
 	"reelState/utils/token"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	// "golang.org/x/crypto/nacl/auth"
@@ -418,7 +419,7 @@ func Setlike(c *gin.Context) {
 }
 
 func CreateSubscription(c *gin.Context) {
-	
+
 	var sub models.Createsubscription
 	actualUserID, _ := token.ExtractTokenID(c)
 
@@ -427,7 +428,7 @@ func CreateSubscription(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	sub.IdUser = int(actualUserID)
 
 	_, err := sub.CreateSubscription()
@@ -440,22 +441,63 @@ func CreateSubscription(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Subscription created successfully"})
 }
 
+func CancelSubscription(c *gin.Context) {
+	var sub models.CancelSubscription
 
-// func CancelSubscription(c *gin.Context) {
-// 	var sub models.Subscription
+	// Bind JSON to struct
+	if err := c.ShouldBind(&sub); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-// 	// Bind JSON to struct
-// 	if err := c.ShouldBind(&sub); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
+	layout := "2006-01-02 15:04:05.999999999 -0700 MST"
+	now := time.Now()
+	formattedDate := now.Format("2006-01-02 15:04:05.999999999 -0700 MST")
 
-// 	_, err := sub.CreateSubscription()
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-// 		return
-// 	}
+	// Parse the date string
+	parsedTime, err := time.Parse(layout, formattedDate)
+	if err != nil {
+		// fmt.Println("Error parsing date:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 
-// 	// Respond with success
-// 	c.JSON(http.StatusCreated, gin.H{"message": "Subscription created successfully"})
-// }
+		return
+	}
+
+	err = models.CancelPaypalSubscription(sub.PaypalSubscriptionId, sub.Reason)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	err = models.CancelSubscriptionFunction(sub.PaypalSubscriptionId, parsedTime)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	// Respond with success
+	c.JSON(http.StatusCreated, gin.H{"message": "Subscription created successfully"})
+}
+
+func GetUserSubscription(c *gin.Context) {
+
+	// var sub models.Createsubscription
+	actualUserID, _ := token.ExtractTokenID(c)
+
+	// Bind JSON to struct
+	// if err := c.ShouldBind(&sub); err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 	return
+	// }
+
+	// sub.IdUser = int(actualUserID)
+
+	subs, err := models.GetSubscription(int(actualUserID))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	// Respond with success
+	c.JSON(http.StatusCreated, gin.H{"data": subs})
+}
