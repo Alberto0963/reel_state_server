@@ -82,11 +82,11 @@ func (UserUpdate) TableName() string {
 	return "users"
 }
 
-func (updatedUser *User) UpdateProfileImageUser() (User, error) {
+func (updatedUser *UserUpdate) UpdateProfileImageUser() (UserUpdate, error) {
 	dbConn := Pool
 
 	// Fetch the existing user from the database
-	var user User
+	var user UserUpdate
 	if err := dbConn.First(&user, updatedUser.ID).Error; err != nil {
 		return user, err
 	}

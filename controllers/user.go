@@ -221,7 +221,7 @@ func UpdateProfileImageUserName(c *gin.Context) {
 
 	userID, _ := token.ExtractTokenID(c)
 
-	u := models.User{}
+	u := models.UserUpdate{}
 
 	u.ProfileImage = profileImagePath
 	u.ID = userID
