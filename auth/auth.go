@@ -183,7 +183,7 @@ func Register(c *gin.Context) {
 
 	// u.ProfileImage = profileImagePath
 	u.ExpirationMembershipDate = time.Now()
-	// u.IdMembership = 1
+	u.IdMembership = 100004
 	// // Get the current date and time
 	// currentTime := time.Now()
 
@@ -507,7 +507,7 @@ func HandleGoogleRegister(c *gin.Context) {
 		saveUser.Username = userInfoModel.Name
 		// saveUser.Username = userInfoModel.Name
 		saveUser.ExpirationMembershipDate = time.Now()
-		saveUser.IdMembership = 1
+		saveUser.IdMembership = 100004
 		usr, err := saveUser.SaveUser()
 		print(usr)
 
