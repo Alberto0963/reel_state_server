@@ -15,6 +15,7 @@ func SendSMS(number string, code string, signature string) {
     // Get your Twilio credentials from environment variables
     accountSid := os.Getenv("TWILIO_ACCOUNT_SID")
     authToken := os.Getenv("TWILIO_AUTH_TOKEN")
+    phone := os.Getenv("TWILIO_PHONE")
 
     // Create a Twilio client
 	client := twilio.NewRestClientWithParams(twilio.ClientParams{
@@ -25,7 +26,7 @@ func SendSMS(number string, code string, signature string) {
 
 	params := &twilioApi.CreateMessageParams{}
 	params.SetTo(number)
-	params.SetFrom("+19892005987")
+	params.SetFrom(phone)
 
 	params.SetBody(fmt.Sprintf("Your ReelState verification code is: %s, Don't share this code with anyone. %s", code,signature))
 
