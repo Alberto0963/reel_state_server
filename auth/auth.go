@@ -183,7 +183,7 @@ func Register(c *gin.Context) {
 
 	// u.ProfileImage = profileImagePath
 	u.ExpirationMembershipDate = time.Now()
-	u.IdMembership = 1
+	// u.IdMembership = 1
 	// // Get the current date and time
 	// currentTime := time.Now()
 
