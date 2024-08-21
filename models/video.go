@@ -243,7 +243,7 @@ func FetchAllVideos(id_user int, sale_type int, typeV int, page int) ([]FeedVide
 	rand.Shuffle(len(vid), func(i, j int) { vid[i], vid[j] = vid[j], vid[i] })
 
 	// Process videos with ads
-	if (typeUser == 0 || typeUser == 1 || typeUser == 8 || typeUser == 2 || typeUser == 3) && len(vid) > 0 {
+	if (typeUser == 0 || typeUser == 100000 || typeUser == 100004) && len(vid) > 0 {
 		// var tempVideos []FeedVideo
 		adsIndex := 0
 		pageSize = 2
