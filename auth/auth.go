@@ -144,6 +144,13 @@ type UpdateUserNameInput struct {
 	// Code     string `json:"code" binding:""`
 }
 
+type UpdatePhoneNumberInput struct {
+	// Username string `json:"username" binding:"required"`
+	// Password string `json:"password" binding:"required"`
+	Phone    string `json:"phone" binding:"required"`
+	Code     string `json:"code" binding:""`
+}
+
 type VerificationPhoneInput struct {
 	Phone        string `json:"phone" binding:"required"`
 	AppSignature string `json:"appSignature" binding:"required"`
@@ -296,6 +303,50 @@ func UpdateUserName(c *gin.Context) {
 		return
 	}
 	u.Username = input.Username
+
+	_, err = u.UpdateUser()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// token, err := token.GenerateToken(u.ID)
+	// if err != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+	// 	return
+	// }
+
+	c.JSON(http.StatusOK, gin.H{"message": "update success"})
+	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
+
+}
+
+func UpdatePhoneNumber(c *gin.Context) {
+
+	var input UpdatePhoneNumberInput
+	userID, _ := token.ExtractTokenID(c)
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	vc := models.VerificationCode{}
+	vc.Code = input.Code
+	vc.Phone = input.Phone
+
+	_, err := vc.CodeIsValid()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification code"})
+		return
+	}
+
+	u, err := models.GetUserByIdToUpdate(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Error getting user"})
+		return
+	}
+	u.Phone = input.Phone
 
 	_, err = u.UpdateUser()
 	if err != nil {
@@ -537,6 +588,9 @@ func HandleGoogleRegister(c *gin.Context) {
 
 	// return
 }
+
+
+
 
 
 

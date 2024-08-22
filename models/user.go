@@ -323,6 +323,13 @@ func (u *UserUpdate) UpdateUser() (*UserUpdate, error) {
 	return u, nil
 }
 
+func (user *UserUpdate) UpdatePassword( newPassword string) error {
+	// var err error
+	dbConn := Pool
+
+	return dbConn.Model(&user).Update("password", newPassword).Error
+}
+
 func (u *UserUpdate) BeforeSave(tx *gorm.DB) error {
 
 	//turn password into hash

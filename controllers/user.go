@@ -45,6 +45,11 @@ func UpdateUsernameHandler(c *gin.Context) {
 	auth.UpdateUserName(c)
 }
 
+func UpdatePhoneNumberHandler(c *gin.Context) {
+	auth.UpdatePhoneNumber(c)
+}
+
+
 func CurrentUserHandler(c *gin.Context) {
 	auth.CurrentUser(c)
 }

@@ -123,6 +123,10 @@ func main() {
 
 	protected.POST("/UpdateProfileImageUserName", controllers.UpdateProfileImageUserName)
 	protected.POST("/updateUserName", controllers.UpdateUsernameHandler)
+	protected.POST("/updatePhoneNumber", controllers.UpdatePhoneNumberHandler)
+
+	
+	// protected.POST("/changePassword", controllers.ChangePassword)
 
 	protected.POST("/UpdateCoverImageUserName", controllers.UpdateCoverImageUserName)
 	protected.POST("/SetFavorite", controllers.SetFavorite)
