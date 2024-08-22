@@ -331,21 +331,24 @@ func UpdatePhoneNumber(c *gin.Context) {
 		return
 	}
 
-	vc := models.VerificationCode{}
-	vc.Code = input.Code
-	vc.Phone = input.Phone
-
-	_, err := vc.CodeIsValid()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification code"})
-		return
-	}
 
 	u, err := models.GetUserByIdToUpdate(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error getting user"})
 		return
 	}
+
+	vc := models.VerificationCode{}
+	vc.Code = input.Code
+	vc.Phone = u.Phone
+
+	_, err = vc.CodeIsValid()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification code"})
+		return
+	}
+
+
 	u.Phone = input.Phone
 
 	_, err = u.UpdateUser()
