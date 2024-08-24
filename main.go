@@ -10,6 +10,7 @@ import (
 	"reelState/controllers"
 	"reelState/middlewares"
 	"reelState/models"
+	// SMS "reelState/utils"
 
 	// "github.com/joho/godotenv"
 	"github.com/jrallison/go-workers"
@@ -58,6 +59,7 @@ func main() {
 	})
 
 	workers.Middleware.Append(&myMiddleware{})
+    //  SMS.ScheduleTokenUpdate()
 
 	// err := godotenv.Load()
 	// if err != nil {

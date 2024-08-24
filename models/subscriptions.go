@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	SMS "reelState/utils"
 	"time"
 	// "strings"
 	// "golang.org/x/crypto/bcrypt"
@@ -121,11 +122,18 @@ func CancelSubscriptionFunction(subID string, date time.Time) error {
 // CancelSubscription cancels a PayPal subscription given its ID and an access token
 func CancelPaypalSubscription(subscriptionID, reason string) error {
 
-	accessToken := os.Getenv("Paypal_accessToken")
+	client_id := os.Getenv("Client_id")
+	secret_Key := os.Getenv("Secret_Key")
+
 	url := fmt.Sprintf("%ssubscriptions/%s/cancel", os.Getenv("Paypal_apiUrl"), subscriptionID)
 	// if !isSandbox {
 	// 	url = fmt.Sprintf("https://api.paypal.com/v1/billing/subscriptions/%s/cancel", subscriptionID)
 	// }
+
+	tokenPaypal, err := SMS.FetchPayPalToken(client_id, secret_Key)
+    if err != nil {
+		return fmt.Errorf("error getting token: %w", err)
+    }
 
 	// Create the request body
 	body := map[string]string{
@@ -144,7 +152,7 @@ func CancelPaypalSubscription(subscriptionID, reason string) error {
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.Header.Set("Authorization", "Bearer "+tokenPaypal)
 
 	// Perform the request
 	client := &http.Client{}
