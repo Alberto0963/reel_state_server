@@ -23,7 +23,7 @@ type TokenResponse struct {
 // Función para obtener un nuevo token desde PayPal
 func FetchPayPalToken(clientID, secret string) (string, error) {
     // Endpoint de PayPal para obtener el token
-    tokenURL := "https://api.sandbox.paypal.com/v1/oauth2/token"
+    tokenURL := "https://api.paypal.com/v1/oauth2/token"
 
     // Cuerpo de la solicitud
     data := url.Values{}
