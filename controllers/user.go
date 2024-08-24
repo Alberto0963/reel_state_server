@@ -463,20 +463,20 @@ func CancelSubscription(c *gin.Context) {
 	parsedTime, err := time.Parse(layout, formattedDate)
 	if err != nil {
 		// fmt.Println("Error parsing date:", err)
-		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Error Parse Time": err.Error()})
 
 		return
 	}
 
 	err = models.CancelPaypalSubscription(sub.PaypalSubscriptionId, sub.Reason)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Error Paypal Sub": err.Error()})
 		return
 	}
 
 	err = models.CancelSubscriptionFunction(sub.PaypalSubscriptionId, parsedTime)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"Error Calcel sub": err.Error()})
 		return
 	}
 
