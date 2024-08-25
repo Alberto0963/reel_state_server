@@ -22,6 +22,8 @@ type Sponsors struct {
 	Price  string `gorm:"size:255;not null;unique" json:"price"`
 	CancelationDays  string `gorm:"size:255;not null;unique" json:"cancelation_days"`
 	RegionCode  string `gorm:"size:255;not null;unique" json:"region_code"`
+	PaypalId  string `gorm:"size:255;not null;unique" json:"paypal_id"`
+
 }
 
 func (Sponsors) TableName() string {

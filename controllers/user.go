@@ -481,7 +481,7 @@ func CancelSubscription(c *gin.Context) {
 	}
 
 	// Respond with success
-	c.JSON(http.StatusCreated, gin.H{"message": "Subscription created successfully"})
+	c.JSON(http.StatusCreated, gin.H{"message": "Subscription cancelled successfully"})
 }
 
 func GetUserSubscription(c *gin.Context) {
