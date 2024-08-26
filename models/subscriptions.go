@@ -107,7 +107,7 @@ func CancelSubscriptionIfActive(userID string, subscriptionID, reason string, ca
 	var subscriber Subscription
 
 	// Verificar si el usuario tiene una suscripción activa con el ID proporcionado
-	if err := dbConn.Where("renewal = 1 AND id_user = ? AND paypal_subscription_id = ?", userID, subscriptionID).First(&subscriber).Error; err != nil {
+	if err := dbConn.Where("renewal = 1 AND id_user = ?", userID).First(&subscriber).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("no active subscription found for user with ID %s", userID)
 		}
@@ -115,7 +115,7 @@ func CancelSubscriptionIfActive(userID string, subscriptionID, reason string, ca
 	}
 
 	// Cancelar la suscripción en PayPal
-	if err := CancelPaypalSubscription(subscriptionID, reason); err != nil {
+	if err := CancelPaypalSubscription(subscriber.PaypalSubscriptionId, reason); err != nil {
 		return fmt.Errorf("error cancelling PayPal subscription: %w", err)
 	}
 
