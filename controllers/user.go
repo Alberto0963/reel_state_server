@@ -49,7 +49,6 @@ func UpdatePhoneNumberHandler(c *gin.Context) {
 	auth.UpdatePhoneNumber(c)
 }
 
-
 func CurrentUserHandler(c *gin.Context) {
 	auth.CurrentUser(c)
 }
@@ -435,8 +434,24 @@ func CreateSubscription(c *gin.Context) {
 	}
 
 	sub.IdUser = int(actualUserID)
+	layout := "2006-01-02 15:04:05.999999999 -0700 MST"
+	now := time.Now()
+	formattedDate := now.Format("2006-01-02 15:04:05.999999999 -0700 MST")
 
-	_, err := sub.CreateSubscription()
+	// Parse the date string
+	parsedTime, err := time.Parse(layout, formattedDate)
+	if err != nil {
+		// fmt.Println("Error parsing date:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"Error Parse Time": err.Error()})
+
+		return
+	}
+	err = models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+	_, err = sub.CreateSubscription()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return

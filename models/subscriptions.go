@@ -7,11 +7,14 @@ import (
 	// "os"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	SMS "reelState/utils"
 	"time"
+
+	"gorm.io/gorm"
 	// "strings"
 	// "golang.org/x/crypto/bcrypt"
 	// "gorm.io/gorm"
@@ -99,27 +102,34 @@ func CancelSubscriptionFunction(subID string, date time.Time) error {
 	return nil
 }
 
-// func CancelSubscription(subID string, date time.Time) error {
-// 	var err error
-// 	dbConn := Pool
+func CancelSubscriptionIfActive(userID string, subscriptionID, reason string, cancelDate time.Time) error {
+	dbConn := Pool
+	var subscriber Subscription
 
-// 	var subscriber Subscription
+	// Verificar si el usuario tiene una suscripción activa con el ID proporcionado
+	if err := dbConn.Where("renewal = 1 AND user_id = ? AND paypal_subscription_id = ?", userID, subscriptionID).First(&subscriber).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("no active subscription found for user with ID %s", userID)
+		}
+		return fmt.Errorf("error querying subscription: %w", err)
+	}
 
-// 	if err = dbConn.Where("paypal_subscription_id = ?", subID).First(&subscriber).Error; err != nil {
-// 		return err
-// 	}
+	// Cancelar la suscripción en PayPal
+	if err := CancelPaypalSubscription(subscriptionID, reason); err != nil {
+		return fmt.Errorf("error cancelling PayPal subscription: %w", err)
+	}
 
-// 	subscriber.Renewal = false
-// 	subscriber.RenewalCancelledAt = date
+	// Actualizar la suscripción en la base de datos
+	subscriber.Renewal = false
+	subscriber.RenewalCancelledAt = cancelDate
+	if err := dbConn.Save(&subscriber).Error; err != nil {
+		return fmt.Errorf("error updating subscription: %w", err)
+	}
 
-// 	if err = dbConn.Save(&subscriber).Error; err != nil {
-// 		return err
-// 	}
+	return nil
+}
 
-// 	return nil
-// }
 
-// CancelSubscription cancels a PayPal subscription given its ID and an access token
 func CancelPaypalSubscription(subscriptionID, reason string) error {
 
 	client_id := os.Getenv("Client_id")
