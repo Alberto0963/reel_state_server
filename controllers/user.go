@@ -446,11 +446,12 @@ func CreateSubscription(c *gin.Context) {
 
 		return
 	}
-	err = models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-		return
-	}
+	
+	 models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime)
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+	// 	return
+	// }
 	_, err = sub.CreateSubscription()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
