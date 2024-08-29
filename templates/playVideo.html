@@ -64,12 +64,11 @@
 
 <body>
     <div class="container">
-        <h1>Featured Videos</h1>
-        <div class="video-wrapper">
-            <iframe src="{{.VideoURL}}" frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen></iframe>
-        </div>
+        
+        <video width="640" height="360" controls>
+            <source src="{{.VideoURL}}" type="video/mp4">
+            Tu navegador no soporta la etiqueta de video.
+        </video>
         <!-- Add more video wrappers as needed -->
     </div>
 
