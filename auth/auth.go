@@ -147,8 +147,8 @@ type UpdateUserNameInput struct {
 type UpdatePhoneNumberInput struct {
 	// Username string `json:"username" binding:"required"`
 	// Password string `json:"password" binding:"required"`
-	Phone    string `json:"phone" binding:"required"`
-	Code     string `json:"code" binding:""`
+	Phone string `json:"phone" binding:"required"`
+	Code  string `json:"code" binding:""`
 }
 
 type VerificationPhoneInput struct {
@@ -331,7 +331,6 @@ func UpdatePhoneNumber(c *gin.Context) {
 		return
 	}
 
-
 	u, err := models.GetUserByIdToUpdate(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error getting user"})
@@ -347,7 +346,6 @@ func UpdatePhoneNumber(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification code"})
 		return
 	}
-
 
 	u.Phone = input.Phone
 
@@ -377,7 +375,11 @@ func SendVerificationCode(c *gin.Context) {
 		return
 	}
 
+	// Verificar si el número de teléfono ya existe
 	v := models.VerificationCode{}
+	// u := models.User{}
+
+	// v := models.VerificationCode{}
 	var code = SMS.GenerateRandomCode(6)
 
 	v.Code = code
@@ -392,6 +394,27 @@ func SendVerificationCode(c *gin.Context) {
 
 	SMS.SendSMS(v.Phone, code, input.AppSignature)
 	c.JSON(http.StatusOK, gin.H{"message": "registration success"})
+	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
+
+}
+
+func ValidatePhone(c *gin.Context) {
+
+	var input VerificationPhoneInput
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := models.FindByPhone(input.Phone)
+	if err == nil {
+		// Si no hay error, significa que el número ya existe
+		c.JSON(http.StatusBadRequest, gin.H{"error": "El número de teléfono ya está registrado"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{})
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
 
 }
@@ -430,7 +453,7 @@ var googleOauthConfig = &oauth2.Config{
 	Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
 }
 
-func HandleGoogleLogin(c *gin.Context,db *gorm.DB) {
+func HandleGoogleLogin(c *gin.Context, db *gorm.DB) {
 	// ctx := r.Context()
 	var input LoginWithGoogle
 
@@ -486,7 +509,7 @@ func HandleGoogleLogin(c *gin.Context,db *gorm.DB) {
 	}
 
 	// Envía userInfo al cliente Flutter o procesa según necesites
-	c.JSON(http.StatusOK, gin.H{"message": "token is valid", "GoogleUser": userInfoModel, "ReelStateUser": localuser, "token": token, "isVip": isVip,"canUpload": localuser.CanUpload})
+	c.JSON(http.StatusOK, gin.H{"message": "token is valid", "GoogleUser": userInfoModel, "ReelStateUser": localuser, "token": token, "isVip": isVip, "canUpload": localuser.CanUpload})
 	// return
 }
 
@@ -545,7 +568,7 @@ func HandleGoogleRegister(c *gin.Context) {
 	//  var localuser  models.User
 	// Check if user already exists in database by email
 	localuser, err := models.GetUserByEmail(userInfoModel.Email)
-	log.Printf("user:",localuser)
+	log.Printf("user:", localuser)
 	// log
 	// if err != nil {
 	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -591,9 +614,3 @@ func HandleGoogleRegister(c *gin.Context) {
 
 	// return
 }
-
-
-
-
-
-

@@ -99,6 +99,11 @@ func SendVerificationCode(c *gin.Context) {
 	auth.SendVerificationCode(c)
 }
 
+func ValidatePhone(c *gin.Context) {
+	auth.ValidatePhone(c)
+}
+
+
 func ValidateVerificationCode(c *gin.Context) {
 	auth.ValidateVerificationCode(c)
 }
@@ -446,7 +451,7 @@ func CreateSubscription(c *gin.Context) {
 
 		return
 	}
-	
+
 	 models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime)
 	// if err != nil {
 	// 	c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})

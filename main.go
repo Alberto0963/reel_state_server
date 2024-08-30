@@ -103,6 +103,7 @@ func main() {
 	public.GET("/getReportsTypes", controllers.HandleGetTypeRepors)
 	public.GET("/searchProfile", controllers.SearchProfile)
 	public.POST("/loginWithGoogle", controllers.LoginWithGoogleHandler)
+	public.POST("/validatePhone", controllers.ValidatePhone)
 
 	public.POST("/sendVerificationCode", controllers.SendVerificationCode)
 	public.POST("/CodeIsValid", controllers.ValidateVerificationCode)

@@ -551,3 +551,12 @@ func UpdateLikeProfile(like *Likes) (*Likes, error) {
 	return like, nil
 }
 
+func FindByPhone(phone string) error {
+	var err error
+	dbConn := Pool
+	var v UserUpdate
+
+	err = dbConn.Where("phone = ?", phone).First(&v).Error
+	return err
+}
+
