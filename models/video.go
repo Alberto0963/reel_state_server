@@ -354,86 +354,171 @@ func FetchAllVideos(id_user int, sale_type int, typeV int, page int, idvideo *in
 
 // }
 
+// func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
+// 	var err error
+// 	dbConn := Pool
+// 	var vid []FeedVideo
+// 	var videos []FeedVideo
+
+// 	pageSize := 12
+
+// 	// Calculate the offset based on the page number and page size
+// 	offset := (page - 1) * pageSize
+// 	locations := strings.Fields(search)
+
+// 	result := dbConn.Model(&Video{}).
+// 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+// 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+// 		Where("description like ? && type = 1", "%"+search+"%").
+// 		Limit(pageSize).
+// 		Offset(offset).
+// 		Preload("SaleType").
+// 		Preload("SaleCategory").
+// 		Preload("User").
+// 		Unscoped().
+// 		Find(&vid).Error
+// 	if result != nil {
+// 		// http.Error(w, "Database error", http.StatusInternalServerError)
+// 		return videos, err
+// 	}
+// 	videos = append(videos, vid...)
+
+// 	price := findPrices(search)
+// 	if price != nil {
+
+// 		result = dbConn.Model(&Video{}).
+// 			Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+// 			Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+// 			Where("price IN (?) && type = 1", price).
+// 			Limit(pageSize).
+// 			Offset(offset).
+// 			Preload("SaleType").
+// 			Preload("SaleCategory").
+// 			Preload("User").
+// 			Unscoped().
+// 			Find(&vid).Error
+// 		if result != nil {
+// 			// http.Error(w, "Database error", http.StatusInternalServerError)
+// 			return videos, err
+// 		}
+// 		videos = append(videos, vid...)
+// 	}
+
+// 	// Dynamically build the WHERE clause to use LIKE for each keyword
+// 	// Dynamically build the query with LIKE conditions for each keyword
+// 	for _, keyword := range locations {
+// 		likePattern := "%" + keyword + "%"
+// 		dbConn = dbConn.Or(" type = 1 && location LIKE ?", likePattern)
+// 	}
+
+// 	result = dbConn.Model(&Video{}).
+// 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+// 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+// 		// Where("?", whereClause).
+// 		Limit(pageSize).
+// 		Offset(offset).
+// 		Preload("SaleType").
+// 		Preload("SaleCategory").
+// 		Preload("User").
+// 		Unscoped().
+// 		Find(&vid).Error
+// 	if result != nil {
+// 		// http.Error(w, "Database error", http.StatusInternalServerError)
+// 		return videos, err
+// 	}
+
+// 	videos = append(videos, vid...)
+
+// 	rand.NewSource(time.Now().UnixNano())
+
+// 	rand.Shuffle(len(videos), func(i, j int) { videos[i], videos[j] = videos[j], videos[i] })
+// 	return videos, nil
+
+// }
 func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
-	var err error
-	dbConn := Pool
-	var vid []FeedVideo
-	var videos []FeedVideo
+	var (
+		dbConn    = Pool
+		videos    []FeedVideo
+		pageSize  = 12
+		offset    = (page - 1) * pageSize
+		locations = strings.Fields(search)
+		err       error
+	)
 
-	pageSize := 12
-
-	// Calculate the offset based on the page number and page size
-	offset := (page - 1) * pageSize
-	locations := strings.Fields(search)
-
-	result := dbConn.Model(&Video{}).
-		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
-		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-		Where("description like ? && type = 1", "%"+search+"%").
-		Limit(pageSize).
-		Offset(offset).
-		Preload("SaleType").
-		Preload("SaleCategory").
-		Preload("User").
-		Unscoped().
-		Find(&vid).Error
-	if result != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
-		return videos, err
-	}
-	videos = append(videos, vid...)
-
-	price := findPrices(search)
-	if price != nil {
-
-		result = dbConn.Model(&Video{}).
+	// Helper function to fetch videos based on a condition
+	fetchVideos := func(condition string, args ...interface{}) ([]FeedVideo, error) {
+		var vid []FeedVideo
+		result := dbConn.Model(&Video{}).
 			Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
 			Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-			Where("price IN (?) && type = 1", price).
+			Where(condition, args...).
 			Limit(pageSize).
 			Offset(offset).
 			Preload("SaleType").
 			Preload("SaleCategory").
 			Preload("User").
 			Unscoped().
-			Find(&vid).Error
-		if result != nil {
-			// http.Error(w, "Database error", http.StatusInternalServerError)
+			Find(&vid)
+		return vid, result.Error
+	}
+
+	// Search by description
+	vid, err := fetchVideos("description LIKE ? AND type = 1", "%"+search+"%")
+	if err != nil {
+		return videos, err
+	}
+	videos = append(videos, vid...)
+
+	// // Search by price if applicable
+	// price := findPrices(search)
+	// if price != nil {
+	// 	vid, err = fetchVideos("price IN (?) AND type = 1", price)
+	// 	if err != nil {
+	// 		return videos, err
+	// 	}
+	// 	videos = append(videos, vid...)
+	// }
+	// Search by price if applicable
+	pricePatterns := findPricePatterns(search)
+	if len(pricePatterns) > 0 {
+		for _, pattern := range pricePatterns {
+			vid, err = fetchVideos("price LIKE ? AND type = 1", "%"+pattern+"%")
+			if err != nil {
+				return videos, err
+			}
+			videos = append(videos, vid...)
+		}
+	}
+
+	// Search by location keywords
+	for _, keyword := range locations {
+		likePattern := "%" + keyword + "%"
+		vid, err = fetchVideos("location LIKE ? AND type = 1", likePattern)
+		if err != nil {
 			return videos, err
 		}
 		videos = append(videos, vid...)
 	}
 
-	// Dynamically build the WHERE clause to use LIKE for each keyword
-	// Dynamically build the query with LIKE conditions for each keyword
-	for _, keyword := range locations {
-		likePattern := "%" + keyword + "%"
-		dbConn = dbConn.Or(" type = 1 && location LIKE ?", likePattern)
-	}
-
-	result = dbConn.Model(&Video{}).
-		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
-		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-		// Where("?", whereClause).
-		Limit(pageSize).
-		Offset(offset).
-		Preload("SaleType").
-		Preload("SaleCategory").
-		Preload("User").
-		Unscoped().
-		Find(&vid).Error
-	if result != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
-		return videos, err
-	}
-
-	videos = append(videos, vid...)
-
+	// Remove duplicates (optional) and shuffle the results
+	videos = removeDuplicates(videos)
 	rand.NewSource(time.Now().UnixNano())
-
 	rand.Shuffle(len(videos), func(i, j int) { videos[i], videos[j] = videos[j], videos[i] })
-	return videos, nil
 
+	return videos, nil
+}
+
+// Helper function to remove duplicate videos
+func removeDuplicates(videos []FeedVideo) []FeedVideo {
+	seen := make(map[int]bool)
+	var uniqueVideos []FeedVideo
+	for _, video := range videos {
+		if !seen[video.Id] {
+			seen[video.Id] = true
+			uniqueVideos = append(uniqueVideos, video)
+		}
+	}
+	return uniqueVideos
 }
 
 // func FetchAllCategoryVideos(id_user int, sale_type int, typeV int, categoryId, page int) ([]FeedVideo, error) {
@@ -663,4 +748,16 @@ func findPrices(text string) []string {
 	matches := re.FindAllString(text, -1)
 
 	return matches
+}
+
+func findPricePatterns(search string) []string {
+	// Implementa la lógica para extraer patrones de precios de la cadena de búsqueda.
+	// Por ejemplo, podrías buscar todos los números en la cadena.
+	var patterns []string
+	priceRegex := regexp.MustCompile(`\d+`)
+	prices := priceRegex.FindAllString(search, -1)
+	for _, price := range prices {
+		patterns = append(patterns, price)
+	}
+	return patterns
 }
