@@ -84,7 +84,7 @@ func GetVideoFromLink(c *gin.Context) {
 	videoID := c.Param("videoID")
 	id_vid, err := strconv.ParseUint(videoID, 10, 64)
 
-	data, err = models.GetVideo(int(id_vid),int(userID))
+	data, err = models.GetVideo(int(id_vid), int(userID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
@@ -92,12 +92,11 @@ func GetVideoFromLink(c *gin.Context) {
 	videoURL := "https://api.reelstate.mx/" + data.Video_url
 	img := "https://api.reelstate.mx/" + data.Image_cover
 	c.HTML(200, "playVideo.html", gin.H{
-		"title":    "Video Showcase",
-		"VideoURL": videoURL,
-		"User": data.User.Username,
+		"title":       "Video Showcase",
+		"VideoURL":    videoURL,
+		"User":        data.User.Username,
 		"Description": data.Description,
-		"Img": img,
-
+		"Img":         img,
 	})
 }
 
@@ -760,82 +759,162 @@ func HandleGetAllSongs(c *gin.Context) {
 
 }
 
+// func HandleGetAllVideos(c *gin.Context) {
+// 	userID, _ := token.ExtractTokenID(c)
+
+// 	p := c.Query("page")
+// 	page, err := strconv.ParseUint(p, 10, 64)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+// 		return
+// 	}
+
+// 	sale := c.Query("sale")
+// 	sale_id, err := strconv.ParseUint(sale, 10, 64)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
+// 		return
+// 	}
+
+// 	typeV := c.Query("type")
+// 	typeVideo, err := strconv.ParseUint(typeV, 10, 64)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type"})
+// 		return
+// 	}
+
+// 	cat := c.Query("category")
+// 	category := 0
+// 	// if err != nil {
+// 	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category"})
+// 	// 	return
+// 	// }
+// 	switch cat {
+// 	case "Residencial":
+// 		category = 1
+// 	case "Comercial":
+// 		category = 2
+// 	case "Terreno":
+// 		category = 3
+// 	case "Corporativo":
+// 		category = 4
+// 	case "Industrial":
+// 		category = 5
+
+// 	case "Residential":
+// 		category = 1
+// 	case "Business":
+// 		category = 2
+// 	case "Land":
+// 		category = 3
+// 	case "corporate":
+// 		category = 4
+// 	case "industry":
+// 		category = 5
+// 	case "Vip":
+// 		category = 6
+// 	default:
+// 		category = 0
+// 	}
+
+// 	var data []models.FeedVideo
+
+// 	if category > 0 {
+// 		data, err = models.FetchAllCategoryVideos(int(userID), int(sale_id), int(typeVideo), category, int(page))
+// 		if err != nil {
+// 			c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+// 			return
+// 		}
+// 	} else {
+// 		data, err = models.FetchAllVideos(int(userID), int(sale_id), int(typeVideo), int(page))
+// 		if err != nil {
+// 			c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+// 			return
+// 		}
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": data})
+
+// }
+
 func HandleGetAllVideos(c *gin.Context) {
 	userID, _ := token.ExtractTokenID(c)
 
-	p := c.Query("page")
-	page, err := strconv.ParseUint(p, 10, 64)
-	if err != nil {
+	// Parsear la página
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil || page < 1 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
 		return
 	}
 
-	sale := c.Query("sale")
-	sale_id, err := strconv.ParseUint(sale, 10, 64)
+	// Parsear sale_id
+	saleID, err := strconv.Atoi(c.Query("sale"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
 		return
 	}
 
-	typeV := c.Query("type")
-	typeVideo, err := strconv.ParseUint(typeV, 10, 64)
+	// Parsear typeVideo
+	typeVideo, err := strconv.Atoi(c.Query("type"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type"})
 		return
 	}
 
-	cat := c.Query("category")
-	category := 0
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category"})
-	// 	return
-	// }
-	switch cat {
-	case "Residencial":
-		category = 1
-	case "Comercial":
-		category = 2
-	case "Terreno":
-		category = 3
-	case "Corporativo":
-		category = 4
-	case "Industrial":
-		category = 5
+	// Parsear idVideo (opcional)
+	var idVideo *int
+	if idVideoStr := c.Query("idVideo"); idVideoStr != "" {
+		id, err := strconv.Atoi(idVideoStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid idVideo"})
+			return
+		}
+		idVideo = &id
+	}
 
-	case "Residential":
-		category = 1
-	case "Business":
-		category = 2
-	case "Land":
-		category = 3
-	case "corporate":
-		category = 4
-	case "industry":
-		category = 5
-	case "Vip":
-		category = 6
-	default:
-		category = 0
+	// Determinar categoría
+	categoryMap := map[string]int{
+		"Residencial": 1,
+		"Comercial":   2,
+		"Terreno":     3,
+		"Corporativo": 4,
+		"Industrial":  5,
+		"Residential": 1,
+		"Business":    2,
+		"Land":        3,
+		"corporate":   4,
+		"industry":    5,
+		"Vip":         6,
+	}
+
+	// Obtener la categoría
+	categoryStr := c.Query("category")
+	category, err := strconv.Atoi(categoryStr)
+	if err != nil {
+		// Si no es un número, intenta mapearlo
+		var exists bool
+		category, exists = categoryMap[categoryStr]
+		if !exists && categoryStr != "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category"})
+			return
+		}
 	}
 
 	var data []models.FeedVideo
 
+	// Obtener los videos según la categoría
 	if category > 0 {
-		data, err = models.FetchAllCategoryVideos(int(userID), int(sale_id), int(typeVideo), category, int(page))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-			return
-		}
+		data, err = models.FetchAllCategoryVideos(int(userID), saleID, typeVideo, category, page,idVideo)
 	} else {
-		data, err = models.FetchAllVideos(int(userID), int(sale_id), int(typeVideo), int(page))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-			return
-		}
+		data, err = models.FetchAllVideos(int(userID), saleID, typeVideo, page,idVideo)
+	}
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": data})
-
 }
 
 type RequestData struct {

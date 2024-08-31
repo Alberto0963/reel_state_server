@@ -33,7 +33,7 @@ type Video struct {
 	Image_cover      string     `gorm:"size:255;not null;" json:"image_cover"`
 	Latitude         float64    `gorm:"size:255;not null;" json:"latitude"`
 	Longitude        float64    `gorm:"size:255;not null;" json:"longitude"`
-	Type             int    `gorm:"size:255;not null;" json:"type"`
+	Type             int        `gorm:"size:255;not null;" json:"type"`
 }
 
 type FeedVideo struct {
@@ -107,7 +107,7 @@ func (v *Video) SaveVideo() (*Video, error) {
 
 }
 
-func  SetAvailable(idvideo int, typev int)(Video, error) {
+func SetAvailable(idvideo int, typev int) (Video, error) {
 	var err error
 	dbConn := Pool
 	var vid Video
@@ -117,7 +117,6 @@ func  SetAvailable(idvideo int, typev int)(Video, error) {
 	}
 
 	vid.Type = typev
-
 
 	err = dbConn.Save(vid).Error
 	if err != nil {
@@ -165,9 +164,6 @@ func GetVideo(id int, id_user int) (FeedVideo, error) {
 	// var user User
 	// typeUser := 0
 
-
-
-
 	// err = dbConn.Unscoped().Find(&vid).Error
 
 	// err = dbConn.Model(&Video{}).Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
@@ -195,86 +191,168 @@ func GetVideo(id int, id_user int) (FeedVideo, error) {
 
 }
 
+func FetchAllVideos(id_user int, sale_type int, typeV int, page int, idvideo *int) ([]FeedVideo, error) {
+	var (
+		err      error
+		vid      []FeedVideo
+		ads      []FeedVideo
+		typeUser int
+		pageSize = 10
+		offset   = (page - 1) * pageSize
+		dbConn   = Pool
+	)
 
-func FetchAllVideos(id_user int, sale_type int, typeV int, page int) ([]FeedVideo, error) {
-	var err error
-	dbConn := Pool
-	var vid []FeedVideo
-	var ads []FeedVideo
-	var user User
-	typeUser := 0
-
-	user, err = GetUserByID(uint(id_user))
+	// Obtener el usuario y determinar su tipo
+	user, err := GetUserByID(uint(id_user))
 	if err == nil {
 		typeUser = user.IdMembership
-
 	}
 
-	pageSize := 10
-	// Calculate the offset based on the page number and page size
-	offset := (page - 1) * pageSize
-	// err = dbConn.Unscoped().Find(&vid).Error
-
-	// err = dbConn.Model(&Video{}).Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
-	// if err != nil {
-	// 	return vid, err
-	// }
-
-	// var videos []Video
-	result := dbConn.Table("videos").
+	// Obtener los videos normales
+	err = dbConn.Table("videos").
 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-		Where("sale_type_id = ? && type = ?", sale_type, typeV).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().
+		Where("sale_type_id = ? AND type = ?", sale_type, typeV).
+		Limit(pageSize).
+		Offset(offset).
+		Preload("SaleType").
+		Preload("SaleCategory").
+		Preload("User").
+		Unscoped().
 		Find(&vid).Error
 
-	if result != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
+	if err != nil {
 		return vid, err
 	}
 
-	// responseJSON, err := json.Marshal(videos)
-	// if err != nil {
+	// Si se proporciona un idvideo, buscarlo y colocarlo en la posición 0
+	if idvideo != nil {
+		var specialVideo FeedVideo
+		err = dbConn.Table("videos").
+			Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+			Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+			Where("videos.id = ?", *idvideo).
+			Preload("SaleType").
+			Preload("SaleCategory").
+			Preload("User").
+			Unscoped().
+			First(&specialVideo).Error
 
-	// 	return vid,err
-	// }
+		if err == nil {
+			vid = append([]FeedVideo{specialVideo}, vid...) // Coloca el video especial en la primera posición
+		}
+	}
 
-	rand.NewSource(time.Now().UnixNano())
+	// Si se proporcionó un idvideo, asegúrate de que no esté duplicado
+	if idvideo != nil && len(vid) > 1 && vid[1].Id == *idvideo {
+		vid = vid[1:] // Elimina el video duplicado en la lista (mantén el que está en la posición 0)
+	}
 
-	rand.Shuffle(len(vid), func(i, j int) { vid[i], vid[j] = vid[j], vid[i] })
+	// Mezclar los videos aleatoriamente, excepto el primero si es el video especial
+	if len(vid) > 1 {
+		rand.NewSource(time.Now().UnixNano())
+		rand.Shuffle(len(vid)-1, func(i, j int) { vid[i+1], vid[j+1] = vid[j+1], vid[i+1] })
+	}
 
-	// Process videos with ads
+	// Procesar los videos con anuncios
 	if (typeUser == 0 || typeUser == 100000 || typeUser == 100004) && len(vid) > 0 {
-		// var tempVideos []FeedVideo
-		adsIndex := 0
 		pageSize = 2
-		offset := (page - 1) * pageSize
-
+		offset = (page - 1) * pageSize
 		err = dbConn.Table("videos").
 			Select("videos.*").
-
-			// Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-			Where("type = ?", 3).Limit(pageSize).Offset(offset).Unscoped().
+			Where("type = ?", 3).
+			Limit(pageSize).
+			Offset(offset).
+			Unscoped().
 			Find(&ads).Error
 
-		if len(ads) != 0 {
-			vid = append(vid, ads[adsIndex])
+		if err == nil && len(ads) > 0 {
+			vid = append(vid, ads[0])
 		}
-		// for i, video := range vid {
-		// 	// Add the new element to the end of the list
-		// 	tempVideos = append(tempVideos, video)
-		// 	if (i+1)%5 == 0 && video.Type != 2 {
-		// 		// Skip this video or handle as needed
-		// 		tempVideos = append(tempVideos, ads[adsIndex])
-		// 		adsIndex++
-		// 		// continue
-		// 	}
-		// }
-		// vid = tempVideos
 	}
 
 	return vid, nil
-
 }
+
+// func FetchAllVideos(id_user int, sale_type int, typeV int, page int) ([]FeedVideo, error) {
+// 	var err error
+// 	dbConn := Pool
+// 	var vid []FeedVideo
+// 	var ads []FeedVideo
+// 	var user User
+// 	typeUser := 0
+
+// 	user, err = GetUserByID(uint(id_user))
+// 	if err == nil {
+// 		typeUser = user.IdMembership
+
+// 	}
+
+// 	pageSize := 10
+// 	// Calculate the offset based on the page number and page size
+// 	offset := (page - 1) * pageSize
+// 	// err = dbConn.Unscoped().Find(&vid).Error
+
+// 	// err = dbConn.Model(&Video{}).Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
+// 	// if err != nil {
+// 	// 	return vid, err
+// 	// }
+
+// 	// var videos []Video
+// 	result := dbConn.Table("videos").
+// 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+// 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+// 		Where("sale_type_id = ? && type = ?", sale_type, typeV).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().
+// 		Find(&vid).Error
+
+// 	if result != nil {
+// 		// http.Error(w, "Database error", http.StatusInternalServerError)
+// 		return vid, err
+// 	}
+
+// 	// responseJSON, err := json.Marshal(videos)
+// 	// if err != nil {
+
+// 	// 	return vid,err
+// 	// }
+
+// 	rand.NewSource(time.Now().UnixNano())
+
+// 	rand.Shuffle(len(vid), func(i, j int) { vid[i], vid[j] = vid[j], vid[i] })
+
+// 	// Process videos with ads
+// 	if (typeUser == 0 || typeUser == 100000 || typeUser == 100004) && len(vid) > 0 {
+// 		// var tempVideos []FeedVideo
+// 		adsIndex := 0
+// 		pageSize = 2
+// 		offset := (page - 1) * pageSize
+
+// 		err = dbConn.Table("videos").
+// 			Select("videos.*").
+
+// 			// Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+// 			Where("type = ?", 3).Limit(pageSize).Offset(offset).Unscoped().
+// 			Find(&ads).Error
+
+// 		if len(ads) != 0 {
+// 			vid = append(vid, ads[adsIndex])
+// 		}
+// 		// for i, video := range vid {
+// 		// 	// Add the new element to the end of the list
+// 		// 	tempVideos = append(tempVideos, video)
+// 		// 	if (i+1)%5 == 0 && video.Type != 2 {
+// 		// 		// Skip this video or handle as needed
+// 		// 		tempVideos = append(tempVideos, ads[adsIndex])
+// 		// 		adsIndex++
+// 		// 		// continue
+// 		// 	}
+// 		// }
+// 		// vid = tempVideos
+// 	}
+
+// 	return vid, nil
+
+// }
 
 func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 	var err error
@@ -358,36 +436,114 @@ func SearchVideos(search string, page int, id_user int) ([]FeedVideo, error) {
 
 }
 
-func FetchAllCategoryVideos(id_user int, sale_type int, typeV int, categoryId, page int) ([]FeedVideo, error) {
-	var err error
-	dbConn := Pool
-	var vid []FeedVideo
-	var ads []FeedVideo
+// func FetchAllCategoryVideos(id_user int, sale_type int, typeV int, categoryId, page int) ([]FeedVideo, error) {
+// 	var err error
+// 	dbConn := Pool
+// 	var vid []FeedVideo
+// 	var ads []FeedVideo
 
-	pageSize := 12
-	var user User
-	typeUser := 0
-	// Calculate the offset based on the page number and page size
-	offset := (page - 1) * pageSize
+// 	pageSize := 12
+// 	var user User
+// 	typeUser := 0
+// 	// Calculate the offset based on the page number and page size
+// 	offset := (page - 1) * pageSize
 
-	user, err = GetUserByID(uint(id_user))
+// 	user, err = GetUserByID(uint(id_user))
+// 	if err == nil {
+// 		typeUser = user.IdMembership
+
+// 	}
+// 	// err = dbConn.Unscoped().Find(&vid).Error
+
+// 	// err = dbConn.Model(&Video{}).Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
+// 	// if err != nil {
+// 	// 	return vid, err
+// 	// }
+
+// 	// var videos []Video
+// 	result := dbConn.Table("videos").
+// 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+// 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+// 		Where("sale_type_id = ? && type = ? && sale_category_id = ? ", sale_type, typeV, categoryId).
+// 		// Where("sale_category_id = ? && is_vip = ?", sale_type, isvip).
+// 		Limit(pageSize).
+// 		Offset(offset).
+// 		Preload("SaleType").
+// 		Preload("SaleCategory").
+// 		Preload("User").
+// 		Unscoped().
+// 		Find(&vid).Error
+
+// 	if result != nil {
+// 		// http.Error(w, "Database error", http.StatusInternalServerError)
+// 		return vid, err
+// 	}
+
+// 	// responseJSON, err := json.Marshal(videos)
+// 	// if err != nil {
+
+// 	// 	return vid,err
+// 	// }
+
+// 	rand.NewSource(time.Now().UnixNano())
+
+// 	rand.Shuffle(len(vid), func(i, j int) { vid[i], vid[j] = vid[j], vid[i] })
+
+// 	// Process videos with ads
+// 	if (typeUser == 0 || typeUser == 1 || typeUser == 8 || typeUser == 2 || typeUser == 3) && len(vid) > 0 {
+// 		// var tempVideos []FeedVideo
+// 		adsIndex := 0
+// 		pageSize = 2
+// 		offset := (page - 1) * pageSize
+
+// 		err = dbConn.Table("videos").
+// 			Select("videos.*").
+
+// 			// Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+// 			Where("type = ?", 3).Limit(pageSize).Offset(offset).Unscoped().
+// 			Find(&ads).Error
+
+// 		if len(ads) != 0 {
+// 			vid = append(vid, ads[adsIndex])
+// 		}
+// 		// for i, video := range vid {
+// 		// 	// Add the new element to the end of the list
+// 		// 	tempVideos = append(tempVideos, video)
+// 		// 	if (i+1)%5 == 0 && video.Type != 2 {
+// 		// 		// Skip this video or handle as needed
+// 		// 		tempVideos = append(tempVideos, ads[adsIndex])
+// 		// 		adsIndex++
+// 		// 		// continue
+// 		// 	}
+// 		// }
+// 		// vid = tempVideos
+// 	}
+// 	return vid, nil
+
+// }
+
+func FetchAllCategoryVideos(id_user int, sale_type int, typeV int, categoryId, page int, idvideo *int) ([]FeedVideo, error) {
+	var (
+		err      error
+		vid      []FeedVideo
+		ads      []FeedVideo
+		typeUser int
+		pageSize = 12
+		offset   = (page - 1) * pageSize
+		dbConn   = Pool
+	)
+
+	// Obtener el usuario y determinar su tipo
+	user, err := GetUserByID(uint(id_user))
 	if err == nil {
 		typeUser = user.IdMembership
-
 	}
-	// err = dbConn.Unscoped().Find(&vid).Error
 
-	// err = dbConn.Model(&Video{}).Where("sale_type_id = ? && is_vip = ?", sale_type, isvip).Limit(pageSize).Offset(offset).Preload("SaleType").Preload("SaleCategory").Preload("User").Unscoped().Find(&vid).Error
-	// if err != nil {
-	// 	return vid, err
-	// }
-
-	// var videos []Video
-	result := dbConn.Table("videos").
+	// Obtener los videos normales
+	err = dbConn.Table("videos").
 		Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-		Where("sale_type_id = ? && type = ? && sale_category_id = ? ", sale_type, typeV, categoryId).
-		// Where("sale_category_id = ? && is_vip = ?", sale_type, isvip).
+		Where("sale_type_id = ? AND type = ? AND sale_category_id = ?", sale_type, typeV, categoryId).
 		Limit(pageSize).
 		Offset(offset).
 		Preload("SaleType").
@@ -396,52 +552,57 @@ func FetchAllCategoryVideos(id_user int, sale_type int, typeV int, categoryId, p
 		Unscoped().
 		Find(&vid).Error
 
-	if result != nil {
-		// http.Error(w, "Database error", http.StatusInternalServerError)
+	if err != nil {
 		return vid, err
 	}
 
-	// responseJSON, err := json.Marshal(videos)
-	// if err != nil {
+	// Si se proporciona un idvideo, buscarlo y colocarlo en la posición 0
+	if idvideo != nil {
+		var specialVideo FeedVideo
+		err = dbConn.Table("videos").
+			Select("videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
+			Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
+			Where("videos.id = ?", *idvideo).
+			Preload("SaleType").
+			Preload("SaleCategory").
+			Preload("User").
+			Unscoped().
+			First(&specialVideo).Error
 
-	// 	return vid,err
-	// }
+		if err == nil {
+			vid = append([]FeedVideo{specialVideo}, vid...) // Coloca el video especial en la primera posición
+		}
+	}
 
-	rand.NewSource(time.Now().UnixNano())
+	// Si se proporcionó un idvideo, asegúrate de que no esté duplicado
+	if idvideo != nil && len(vid) > 1 && vid[1].Id == *idvideo {
+		vid = vid[1:] // Elimina el video que ya está en la posición 0
+	}
 
-	rand.Shuffle(len(vid), func(i, j int) { vid[i], vid[j] = vid[j], vid[i] })
+	// Mezclar los videos aleatoriamente, excepto el primero si es el video especial
+	if len(vid) > 1 {
+		rand.NewSource(time.Now().UnixNano())
+		rand.Shuffle(len(vid)-1, func(i, j int) { vid[i+1], vid[j+1] = vid[j+1], vid[i+1] })
+	}
 
-	// Process videos with ads
-	if (typeUser == 0 || typeUser == 1 || typeUser == 8 || typeUser == 2 || typeUser == 3) && len(vid) > 0 {
-		// var tempVideos []FeedVideo
-		adsIndex := 0
+	// Insertar anuncios si el usuario es del tipo adecuado
+	if (typeUser == 0 || typeUser == 1 || typeUser == 2 || typeUser == 3 || typeUser == 8) && len(vid) > 0 {
 		pageSize = 2
-		offset := (page - 1) * pageSize
-
+		offset = (page - 1) * pageSize
 		err = dbConn.Table("videos").
 			Select("videos.*").
-
-			// Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", id_user).
-			Where("type = ?", 3).Limit(pageSize).Offset(offset).Unscoped().
+			Where("type = ?", 3).
+			Limit(pageSize).
+			Offset(offset).
+			Unscoped().
 			Find(&ads).Error
 
-		if len(ads) != 0 {
-			vid = append(vid, ads[adsIndex])
+		if err == nil && len(ads) > 0 {
+			vid = append(vid, ads[0])
 		}
-		// for i, video := range vid {
-		// 	// Add the new element to the end of the list
-		// 	tempVideos = append(tempVideos, video)
-		// 	if (i+1)%5 == 0 && video.Type != 2 {
-		// 		// Skip this video or handle as needed
-		// 		tempVideos = append(tempVideos, ads[adsIndex])
-		// 		adsIndex++
-		// 		// continue
-		// 	}
-		// }
-		// vid = tempVideos
 	}
-	return vid, nil
 
+	return vid, nil
 }
 
 func GetPlacesAroundLocation(centerLat, centerLon float64, maxDistance float64, id_user int) ([]Video, error) {
