@@ -80,7 +80,7 @@ func BlockFolderAccessMiddleware() gin.HandlerFunc {
 			fileExtension := filepath.Ext(requestedPath)
 
 			// Check if the file extension is allowed (e.g., images and videos)
-			allowedExtensions := []string{".jpg", ".jpeg", ".png", ".gif", ".mp4", ".avi", ".mkv",".mp3"}
+			allowedExtensions := []string{".jpg",".json", ".jpeg", ".png", ".gif", ".mp4", ".avi", ".mkv",".mp3"}
 			isAllowedExtension := false
 			for _, ext := range allowedExtensions {
 				if strings.EqualFold(fileExtension, ext) {

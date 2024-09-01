@@ -59,7 +59,7 @@ func main() {
 	})
 
 	workers.Middleware.Append(&myMiddleware{})
-    //  SMS.ScheduleTokenUpdate()
+	//  SMS.ScheduleTokenUpdate()
 
 	// err := godotenv.Load()
 	// if err != nil {
@@ -82,8 +82,11 @@ func main() {
 
 	// Serve static files from the "public" directory
 	r.StaticFS("/public", fs)
+	// Serve files from the .well-known directory
+	r.Static("/.well-known", publicDir+"/.well-known")
 	// Specify the directory containing your public files
-
+	// Serve files from the .well-known directory
+	// r.StaticFS("/.well-known", fs)
 	// Create a file server handler for the public directory
 
 	// Register the file server handler with a specific URL path
@@ -128,7 +131,6 @@ func main() {
 	protected.POST("/updateUserName", controllers.UpdateUsernameHandler)
 	protected.POST("/updatePhoneNumber", controllers.UpdatePhoneNumberHandler)
 
-	
 	// protected.POST("/changePassword", controllers.ChangePassword)
 
 	protected.POST("/UpdateCoverImageUserName", controllers.UpdateCoverImageUserName)
@@ -139,7 +141,6 @@ func main() {
 	protected.POST("/createSubscription", controllers.CreateSubscription)
 	protected.POST("/cancelSubscription", controllers.CancelSubscription)
 
-	
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)
 	protected.GET("/getVideoSponsors", controllers.HandleGetVideosSponsors)
@@ -152,7 +153,6 @@ func main() {
 	protected.GET("/status/:taskId", controllers.CheckStatus)
 	protected.GET("/getUserSubscription", controllers.GetUserSubscription)
 
-	
 	// // pull messages from "myqueue" with concurrency of 10
 	// workers.Process("myqueue", myJob, 10)
 
