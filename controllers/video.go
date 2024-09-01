@@ -879,6 +879,7 @@ func HandleGetAllVideos(c *gin.Context) {
 		"Terreno":     3,
 		"Corporativo": 4,
 		"Industrial":  5,
+		"Exclusivo":   6,
 		"Residential": 1,
 		"Business":    2,
 		"Land":        3,
@@ -904,9 +905,9 @@ func HandleGetAllVideos(c *gin.Context) {
 
 	// Obtener los videos según la categoría
 	if category > 0 {
-		data, err = models.FetchAllCategoryVideos(int(userID), saleID, typeVideo, category, page,idVideo)
+		data, err = models.FetchAllCategoryVideos(int(userID), saleID, typeVideo, category, page, idVideo)
 	} else {
-		data, err = models.FetchAllVideos(int(userID), saleID, typeVideo, page,idVideo)
+		data, err = models.FetchAllVideos(int(userID), saleID, typeVideo, page, idVideo)
 	}
 
 	if err != nil {
