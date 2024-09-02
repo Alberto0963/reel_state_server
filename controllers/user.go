@@ -95,6 +95,22 @@ func UserByIdHandler(c *gin.Context) {
 	})
 }
 
+func DeleteUser(c *gin.Context) {
+	// Get the user ID from the URL parameter
+	// userID := c.Param("id")
+	userID, _ := token.ExtractTokenID(c)
+
+	// var user models.UserUpdate
+
+	err := models.DeleteUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
 func SendVerificationCode(c *gin.Context) {
 	auth.SendVerificationCode(c)
 }
@@ -102,7 +118,6 @@ func SendVerificationCode(c *gin.Context) {
 func ValidatePhone(c *gin.Context) {
 	auth.ValidatePhone(c)
 }
-
 
 func ValidateVerificationCode(c *gin.Context) {
 	auth.ValidateVerificationCode(c)
@@ -452,7 +467,7 @@ func CreateSubscription(c *gin.Context) {
 		return
 	}
 
-	 models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime)
+	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime)
 	// if err != nil {
 	// 	c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 	// 	return

@@ -234,6 +234,42 @@ func GetUserByPhone(phone string) (UserUpdate, error) {
 
 }
 
+func DeleteUserByID(uid uint) error {
+
+	var u User
+	// Obtain a connection from the pool
+	dbConn := Pool
+	// defer dbConn.Close()
+	// if err := dbConn.Model(&User{}).
+	// Define the subquery as a raw SQL string
+	// videosCountSubquery := "(SELECT id_user, COUNT(*) as video_count FROM videos GROUP BY id_user) as v"
+
+	// if err := dbConn.Model(&User{}).Where("id = ?", uid).Delete(&u).Error; err != nil {
+	// 	return u, errors.New("User not found! ")
+	// }
+
+	// u.PrepareGive()
+
+	// return u, nil
+	// Check if user exists
+	if err := dbConn.First(&u, uid).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return err
+		}
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return err
+	}
+
+	// Delete the user
+	if err := dbConn.Delete(&u).Error; err != nil {
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+		return err
+	}
+
+	return nil
+}
+
 func GetUserByEmail(email string) (User, error) {
 
 	var u User
@@ -323,7 +359,7 @@ func (u *UserUpdate) UpdateUser() (*UserUpdate, error) {
 	return u, nil
 }
 
-func (user *UserUpdate) UpdatePassword( newPassword string) error {
+func (user *UserUpdate) UpdatePassword(newPassword string) error {
 	// var err error
 	dbConn := Pool
 
@@ -559,4 +595,3 @@ func FindByPhone(phone string) error {
 	err = dbConn.Where("phone = ?", phone).First(&v).Error
 	return err
 }
-

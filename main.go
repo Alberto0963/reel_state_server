@@ -125,6 +125,8 @@ func main() {
 	protected.POST("/upload", controllers.HandleVideoUpload)
 	protected.POST("/edit", controllers.HandleVideoEdit)
 	protected.POST("/updateusername", controllers.UpdateUsernameHandler)
+	protected.POST("/deleteUser", controllers.DeleteUser)
+
 	// protected.POST("/uploadVideoWithAudioUpload", controllers.HandleVideoWithAudioUpload)
 
 	protected.POST("/UpdateProfileImageUserName", controllers.UpdateProfileImageUserName)
