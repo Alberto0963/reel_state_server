@@ -83,7 +83,7 @@ func main() {
 	// Serve static files from the "public" directory
 	r.StaticFS("/public", fs)
 	// Serve files from the .well-known directory
-	r.Static("/.well-known", publicDir+"/.well-known")
+	// r.Static("/.well-known", publicDir+"/.well-known")
 	// Specify the directory containing your public files
 	// Serve files from the .well-known directory
 	// r.StaticFS("/.well-known", fs)
@@ -92,6 +92,15 @@ func main() {
 	// Register the file server handler with a specific URL path
 	// Specify the directory containing your public files
 
+	// Manejador para la ruta raíz
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Bienvenido a ReelState")
+	})
+
+	// Ruta para servir el archivo JSON
+	r.GET("/.well-known/assetlinks.json", func(c *gin.Context) {
+		c.File("./public/.well-known/assetlinks.json") // Especifica la ruta del archivo JSON
+	})
 	public := r.Group("/")
 
 	r.LoadHTMLGlob(os.Getenv("MY_URL") + "templates/*")
