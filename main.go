@@ -101,7 +101,7 @@ func main() {
 	r.GET("/.well-known/assetlinks.json", func(c *gin.Context) {
 		c.File("./public/.well-known/assetlinks.json") // Especifica la ruta del archivo JSON
 	})
-	public := r.Group("/")
+	public := r.Group("/api")
 
 	r.LoadHTMLGlob(os.Getenv("MY_URL") + "templates/*")
 	r.GET("/video/:videoID", controllers.GetVideoFromLink)
@@ -129,7 +129,7 @@ func main() {
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
 	public.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
 
-	protected := r.Group("/admin")
+	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
 	protected.POST("/upload", controllers.HandleVideoUpload)
 	protected.POST("/edit", controllers.HandleVideoEdit)
