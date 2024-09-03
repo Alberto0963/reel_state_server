@@ -92,7 +92,7 @@ func main() {
 	// Register the file server handler with a specific URL path
 	// Specify the directory containing your public files
 
-	public := r.Group("/api")
+	public := r.Group("/")
 
 	r.LoadHTMLGlob(os.Getenv("MY_URL") + "templates/*")
 	r.GET("/video/:videoID", controllers.GetVideoFromLink)
@@ -120,7 +120,7 @@ func main() {
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
 	public.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
 
-	protected := r.Group("/api/admin")
+	protected := r.Group("/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
 	protected.POST("/upload", controllers.HandleVideoUpload)
 	protected.POST("/edit", controllers.HandleVideoEdit)
