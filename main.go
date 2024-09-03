@@ -99,8 +99,9 @@ func main() {
 
 	// Ruta para servir el archivo JSON
 	r.GET("/.well-known/assetlinks.json", func(c *gin.Context) {
-		c.File("./public/.well-known/assetlinks.json") // Especifica la ruta del archivo JSON
+		c.File(publicDir+"/.well-known/assetlinks.json") // Especifica la ruta del archivo JSON
 	})
+
 	public := r.Group("/api")
 
 	r.LoadHTMLGlob(os.Getenv("MY_URL") + "templates/*")
