@@ -874,6 +874,7 @@ func HandleGetAllVideos(c *gin.Context) {
 
 	// Determinar categoría
 	categoryMap := map[string]int{
+		"All":         0,
 		"Residencial": 1,
 		"Comercial":   2,
 		"Terreno":     3,
