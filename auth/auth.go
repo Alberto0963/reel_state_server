@@ -5,7 +5,11 @@ import (
 	// "io"
 	// "database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
+
+	// "io/ioutil"
 	"log"
 	"net/http"
 
@@ -612,5 +616,157 @@ func HandleGoogleRegister(c *gin.Context) {
 		return
 	}
 
+	// return
+}
+
+// FacebookTokenValidation represents the structure for validating the token
+type FacebookInput struct {
+	AccessToken string `json:"access_token"`
+	Email string `json:"email"`
+	Name string `json:"name"`
+
+}
+
+// FacebookResponse represents the structure of the response from Facebook's API
+type FacebookResponse struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// validateFacebookToken validates the Facebook token by making a request to the Facebook Graph API.
+func validateFacebookToken(token string) error {
+    fbValidationURL := "https://graph.facebook.com/me?access_token=" + token
+
+    // Create an HTTP GET request
+    resp, err := http.Get(fbValidationURL)
+    if err != nil {
+        return fmt.Errorf("failed to validate token with Facebook: %v", err)
+    }
+    defer resp.Body.Close()
+
+    // Check if the response status is not OK (i.e., not 200)
+    if resp.StatusCode != http.StatusOK {
+        return fmt.Errorf("failed to validate token: received status code %d - %s", resp.StatusCode, resp.Status)
+    }
+
+    // Read and parse the response from Facebook
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return errors.New("failed to read Facebook response")
+    }
+
+    var fbResp FacebookResponse
+    if err := json.Unmarshal(body, &fbResp); err != nil {
+        return errors.New("failed to parse Facebook response")
+    }
+
+    // If the token is valid, return nil (no error)
+    fmt.Printf("Token is valid. User ID: %s, Name: %s\n", fbResp.ID, fbResp.Name)
+    return nil
+}
+
+
+func HandleFacebookRegister(c *gin.Context) {
+
+	var input FacebookInput
+	var saveUser models.UserUpdate
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	 err := validateFacebookToken( input.AccessToken)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	//  var localuser  models.User
+	// Check if user already exists in database by email
+	localuser, err := models.GetUserByEmail(input.Email)
+	log.Printf("user:", localuser)
+	// log
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 	return
+	// }
+
+	if err != nil {
+
+		// No existing user, let's register a new one
+
+		saveUser.Email = input.Email
+		saveUser.Username = input.Name
+		// saveUser.Username = userInfoModel.Name
+		saveUser.ExpirationMembershipDate = time.Now()
+		saveUser.IdMembership = 100004
+		usr, err := saveUser.SaveUser()
+		print(usr)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Database error:": err})
+			return
+		}
+
+		token, err := token.GenerateToken(saveUser.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Database error:": err})
+			return
+		}
+		isVip := false
+		if saveUser.IdMembership == 6 || saveUser.IdMembership == 7 {
+			isVip = true
+		}
+
+		// Envía userInfo al cliente Flutter o procesa según necesites
+		c.JSON(http.StatusOK, gin.H{"ReelStateUser": saveUser, "token": token, "isVip": isVip})
+
+	} else {
+		// User already registered
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User already registered"})
+		return
+	}
+
+	// return
+}
+
+func HandleFacebookLogin(c *gin.Context) {
+	// ctx := r.Context()
+	var input FacebookInput
+
+	if err := c.ShouldBind(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+
+
+	err := validateFacebookToken( input.AccessToken)
+	// Verifica y posiblemente refresca el token
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+	print(input.AccessToken)
+
+
+
+	localuser, err := models.GetUserByEmail(input.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := token.GenerateToken(localuser.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+	isVip := false
+	if localuser.IdMembership == 6 || localuser.IdMembership == 7 {
+		isVip = true
+	}
+
+	// Envía userInfo al cliente Flutter o procesa según necesites
+	c.JSON(http.StatusOK, gin.H{"message": "token is valid", "ReelStateUser": localuser, "token": token, "isVip": isVip, "canUpload": localuser.CanUpload})
 	// return
 }

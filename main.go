@@ -123,7 +123,11 @@ func main() {
 	public.POST("/ValidateUserName", controllers.ValidateUserName)
 	public.POST("/register", controllers.RegisterHandler)
 	public.POST("/registerWithGoogle", controllers.RegisterHandlerWithGogle)
+	public.POST("/registerWithFacebook", controllers.RegisterHandlerWithFacebook)
+	public.POST("/loginWithFacebook", controllers.LoginHandlerWithFacebook)
 
+	
+	
 	public.POST("/addUserSubscription", controllers.HandleWebhook)
 
 	public.POST("/login", controllers.LoginHandler)

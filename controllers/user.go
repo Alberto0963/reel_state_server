@@ -37,6 +37,14 @@ func RegisterHandlerWithGogle(c *gin.Context) {
 	auth.HandleGoogleRegister(c)
 }
 
+func RegisterHandlerWithFacebook(c *gin.Context) {
+	auth.HandleFacebookRegister(c)
+}
+
+func LoginHandlerWithFacebook(c *gin.Context) {
+	auth.HandleFacebookLogin(c)
+}
+
 func UpdatePasswordHandler(c *gin.Context) {
 	auth.ResetPassword(c)
 }
