@@ -190,7 +190,7 @@ func Register(c *gin.Context) {
 
 	u.Username = input.Username
 	u.Password = input.Password
-	u.Phone = models.SetPhoneNumber(input.Phone)
+	u.Phone = models.Setnull(input.Phone)
 
 	// u.ProfileImage = profileImagePath
 	u.ExpirationMembershipDate = time.Now()
@@ -584,7 +584,7 @@ func HandleGoogleRegister(c *gin.Context) {
 		// No existing user, let's register a new one
 		var saveUser models.UserDB
 
-		saveUser.Email = userInfoModel.Email
+		saveUser.Email = models.Setnull(userInfoModel.Email)
 		saveUser.Username = userInfoModel.Name
 		// saveUser.Username = userInfoModel.Name
 		saveUser.ExpirationMembershipDate = time.Now()
@@ -694,7 +694,7 @@ func HandleFacebookRegister(c *gin.Context) {
 
 		// No existing user, let's register a new one
 
-		saveUser.Email = input.Email
+		saveUser.Email = models.Setnull(input.Email)
 		saveUser.Username = input.Name
 		// saveUser.Username = userInfoModel.Name
 		saveUser.ExpirationMembershipDate = time.Now()

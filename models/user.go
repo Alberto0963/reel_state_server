@@ -44,17 +44,17 @@ type User struct {
 type UserUpdate struct {
 	// gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
-	ID                       uint           `gorm:"not null;unique" json:"id"`
-	Phone                    string `gorm:"size:13;not null;unique" json:"phone"`
-	Username                 string         `gorm:"size:255;not null;unique" json:"username"`
-	Password                 string         `gorm:"size:100;not null;" json:"password"`
-	ProfileImage             string         `gorm:"size:255;not null;" json:"profileImage"`
-	ExpirationMembershipDate time.Time      `gorm:"size:255;" json:"expiration_membership_date"`
-	IdMembership             int            `gorm:"size:255;not null;" json:"id_membership"`
-	RenovationActive         int            `gorm:"size:255;not null;" json:"renovation_active"`
-	Cover_image              string         `gorm:"size:255;not null;" json:"cover_image"`
-	Description              string         `gorm:"size:255" json:"description"`
-	Email                    string         `gorm:"" json:"email"`
+	ID                       uint      `gorm:"not null;unique" json:"id"`
+	Phone                    string    `gorm:"size:13;not null;unique" json:"phone"`
+	Username                 string    `gorm:"size:255;not null;unique" json:"username"`
+	Password                 string    `gorm:"size:100;not null;" json:"password"`
+	ProfileImage             string    `gorm:"size:255;not null;" json:"profileImage"`
+	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
+	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
+	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
+	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
+	Description              string    `gorm:"size:255" json:"description"`
+	Email                    string    `gorm:"" json:"email"`
 }
 
 type UserDB struct {
@@ -70,7 +70,7 @@ type UserDB struct {
 	RenovationActive         int            `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string         `gorm:"size:255;not null;" json:"cover_image"`
 	Description              string         `gorm:"size:255" json:"description"`
-	Email                    string         `gorm:"" json:"email"`
+	Email                    sql.NullString `gorm:"" json:"email"`
 }
 
 type PublicUser struct {
@@ -102,7 +102,6 @@ func (UserUpdate) TableName() string {
 func (UserDB) TableName() string {
 	return "users"
 }
-
 
 func (updatedUser *UserUpdate) UpdateProfileImageUser() (UserUpdate, error) {
 	dbConn := Pool
@@ -635,33 +634,33 @@ func SepararNombreCompleto(nombreCompleto string) (string, string) {
 }
 
 func ConvertToUser(dbUser UserDB) UserUpdate {
-    var phone string
-    if dbUser.Phone.Valid {
-        phone = dbUser.Phone.String // Si es un valor válido
-    } else {
-        phone = "" // Si es NULL, lo convertimos a una cadena vacía
-    }
+	var phone string
+	if dbUser.Phone.Valid {
+		phone = dbUser.Phone.String // Si es un valor válido
+	} else {
+		phone = "" // Si es NULL, lo convertimos a una cadena vacía
+	}
 
-    return UserUpdate{
-        ID:    dbUser.ID,
-        Phone: phone, // Asignamos el valor convertido
-    }
+	return UserUpdate{
+		ID:    dbUser.ID,
+		Phone: phone, // Asignamos el valor convertido
+	}
 }
 
-func SetPhoneNumber(phoneNumber string) sql.NullString {
-    var phone sql.NullString
+func Setnull(phoneNumber string) sql.NullString {
+	var phone sql.NullString
 
-    if phoneNumber == "" {
-        phone = sql.NullString{
-            String: "",   // El valor aquí no importa cuando Valid es false
-            Valid:  false, // Se trata como NULL en la base de datos
-        }
-    } else {
-        phone = sql.NullString{
-            String: phoneNumber, // Asigna el valor del número de teléfono
-            Valid:  true,        // Indica que el valor es válido
-        }
-    }
+	if phoneNumber == "" {
+		phone = sql.NullString{
+			String: "",    // El valor aquí no importa cuando Valid es false
+			Valid:  false, // Se trata como NULL en la base de datos
+		}
+	} else {
+		phone = sql.NullString{
+			String: phoneNumber, // Asigna el valor del número de teléfono
+			Valid:  true,        // Indica que el valor es válido
+		}
+	}
 
-    return phone
+	return phone
 }
