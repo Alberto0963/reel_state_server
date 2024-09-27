@@ -388,7 +388,7 @@ func (user *UserUpdate) UpdatePassword(newPassword string) error {
 	return dbConn.Model(&user).Update("password", newPassword).Error
 }
 
-func (u *UserUpdate) BeforeSave(tx *gorm.DB) error {
+func (u *UserDB) BeforeSave(tx *gorm.DB) error {
 
 	//turn password into hash
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
