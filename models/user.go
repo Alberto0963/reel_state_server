@@ -68,7 +68,7 @@ type UserDB struct {
 	ExpirationMembershipDate time.Time      `gorm:"size:255;" json:"expiration_membership_date"`
 	IdMembership             int            `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int            `gorm:"size:255;not null;" json:"renovation_active"`
-	Cover_image              string         `gorm:"size:255;not null;" json:"cover_image"`
+	Cover_image              sql.NullString `gorm:"size:255;" json:"cover_image"`
 	Description              string         `gorm:"size:255" json:"description"`
 	Email                    sql.NullString `gorm:"" json:"email"`
 }
