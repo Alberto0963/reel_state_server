@@ -140,6 +140,7 @@ func main() {
 	protected.POST("/edit", controllers.HandleVideoEdit)
 	protected.POST("/updateusername", controllers.UpdateUsernameHandler)
 	protected.POST("/deleteUser", controllers.DeleteUser)
+	protected.POST("/makePay_openPay", controllers.MakePayOpenPay)
 
 	// protected.POST("/uploadVideoWithAudioUpload", controllers.HandleVideoWithAudioUpload)
 

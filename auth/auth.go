@@ -186,11 +186,11 @@ func Register(c *gin.Context) {
 	// Create the destination path for saving the image
 	// profileImagePath := filepath.Join("public/profile_images", imageFileName)
 
-	u := models.UserUpdate{}
+	u := models.UserDB{}
 
 	u.Username = input.Username
 	u.Password = input.Password
-	u.Phone = input.Phone
+	u.Phone = models.SetPhoneNumber(input.Phone)
 
 	// u.ProfileImage = profileImagePath
 	u.ExpirationMembershipDate = time.Now()
@@ -582,7 +582,7 @@ func HandleGoogleRegister(c *gin.Context) {
 	if err != nil {
 
 		// No existing user, let's register a new one
-		var saveUser models.UserUpdate
+		var saveUser models.UserDB
 
 		saveUser.Email = userInfoModel.Email
 		saveUser.Username = userInfoModel.Name
@@ -669,7 +669,7 @@ func validateFacebookToken(token string) error {
 func HandleFacebookRegister(c *gin.Context) {
 
 	var input FacebookInput
-	var saveUser models.UserUpdate
+	var saveUser models.UserDB
 
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

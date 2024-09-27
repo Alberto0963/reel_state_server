@@ -6,6 +6,7 @@ import (
 
 	// "os"
 
+	// "encoding/json"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -549,4 +550,40 @@ func GetUserSubscription(c *gin.Context) {
 
 	// Respond with success
 	c.JSON(http.StatusCreated, gin.H{"data": subs})
+}
+
+func MakePayOpenPay(c *gin.Context) {
+	var card models.ChargeRequest
+	actualUserID, _ := token.ExtractTokenID(c)
+
+	// Decodificar los datos de la tarjeta
+	if err := c.ShouldBindJSON(&card); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Datos de la tarjeta inválidos", "error": err.Error()})
+		return
+	}
+
+	user, _ := models.GetUserByID(actualUserID)
+	// Obtener el token de la tarjeta
+	token := card.SourceID
+	amount := card.Amount                 // Ejemplo de monto
+	// description := card.Description       // Ejemplo de descripción
+	// deviceSessionID := card.DeviceSession // Se debe obtener el ID de sesión del dispositivo
+	planid := card.PlanID
+
+	nombre, apellidos := models.SepararNombreCompleto(card.Name)
+
+	customer := models.Customer{Name: nombre, LastName: apellidos, Email: card.Email, PhoneNumber: user.Phone}
+	customerID,err := models.CreateCustomer(customer)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Error al procesar el pago", "error": err.Error()})
+		return
+	}
+	// Realizar el pago
+	if err := models.CreateSubscriptionWithToken(customerID,planid,token, amount, 0); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Error al procesar el pago", "error": err.Error()})
+		return
+	}
+
+	// Respuesta exitosa
+	c.JSON(http.StatusCreated, gin.H{"status": "Pago procesado con éxito"})
 }

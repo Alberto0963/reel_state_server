@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"html"
@@ -43,17 +44,33 @@ type User struct {
 type UserUpdate struct {
 	// gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
-	ID                       uint      `gorm:"not null;unique" json:"id"`
-	Phone                    string    `gorm:"size:13;not null;unique" json:"phone"`
-	Username                 string    `gorm:"size:255;not null;unique" json:"username"`
-	Password                 string    `gorm:"size:100;not null;" json:"password"`
-	ProfileImage             string    `gorm:"size:255;not null;" json:"profileImage"`
-	ExpirationMembershipDate time.Time `gorm:"size:255;" json:"expiration_membership_date"`
-	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
-	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
-	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
-	Description              string    `gorm:"size:255" json:"description"`
-	Email                    string    `gorm:"" json:"email"`
+	ID                       uint           `gorm:"not null;unique" json:"id"`
+	Phone                    string `gorm:"size:13;not null;unique" json:"phone"`
+	Username                 string         `gorm:"size:255;not null;unique" json:"username"`
+	Password                 string         `gorm:"size:100;not null;" json:"password"`
+	ProfileImage             string         `gorm:"size:255;not null;" json:"profileImage"`
+	ExpirationMembershipDate time.Time      `gorm:"size:255;" json:"expiration_membership_date"`
+	IdMembership             int            `gorm:"size:255;not null;" json:"id_membership"`
+	RenovationActive         int            `gorm:"size:255;not null;" json:"renovation_active"`
+	Cover_image              string         `gorm:"size:255;not null;" json:"cover_image"`
+	Description              string         `gorm:"size:255" json:"description"`
+	Email                    string         `gorm:"" json:"email"`
+}
+
+type UserDB struct {
+	// gorm.Model `gorm:"softDelete:false"`
+	// DeletedAt gorm.DeletedAt `gorm:"index"`
+	ID                       uint           `gorm:"not null;unique" json:"id"`
+	Phone                    sql.NullString `gorm:"size:13;unique" json:"phone"`
+	Username                 string         `gorm:"size:255;not null;unique" json:"username"`
+	Password                 string         `gorm:"size:100;not null;" json:"password"`
+	ProfileImage             string         `gorm:"size:255;not null;" json:"profileImage"`
+	ExpirationMembershipDate time.Time      `gorm:"size:255;" json:"expiration_membership_date"`
+	IdMembership             int            `gorm:"size:255;not null;" json:"id_membership"`
+	RenovationActive         int            `gorm:"size:255;not null;" json:"renovation_active"`
+	Cover_image              string         `gorm:"size:255;not null;" json:"cover_image"`
+	Description              string         `gorm:"size:255" json:"description"`
+	Email                    string         `gorm:"" json:"email"`
 }
 
 type PublicUser struct {
@@ -81,6 +98,11 @@ func (User) TableName() string {
 func (UserUpdate) TableName() string {
 	return "users"
 }
+
+func (UserDB) TableName() string {
+	return "users"
+}
+
 
 func (updatedUser *UserUpdate) UpdateProfileImageUser() (UserUpdate, error) {
 	dbConn := Pool
@@ -335,15 +357,16 @@ func (u *User) PrepareGive() {
 	u.Password = ""
 }
 
-func (u *UserUpdate) SaveUser() (*UserUpdate, error) {
+func (u *UserDB) SaveUser() (*UserDB, error) {
 
 	var err error
 	dbConn := Pool
 
 	err = dbConn.Create(&u).Error
 	if err != nil {
-		return &UserUpdate{}, err
+		return &UserDB{}, err
 	}
+
 	return u, nil
 }
 
@@ -594,4 +617,51 @@ func FindByPhone(phone string) error {
 
 	err = dbConn.Where("phone = ?", phone).First(&v).Error
 	return err
+}
+
+func SepararNombreCompleto(nombreCompleto string) (string, string) {
+	// Dividimos el string por espacios
+	partes := strings.Split(nombreCompleto, " ")
+
+	// Si hay más de un elemento, el primer elemento es el nombre y el resto son los apellidos
+	if len(partes) >= 2 {
+		nombre := partes[0]
+		apellidos := strings.Join(partes[1:], " ") // Reunimos los apellidos en un solo string
+		return nombre, apellidos
+	}
+
+	// Si no hay suficientes partes, devolvemos el string completo como nombre y los apellidos vacíos
+	return nombreCompleto, ""
+}
+
+func ConvertToUser(dbUser UserDB) UserUpdate {
+    var phone string
+    if dbUser.Phone.Valid {
+        phone = dbUser.Phone.String // Si es un valor válido
+    } else {
+        phone = "" // Si es NULL, lo convertimos a una cadena vacía
+    }
+
+    return UserUpdate{
+        ID:    dbUser.ID,
+        Phone: phone, // Asignamos el valor convertido
+    }
+}
+
+func SetPhoneNumber(phoneNumber string) sql.NullString {
+    var phone sql.NullString
+
+    if phoneNumber == "" {
+        phone = sql.NullString{
+            String: "",   // El valor aquí no importa cuando Valid es false
+            Valid:  false, // Se trata como NULL en la base de datos
+        }
+    } else {
+        phone = sql.NullString{
+            String: phoneNumber, // Asigna el valor del número de teléfono
+            Valid:  true,        // Indica que el valor es válido
+        }
+    }
+
+    return phone
 }
