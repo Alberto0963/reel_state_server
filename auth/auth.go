@@ -559,6 +559,8 @@ func googleService(c *gin.Context, token string) (GoogleUserInfo, error) {
 func HandleGoogleRegister(c *gin.Context) {
 
 	var input LoginWithGoogle
+	var saveUser models.UserDB
+
 
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -571,6 +573,7 @@ func HandleGoogleRegister(c *gin.Context) {
 	}
 	//  var localuser  models.User
 	// Check if user already exists in database by email
+	log.Printf("user:",userInfoModel)
 	localuser, err := models.GetUserByEmail(userInfoModel.Email)
 	log.Printf("user:", localuser)
 	// log
@@ -582,7 +585,6 @@ func HandleGoogleRegister(c *gin.Context) {
 	if err != nil {
 
 		// No existing user, let's register a new one
-		var saveUser models.UserDB
 
 		saveUser.Email = models.Setnull(userInfoModel.Email)
 		saveUser.Username = userInfoModel.Name
@@ -603,7 +605,7 @@ func HandleGoogleRegister(c *gin.Context) {
 			return
 		}
 		isVip := false
-		if saveUser.IdMembership == 6 || saveUser.IdMembership == 7 {
+		if saveUser.IdMembership == 100008 || saveUser.IdMembership == 100007 {
 			isVip = true
 		}
 
@@ -713,7 +715,7 @@ func HandleFacebookRegister(c *gin.Context) {
 			return
 		}
 		isVip := false
-		if saveUser.IdMembership == 6 || saveUser.IdMembership == 7 {
+		if saveUser.IdMembership == 100008 || saveUser.IdMembership == 100007 {
 			isVip = true
 		}
 
