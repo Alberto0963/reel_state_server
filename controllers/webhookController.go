@@ -87,6 +87,16 @@ func OpenpayWebhookHandler(c *gin.Context) {
 		return
 	}
 
+	// Verificar si es una solicitud de verificación de webhook
+	var payload map[string]interface{}
+	if err := c.ShouldBindJSON(&payload); err == nil {
+		if verificationCode, ok := payload["verification_code"].(string); ok {
+			// Responder con el código de verificación
+			c.String(http.StatusOK, verificationCode)
+			return
+		}
+	}
+
 	// Manejar diferentes tipos de eventos
 	switch webhook.EventType {
 	case "subscription.create":
