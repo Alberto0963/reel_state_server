@@ -129,6 +129,7 @@ func main() {
 	
 	
 	public.POST("/addUserSubscription", controllers.HandleWebhook)
+	public.POST("/openpayWebhook", controllers.OpenpayWebhookHandler)
 
 	public.POST("/login", controllers.LoginHandler)
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
