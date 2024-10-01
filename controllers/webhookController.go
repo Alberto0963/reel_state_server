@@ -61,7 +61,7 @@ func HandleWebhook(c *gin.Context) {
 
 // Estructura para recibir la información del webhook
 type OpenpayWebhook struct {
-	EventType        string `json:"event_type"`
+	EventType        string `json:"type"`
 	EventDate        string `json:"event_date"`
 	VerificationCode string `json:"verification_code"`
 	Transaction      struct {
