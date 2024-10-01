@@ -97,6 +97,8 @@ func OpenpayWebhookHandler(c *gin.Context) {
 	// 		return
 	// 	}
 	// }
+	fmt.Printf("Codigo de Verificacion: %s", webhook.EventType)
+	fmt.Printf("Codigo de Verificacion: %s", webhook.VerificationCode)
 
 	// Manejar diferentes tipos de eventos
 	switch webhook.EventType {
