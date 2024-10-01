@@ -59,23 +59,58 @@ func HandleWebhook(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Event received"})
 }
 
-// Estructura para recibir la información del webhook
+// OpenpayWebhook representa el webhook enviado por Openpay.
 type OpenpayWebhook struct {
-	EventType        string `json:"type"`
-	EventDate        string `json:"event_date"`
-	VerificationCode string `json:"verification_code"`
-	Transaction      struct {
-		ID           string  `json:"id"`
-		Status       string  `json:"status"`
-		Amount       float64 `json:"amount,omitempty"`
-		PlanID       string  `json:"plan_id,omitempty"`
-		ErrorMessage string  `json:"error_message,omitempty"`
-	} `json:"transaction"`
-	Subscription struct {
-		ID     string `json:"id"`
-		Status string `json:"status"`
-		PlanID string `json:"plan_id,omitempty"`
-	} `json:"subscription,omitempty"`
+	Type             string      `json:"type"`
+	EventDate        time.Time   `json:"event_date"`
+	Transaction      Transaction `json:"transaction"`
+	VerificationCode string      `json:"verification_code"`
+}
+
+// Transaction representa la transacción en el webhook de Openpay.
+type Transaction struct {
+	ID              string    `json:"id"`
+	Authorization   string    `json:"authorization"`
+	OperationType   string    `json:"operation_type"`
+	TransactionType string    `json:"transaction_type"`
+	Status          string    `json:"status"`
+	Conciliated     bool      `json:"conciliated"`
+	CreationDate    time.Time `json:"creation_date"`
+	OperationDate   time.Time `json:"operation_date"`
+	Description     string    `json:"description"`
+	ErrorMessage    string    `json:"error_message,omitempty"`
+	OrderID         string    `json:"order_id,omitempty"`
+	Card            Card      `json:"card"`
+	CustomerID      string    `json:"customer_id"`
+	SubscriptionID  string    `json:"subscription_id"`
+	Fee             Fee       `json:"fee"`
+	Amount          float64   `json:"amount"`
+	Currency        string    `json:"currency"`
+	Method          string    `json:"method"`
+}
+
+// Card representa la información de la tarjeta en la transacción.
+type Card struct {
+	Type            string `json:"type"`
+	Brand           string `json:"brand"`
+	Address         string `json:"address,omitempty"`
+	CardNumber      string `json:"card_number"`
+	HolderName      string `json:"holder_name"`
+	ExpirationYear  string `json:"expiration_year"`
+	ExpirationMonth string `json:"expiration_month"`
+	AllowsCharges   bool   `json:"allows_charges"`
+	AllowsPayouts   bool   `json:"allows_payouts"`
+	BankName        string `json:"bank_name"`
+	BankCode        string `json:"bank_code"`
+}
+
+// Fee representa la comisión aplicada en la transacción.
+type Fee struct {
+	Amount         float64  `json:"amount"`
+	Tax            float64  `json:"tax"`
+	Surcharge      *float64 `json:"surcharge,omitempty"`
+	BaseCommission *float64 `json:"base_commission,omitempty"`
+	Currency       string   `json:"currency"`
 }
 
 // Webhook para manejar diferentes tipos de eventos de Openpay
@@ -102,7 +137,7 @@ func OpenpayWebhookHandler(c *gin.Context) {
 	// fmt.Printf("Codigo de Verificacion: %s", webhook.EventType)
 
 	// Manejar diferentes tipos de eventos
-	switch webhook.EventType {
+	switch webhook.Type {
 	case "verification":
 		err := handleVerificationCode(webhook)
 		if err != nil {
@@ -151,12 +186,12 @@ func handleVerificationCode(webhook OpenpayWebhook) error {
 
 // Función para manejar la creación de suscripciones
 func handleSubscriptionCreated(webhook OpenpayWebhook) error {
-	subscriptionID := webhook.Subscription.ID
-	planID := webhook.Subscription.PlanID
-	status := webhook.Subscription.Status
+	subscriptionID := webhook.Transaction.SubscriptionID
+	// planID := webhook.Transaction.pl
+	status := webhook.Transaction.Status
 
 	// Realizar las operaciones necesarias (guardar en la base de datos, enviar confirmación, etc.)
-	fmt.Printf("Suscripción creada:\nID: %s\nPlanID: %s\nEstado: %s\n", subscriptionID, planID, status)
+	fmt.Printf("Suscripción creada:\nID: %s \nEstado: %s\n", subscriptionID, status)
 
 	return nil
 	// c.JSON(http.StatusOK, gin.H{"message": "Suscripción creada con éxito", "subscription_id": subscriptionID})
@@ -169,16 +204,16 @@ func handlePaymentDeclined(webhook OpenpayWebhook) error {
 
 	// Realizar las operaciones necesarias (enviar notificación, actualizar el estado, etc.)
 	fmt.Printf("Pago declinado:\nID: %s\nMensaje de error: %s\n", transactionID, errorMessage)
-	layout := "2006-01-02T15:04:05Z"
+	// layout := "2006-01-02T15:04:05Z"
 
 	// Parse the date string
-	parsedTime, err := time.Parse(layout, webhook.EventDate)
-	if err != nil {
-		fmt.Println("Error parsing date:", err)
-		return err
-	}
+	// parsedTime, err := time.Parse(layout, webhook.EventDate)
+	// if err != nil {
+	// 	fmt.Println("Error parsing date:", err)
+	// 	return err
+	// }
 
-	err = models.CancelSubscriptionFunction(webhook.Subscription.ID, parsedTime)
+	err := models.CancelSubscriptionFunction(webhook.Transaction.SubscriptionID, webhook.EventDate)
 	if err != nil {
 		fmt.Println("Error parsing date:", err)
 		// c.JSON(http.StatusOK, gin.H{"message": "Pago declinado", "transaction_id": transactionID, "error": errorMessage})
@@ -191,12 +226,12 @@ func handlePaymentDeclined(webhook OpenpayWebhook) error {
 
 // Función para manejar la cancelación de suscripciones
 func handleSubscriptionCanceled(webhook OpenpayWebhook) error {
-	subscriptionID := webhook.Subscription.ID
-	planID := webhook.Subscription.PlanID
-	status := webhook.Subscription.Status
+	subscriptionID := webhook.Transaction.SubscriptionID
+	// planID := webhook.Subscription.PlanID
+	status := webhook.Transaction.Status
 
 	// Realizar las operaciones necesarias (actualizar la suscripción en la base de datos, etc.)
-	fmt.Printf("Suscripción cancelada:\nID: %s\nPlanID: %s\nEstado: %s\n", subscriptionID, planID, status)
+	fmt.Printf("Suscripción cancelada:\nID: %s\nEstado: %s\n", subscriptionID, status)
 	return nil
 	// c.JSON(http.StatusOK, gin.H{"message": "Suscripción cancelada", "subscription_id": subscriptionID})
 }
