@@ -88,23 +88,24 @@ func OpenpayWebhookHandler(c *gin.Context) {
 		return
 	}
 
-	// // Verificar si es una solicitud de verificación de webhook
-	// var payload map[string]interface{}
-	// if err := c.ShouldBindJSON(&payload); err == nil {
-	// 	if verificationCode, ok := payload["verification_code"].(string); ok {
-	// 		// Responder con el código de verificación
-	// 		c.String(http.StatusOK, verificationCode)
-	// 		return
-	// 	}
-	// }
-	fmt.Printf("Codigo de Verificacion: %s", webhook.EventType)
-	fmt.Printf("Codigo de Verificacion: %s", webhook.VerificationCode)
+	// Verificar si es una solicitud de verificación de webhook
+	var payload map[string]interface{}
+	if err := c.ShouldBindJSON(&payload); err == nil {
+		if verificationCode, ok := payload["verification_code"].(string); ok {
+			// Responder con el código de verificación
+			fmt.Printf("Codigo de Verificacion: %s", webhook.VerificationCode)
+
+			c.String(http.StatusOK, verificationCode)
+			return
+		}
+	}
+	// fmt.Printf("Codigo de Verificacion: %s", webhook.EventType)
 
 	// Manejar diferentes tipos de eventos
 	switch webhook.EventType {
 	case "verification":
 		handleVerificationCode(webhook, c)
-	case "subscription.create":
+	case "subscription.create", "charge.succeeded":
 		handleSubscriptionCreated(webhook, c)
 	case "charge.refund":
 		handlePaymentRefunded(webhook, c)
@@ -120,7 +121,6 @@ func OpenpayWebhookHandler(c *gin.Context) {
 // Función para manejar la creación de suscripciones
 func handleVerificationCode(webhook OpenpayWebhook, c *gin.Context) {
 	vc := webhook.VerificationCode
-
 
 	// Realizar las operaciones necesarias (guardar en la base de datos, enviar confirmación, etc.)
 	fmt.Printf("Codigo de Verificacion: %s", vc)
