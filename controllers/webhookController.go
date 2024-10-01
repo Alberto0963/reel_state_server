@@ -104,32 +104,53 @@ func OpenpayWebhookHandler(c *gin.Context) {
 	// Manejar diferentes tipos de eventos
 	switch webhook.EventType {
 	case "verification":
-		handleVerificationCode(webhook, c)
+		err := handleVerificationCode(webhook)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"message": "éxito"})
+
+		}
+
 	case "subscription.create", "charge.succeeded":
-		handleSubscriptionCreated(webhook, c)
+		err := handleSubscriptionCreated(webhook)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"message": "éxito"})
+
+		}
 	case "charge.refund":
-		handlePaymentRefunded(webhook, c)
+		err := handlePaymentRefunded(webhook)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"message": "Reembolso realizado"})
+
+		}
 	case "charge.failed":
-		handlePaymentDeclined(webhook, c)
+		err := handlePaymentDeclined(webhook)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"message": "Pago declinado"})
+
+		}
 	case "subscription.cancel":
-		handleSubscriptionCanceled(webhook, c)
+		err := handleSubscriptionCanceled(webhook)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"message": "Reembolso realizado"})
+
+		}
 	default:
 		c.JSON(http.StatusOK, gin.H{"message": "Evento no manejado"})
 	}
 }
 
 // Función para manejar la creación de suscripciones
-func handleVerificationCode(webhook OpenpayWebhook, c *gin.Context) {
+func handleVerificationCode(webhook OpenpayWebhook) error {
 	vc := webhook.VerificationCode
 
 	// Realizar las operaciones necesarias (guardar en la base de datos, enviar confirmación, etc.)
 	fmt.Printf("Codigo de Verificacion: %s", vc)
-
-	c.JSON(http.StatusOK, gin.H{"message": "Exito", "codigo verificaion": vc})
+	return nil
+	// c.JSON(http.StatusOK, gin.H{"message": "Exito", "codigo verificaion": vc})
 }
 
 // Función para manejar la creación de suscripciones
-func handleSubscriptionCreated(webhook OpenpayWebhook, c *gin.Context) {
+func handleSubscriptionCreated(webhook OpenpayWebhook) error {
 	subscriptionID := webhook.Subscription.ID
 	planID := webhook.Subscription.PlanID
 	status := webhook.Subscription.Status
@@ -137,11 +158,12 @@ func handleSubscriptionCreated(webhook OpenpayWebhook, c *gin.Context) {
 	// Realizar las operaciones necesarias (guardar en la base de datos, enviar confirmación, etc.)
 	fmt.Printf("Suscripción creada:\nID: %s\nPlanID: %s\nEstado: %s\n", subscriptionID, planID, status)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Suscripción creada con éxito", "subscription_id": subscriptionID})
+	return nil
+	// c.JSON(http.StatusOK, gin.H{"message": "Suscripción creada con éxito", "subscription_id": subscriptionID})
 }
 
 // Función para manejar pagos declinados
-func handlePaymentDeclined(webhook OpenpayWebhook, c *gin.Context) {
+func handlePaymentDeclined(webhook OpenpayWebhook) error {
 	transactionID := webhook.Transaction.ID
 	errorMessage := webhook.Transaction.ErrorMessage
 
@@ -153,38 +175,39 @@ func handlePaymentDeclined(webhook OpenpayWebhook, c *gin.Context) {
 	parsedTime, err := time.Parse(layout, webhook.EventDate)
 	if err != nil {
 		fmt.Println("Error parsing date:", err)
-		return
+		return err
 	}
 
 	err = models.CancelSubscriptionFunction(webhook.Subscription.ID, parsedTime)
 	if err != nil {
 		fmt.Println("Error parsing date:", err)
-		c.JSON(http.StatusOK, gin.H{"message": "Pago declinado", "transaction_id": transactionID, "error": errorMessage})
+		// c.JSON(http.StatusOK, gin.H{"message": "Pago declinado", "transaction_id": transactionID, "error": errorMessage})
 
-		return
+		return err
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Pago declinado", "transaction_id": transactionID, "error": errorMessage})
+	return nil
+	// c.JSON(http.StatusOK, gin.H{"message": "Pago declinado", "transaction_id": transactionID, "error": errorMessage})
 }
 
 // Función para manejar la cancelación de suscripciones
-func handleSubscriptionCanceled(webhook OpenpayWebhook, c *gin.Context) {
+func handleSubscriptionCanceled(webhook OpenpayWebhook) error {
 	subscriptionID := webhook.Subscription.ID
 	planID := webhook.Subscription.PlanID
 	status := webhook.Subscription.Status
 
 	// Realizar las operaciones necesarias (actualizar la suscripción en la base de datos, etc.)
 	fmt.Printf("Suscripción cancelada:\nID: %s\nPlanID: %s\nEstado: %s\n", subscriptionID, planID, status)
-
-	c.JSON(http.StatusOK, gin.H{"message": "Suscripción cancelada", "subscription_id": subscriptionID})
+	return nil
+	// c.JSON(http.StatusOK, gin.H{"message": "Suscripción cancelada", "subscription_id": subscriptionID})
 }
 
 // Función para manejar reembolsos de pagos (opcional)
-func handlePaymentRefunded(webhook OpenpayWebhook, c *gin.Context) {
+func handlePaymentRefunded(webhook OpenpayWebhook) error {
 	transactionID := webhook.Transaction.ID
 	amount := webhook.Transaction.Amount
 
 	// Realizar las operaciones necesarias (actualizar la base de datos, etc.)
 	fmt.Printf("Reembolso realizado:\nID: %s\nMonto: %f\n", transactionID, amount)
-
-	c.JSON(http.StatusOK, gin.H{"message": "Reembolso realizado", "transaction_id": transactionID, "amount": amount})
+	return nil
+	// c.JSON(http.StatusOK, gin.H{"message": "Reembolso realizado", "transaction_id": transactionID, "amount": amount})
 }
