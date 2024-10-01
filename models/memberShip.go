@@ -7,13 +7,14 @@ import (
 type Membership struct {
 	// gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
-	ID             uint   `gorm:"not null;unique" json:"id"`
-	Membership     string `gorm:"size:13;not null;unique" json:"membership"`
-	Description    string `gorm:"size:255;not null;unique" json:"description"`
-	Price          string `gorm:"size:100;not null;" json:"price"`
-	ProductCode    string `gorm:"size:255;not null;" json:"product_code"`
-	CurrencyCode   string `gorm:"size:255;" json:"currency_code"`
+	ID              uint   `gorm:"not null;unique" json:"id"`
+	Membership      string `gorm:"size:13;not null;unique" json:"membership"`
+	Description     string `gorm:"size:255;not null;unique" json:"description"`
+	Price           string `gorm:"size:100;not null;" json:"price"`
+	ProductCode     string `gorm:"size:255;not null;" json:"product_code"`
+	CurrencyCode    string `gorm:"size:255;" json:"currency_code"`
 	MembershipsCode string `gorm:"size:255;not null;" json:"memberships_code"`
+	OpenpayId       string `gorm:"size:255;not null;" json:"openpay_id"`
 }
 
 func (Membership) TableName() string {

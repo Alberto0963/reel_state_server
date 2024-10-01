@@ -477,10 +477,7 @@ func CreateSubscription(c *gin.Context) {
 	}
 
 	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime)
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-	// 	return
-	// }
+
 	_, err = sub.CreateSubscription()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
@@ -565,7 +562,7 @@ func MakePayOpenPay(c *gin.Context) {
 	user, _ := models.GetUserByID(actualUserID)
 	// Obtener el token de la tarjeta
 	token := card.SourceID
-	amount := card.Amount                 // Ejemplo de monto
+	amount := card.Amount // Ejemplo de monto
 	// description := card.Description       // Ejemplo de descripción
 	// deviceSessionID := card.DeviceSession // Se debe obtener el ID de sesión del dispositivo
 	planid := card.PlanID
@@ -573,17 +570,52 @@ func MakePayOpenPay(c *gin.Context) {
 	nombre, apellidos := models.SepararNombreCompleto(card.Name)
 
 	customer := models.Customer{Name: nombre, LastName: apellidos, Email: card.Email, PhoneNumber: user.Phone}
-	customerID,err := models.CreateCustomer(customer)
+	customerID, err := models.CreateCustomer(customer)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Error al procesar el pago", "error": err.Error()})
 		return
 	}
 	// Realizar el pago
-	if err := models.CreateSubscriptionWithToken(customerID,planid,token, amount, 0); err != nil {
+	var open_sub models.SubscriptionResponse
+
+	if open_sub, err = models.CreateSubscriptionWithToken(customerID, planid, token, amount, 0); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Error al procesar el pago", "error": err.Error()})
 		return
 	}
 
+	var sub models.Createsubscription
+
+	sub.IdUser = int(actualUserID)
+	layout := "2006-01-02 15:04:05.999999999 -0700 MST"
+	now := time.Now()
+	formattedDate := now.Format("2006-01-02 15:04:05.999999999 -0700 MST")
+	sub.PaypalSubscriptionId = open_sub.ID
+	membershipIDInt64, err := strconv.ParseInt(card.MembershipID, 10, 64)
+	sub.Renewal = true
+	
+	// if err != nil {
+	// 	fmt.Println("Error al convertir MembershipID a int64:", err)
+	// } else {
+	// 	fmt.Println("MembershipID como entero int64:", membershipIDInt64)
+	// }
+	sub.MembershipId = int(membershipIDInt64)
+	// Parse the date string
+	parsedTime, err := time.Parse(layout, formattedDate)
+	if err != nil {
+		// fmt.Println("Error parsing date:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"Error Parse Time": err.Error()})
+
+		return
+	}
+
+	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime)
+
+	_, err = sub.CreateSubscription()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
 	// Respuesta exitosa
-	c.JSON(http.StatusCreated, gin.H{"status": "Pago procesado con éxito"})
+	c.JSON(http.StatusCreated, gin.H{"status": "Pago procesado con éxito", "opensub": open_sub, "reelstateSub": sub})
 }

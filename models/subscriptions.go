@@ -76,6 +76,7 @@ func (sub *Createsubscription) CreateSubscription() (*Createsubscription, error)
 	var err error
 	dbConn := Pool
 
+	
 	if err = dbConn.Create(&sub).Error; err != nil {
 		return &Createsubscription{}, err
 	}
