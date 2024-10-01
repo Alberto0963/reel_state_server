@@ -61,9 +61,10 @@ func HandleWebhook(c *gin.Context) {
 
 // Estructura para recibir la información del webhook
 type OpenpayWebhook struct {
-	EventType   string `json:"event_type"`
-	EventDate   string `json:"event_date"`
-	Transaction struct {
+	EventType        string `json:"event_type"`
+	EventDate        string `json:"event_date"`
+	VerificationCode string `json:"verification_code"`
+	Transaction      struct {
 		ID           string  `json:"id"`
 		Status       string  `json:"status"`
 		Amount       float64 `json:"amount,omitempty"`
@@ -99,6 +100,8 @@ func OpenpayWebhookHandler(c *gin.Context) {
 
 	// Manejar diferentes tipos de eventos
 	switch webhook.EventType {
+	case "verification":
+		handleVerificationCode(webhook, c)
 	case "subscription.create":
 		handleSubscriptionCreated(webhook, c)
 	case "charge.refund":
@@ -110,6 +113,17 @@ func OpenpayWebhookHandler(c *gin.Context) {
 	default:
 		c.JSON(http.StatusOK, gin.H{"message": "Evento no manejado"})
 	}
+}
+
+// Función para manejar la creación de suscripciones
+func handleVerificationCode(webhook OpenpayWebhook, c *gin.Context) {
+	vc := webhook.VerificationCode
+
+
+	// Realizar las operaciones necesarias (guardar en la base de datos, enviar confirmación, etc.)
+	fmt.Printf("Codigo de Verificacion: %s", vc)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Exito", "codigo verificaion": vc})
 }
 
 // Función para manejar la creación de suscripciones
