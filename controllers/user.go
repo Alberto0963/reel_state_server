@@ -476,7 +476,7 @@ func CreateSubscription(c *gin.Context) {
 		return
 	}
 
-	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime)
+	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime,"paypal")
 
 	_, err = sub.CreateSubscription()
 	if err != nil {
@@ -589,10 +589,12 @@ func MakePayOpenPay(c *gin.Context) {
 	layout := "2006-01-02 15:04:05.999999999 -0700 MST"
 	now := time.Now()
 	formattedDate := now.Format("2006-01-02 15:04:05.999999999 -0700 MST")
+	
 	sub.PaypalSubscriptionId = open_sub.ID
 	membershipIDInt64, err := strconv.ParseInt(card.MembershipID, 10, 64)
 	sub.Renewal = true
-	
+	sub.CustomerId = customerID
+
 	// if err != nil {
 	// 	fmt.Println("Error al convertir MembershipID a int64:", err)
 	// } else {
@@ -608,7 +610,7 @@ func MakePayOpenPay(c *gin.Context) {
 		return
 	}
 
-	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime)
+	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime, "openpay")
 
 	_, err = sub.CreateSubscription()
 	if err != nil {

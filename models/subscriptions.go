@@ -31,13 +31,23 @@ type Subscription struct {
 	StartedAt            time.Time `json:"started_at"`
 }
 
+type UpdateSubscription struct {
+	ID                   int       `gorm:"primaryKey;autoIncrement" json:"id"`
+	IdUser               int       `gorm:"not null" json:"id_user"`
+	MembershipId         int       `gorm:"not null" json:"membership_id"`
+	Renewal              bool      `json:"renewal"`
+	PaypalSubscriptionId string    `gorm:"size:255" json:"paypal_subscription_id"`
+	RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
+	StartedAt            time.Time `json:"started_at"`
+}
+
 type SubscriptionView struct {
-	ID           int `gorm:"primaryKey;autoIncrement" json:"id"`
-	IdUser       int `gorm:"not null" json:"id_user"`
-	MembershipId int `gorm:"not null" json:"membership_id"`
-	Membership   string `gorm:"not null" json:"membership"`
-	Price        int `gorm:"not null" json:"price"`
-	Renewal bool `json:"renewal"`
+	ID                   int       `gorm:"primaryKey;autoIncrement" json:"id"`
+	IdUser               int       `gorm:"not null" json:"id_user"`
+	MembershipId         int       `gorm:"not null" json:"membership_id"`
+	Membership           string    `gorm:"not null" json:"membership"`
+	Price                int       `gorm:"not null" json:"price"`
+	Renewal              bool      `json:"renewal"`
 	PaypalSubscriptionId string    `gorm:"size:255" json:"paypal_subscription_id"`
 	RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
 	NextBillingTime      time.Time `json:"next_billing_time"`
@@ -56,12 +66,17 @@ type Createsubscription struct {
 	Renewal              bool   `json:"renewal"`
 	PaypalSubscriptionId string `gorm:"size:255" json:"paypal_subscription_id"`
 	CurrencyCode         string `gorm:"size:255" json:"currency_code"`
+	CustomerId           string `gorm:"size:255" json:"customer_id"`
 
 	// RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
 }
 
 func (SubscriptionView) TableName() string {
 	return "UserMemberships"
+}
+
+func (UpdateSubscription) TableName() string {
+	return "paypal_subscriptions"
 }
 
 func (Subscription) TableName() string {
@@ -76,7 +91,6 @@ func (sub *Createsubscription) CreateSubscription() (*Createsubscription, error)
 	var err error
 	dbConn := Pool
 
-	
 	if err = dbConn.Create(&sub).Error; err != nil {
 		return &Createsubscription{}, err
 	}
@@ -103,9 +117,9 @@ func CancelSubscriptionFunction(subID string, date time.Time) error {
 	return nil
 }
 
-func CancelSubscriptionIfActive(userID string, subscriptionID, reason string, cancelDate time.Time) error {
+func CancelSubscriptionIfActive(userID string, subscriptionID, reason string, cancelDate time.Time, typesub string) error {
 	dbConn := Pool
-	var subscriber Subscription
+	var subscriber UpdateSubscription
 
 	// Verificar si el usuario tiene una suscripción activa con el ID proporcionado
 	if err := dbConn.Where("renewal = 1 AND id_user = ?", userID).First(&subscriber).Error; err != nil {
@@ -115,9 +129,17 @@ func CancelSubscriptionIfActive(userID string, subscriptionID, reason string, ca
 		return fmt.Errorf("error querying subscription: %w", err)
 	}
 
-	// Cancelar la suscripción en PayPal
-	if err := CancelPaypalSubscription(subscriber.PaypalSubscriptionId, reason); err != nil {
-		return fmt.Errorf("error cancelling PayPal subscription: %w", err)
+	switch typesub {
+	case "openpay":
+		// Cancelar la suscripción en PayPal
+		if err := CancelOpenPaySubscription(subscriber.PaypalSubscriptionId, reason); err != nil {
+			return fmt.Errorf("error cancelling openpay subscription: %w", err)
+		}
+	case "paypal":
+		// Cancelar la suscripción en PayPal
+		if err := CancelPaypalSubscription(subscriber.PaypalSubscriptionId, reason); err != nil {
+			return fmt.Errorf("error cancelling PayPal subscription: %w", err)
+		}
 	}
 
 	// Actualizar la suscripción en la base de datos
@@ -130,7 +152,6 @@ func CancelSubscriptionIfActive(userID string, subscriptionID, reason string, ca
 	return nil
 }
 
-
 func CancelPaypalSubscription(subscriptionID, reason string) error {
 
 	client_id := os.Getenv("Client_id")
@@ -142,9 +163,9 @@ func CancelPaypalSubscription(subscriptionID, reason string) error {
 	// }
 
 	tokenPaypal, err := SMS.FetchPayPalToken(client_id, secret_Key)
-    if err != nil {
+	if err != nil {
 		return fmt.Errorf("error getting token: %w", err)
-    }
+	}
 
 	// Create the request body
 	body := map[string]string{

@@ -234,3 +234,55 @@ func ParseSubscriptionResponse(resp *http.Response) (*SubscriptionResponse, erro
 
 	return &subscription, nil
 }
+
+func CancelOpenPaySubscription(customerID string,subscriptionID string)error {
+	// Obtener los parámetros necesarios
+	// customerID := c.Param("customerID")
+	// subscriptionID := c.Param("subscriptionID")
+	// merchantID := os.Getenv("MERCHANT_ID")     // Merchant ID de Openpay
+	// apiKey := os.Getenv("OPENPAY_PRIVATE_KEY") // Clave privada de Openpay
+	
+	urlapi := os.Getenv("API_URL")
+
+	// Obtener las credenciales de Openpay desde las variables de entorno
+	merchantID := os.Getenv("OPENPAY_MERCHANT_ID")
+	apiKey := os.Getenv("OPENPAY_API_KEY")
+
+	// Construir la URL para cancelar la suscripción
+	url := fmt.Sprintf("%s%s/customers/%s/subscriptions/%s",urlapi, merchantID, customerID, subscriptionID)
+
+	// Crear la solicitud HTTP DELETE
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al crear la solicitud HTTP"})
+		return err
+	}
+
+	// Agregar la autenticación básica
+	auth := base64.StdEncoding.EncodeToString([]byte(apiKey + ":"))
+	req.Header.Set("Authorization", "Basic "+auth)
+
+	// Enviar la solicitud
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al realizar la solicitud HTTP"})
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Verificar la respuesta
+	if resp.StatusCode == http.StatusOK {
+		return nil
+		// c.JSON(http.StatusOK, gin.H{"message": "Suscripción cancelada exitosamente"})
+	} else {
+		var errorResponse map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&errorResponse)
+		if err != nil {
+			// c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al procesar la respuesta del servidor"})
+			return err
+		}
+		return err
+		// c.JSON(resp.StatusCode, gin.H{"error": errorResponse})
+	}
+}
