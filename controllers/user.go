@@ -476,7 +476,7 @@ func CreateSubscription(c *gin.Context) {
 		return
 	}
 
-	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime,"paypal")
+	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), "user Create new membership", parsedTime, "paypal")
 
 	_, err = sub.CreateSubscription()
 	if err != nil {
@@ -510,13 +510,35 @@ func CancelSubscription(c *gin.Context) {
 		return
 	}
 
-	err = models.CancelPaypalSubscription(sub.PaypalSubscriptionId, sub.Reason)
+	subid, err := strconv.ParseUint(sub.Id, 10, 32)
+	if err != nil {
+		// fmt.Println("Error al convertir string a uint:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"Error al convertir string a uint:": err.Error()})
+
+		return
+	}
+
+	subscriber, err := models.GetSubscriptionByID(uint(subid))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error Paypal Sub": err.Error()})
 		return
 	}
 
-	err = models.CancelSubscriptionFunction(sub.PaypalSubscriptionId, parsedTime)
+	if subscriber.CustomerId == "" {
+		err = models.CancelPaypalSubscription(subscriber.PaypalSubscriptionId, sub.Reason)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Error Paypal Sub": err.Error()})
+			return
+		}
+	} else  {
+		err = models.CancelOpenPaySubscription(subscriber.CustomerId, subscriber.PaypalSubscriptionId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Error Paypal Sub": err.Error()})
+			return
+		}
+	}
+
+	err = models.CancelSubscriptionFunction(subscriber.ID, parsedTime)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error Calcel sub": err.Error()})
 		return
@@ -589,7 +611,7 @@ func MakePayOpenPay(c *gin.Context) {
 	layout := "2006-01-02 15:04:05.999999999 -0700 MST"
 	now := time.Now()
 	formattedDate := now.Format("2006-01-02 15:04:05.999999999 -0700 MST")
-	
+
 	sub.PaypalSubscriptionId = open_sub.ID
 	membershipIDInt64, err := strconv.ParseInt(card.MembershipID, 10, 64)
 	sub.Renewal = true
@@ -610,7 +632,7 @@ func MakePayOpenPay(c *gin.Context) {
 		return
 	}
 
-	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), sub.PaypalSubscriptionId, "user Create new membership", parsedTime, "openpay")
+	models.CancelSubscriptionIfActive(strconv.FormatUint(uint64(actualUserID), 10), "user Create new membership", parsedTime, "openpay")
 
 	_, err = sub.CreateSubscription()
 	if err != nil {

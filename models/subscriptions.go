@@ -39,6 +39,8 @@ type UpdateSubscription struct {
 	PaypalSubscriptionId string    `gorm:"size:255" json:"paypal_subscription_id"`
 	RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
 	StartedAt            time.Time `json:"started_at"`
+	CustomerId           string `gorm:"size:255" json:"customer_id"`
+
 }
 
 type SubscriptionView struct {
@@ -55,7 +57,7 @@ type SubscriptionView struct {
 }
 
 type CancelSubscription struct {
-	PaypalSubscriptionId string `json:"paypal_subscription_id"`
+	Id string `json:"id"`
 	Reason               string `json:"reason"`
 }
 
@@ -87,6 +89,25 @@ func (Createsubscription) TableName() string {
 	return "paypal_subscriptions"
 }
 
+
+func GetSubscriptionByID(uid uint) (UpdateSubscription, error) {
+
+	var s UpdateSubscription
+	// Obtain a connection from the pool
+	dbConn := Pool
+	// defer dbConn.Close()
+	// if err := dbConn.Model(&User{}).
+	// Define the subquery as a raw SQL string
+	// videosCountSubquery := "(SELECT id_user, COUNT(*) as video_count FROM videos GROUP BY id_user) as v"
+
+	if err := dbConn.Model(&UpdateSubscription{}).First(&s, uid).Error; err != nil {
+		return s, errors.New("User not found! ")
+	}
+
+	return s, nil
+
+}
+
 func (sub *Createsubscription) CreateSubscription() (*Createsubscription, error) {
 	var err error
 	dbConn := Pool
@@ -97,13 +118,13 @@ func (sub *Createsubscription) CreateSubscription() (*Createsubscription, error)
 	return sub, nil
 }
 
-func CancelSubscriptionFunction(subID string, date time.Time) error {
+func CancelSubscriptionFunction(subID int, date time.Time) error {
 	var err error
 	dbConn := Pool
 
 	var subscriber Subscription
 
-	if err = dbConn.Where("paypal_subscription_id = ?", subID).First(&subscriber).Error; err != nil {
+	if err = dbConn.Where("id = ?", subID).First(&subscriber).Error; err != nil {
 		return err
 	}
 
@@ -117,7 +138,27 @@ func CancelSubscriptionFunction(subID string, date time.Time) error {
 	return nil
 }
 
-func CancelSubscriptionIfActive(userID string, subscriptionID, reason string, cancelDate time.Time, typesub string) error {
+func CancelSubscriptionWebhook(paypal_subscription_id string, date time.Time) error {
+	var err error
+	dbConn := Pool
+
+	var subscriber Subscription
+
+	if err = dbConn.Where("paypal_subscription_id = ?", paypal_subscription_id).First(&subscriber).Error; err != nil {
+		return err
+	}
+
+	subscriber.Renewal = false
+	subscriber.RenewalCancelledAt = date
+
+	if err = dbConn.Save(&subscriber).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CancelSubscriptionIfActive(userID string, reason string, cancelDate time.Time, typesub string) error {
 	dbConn := Pool
 	var subscriber UpdateSubscription
 
@@ -132,7 +173,7 @@ func CancelSubscriptionIfActive(userID string, subscriptionID, reason string, ca
 	switch typesub {
 	case "openpay":
 		// Cancelar la suscripción en PayPal
-		if err := CancelOpenPaySubscription(subscriber.PaypalSubscriptionId, reason); err != nil {
+		if err := CancelOpenPaySubscription(subscriber.CustomerId,subscriber.PaypalSubscriptionId); err != nil {
 			return fmt.Errorf("error cancelling openpay subscription: %w", err)
 		}
 	case "paypal":

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualización de Video</title>
+
+    <!-- Meta etiquetas de Open Graph para Facebook y WhatsApp -->
+    <meta property="og:title" content="Título del Video">
+    <meta property="og:description" content="Descripción breve del video.">
+    <meta property="og:type" content="video.other">
+    <meta property="og:url" content="{{.VideoURL}}" > <!-- URL del video o página de video -->
+    <meta property="og:image" content="{{.Img}}"> <!-- Imagen de vista previa -->
+    <meta property="og:video" content="{{.VideoURL}}" > <!-- URL del video en formato MP4 -->
+    <meta property="og:video:width" content="640"> <!-- Ancho del video en píxeles -->
+    <meta property="og:video:height" content="360"> <!-- Alto del video en píxeles -->
+    <meta property="og:video:type" content="video/mp4"> <!-- Tipo de archivo de video -->
+
+    <!-- Meta etiquetas para asegurar compatibilidad en WhatsApp -->
+    <meta name="twitter:card" content="player">
+    <meta name="twitter:player" content="{{.VideoURL}}">
+    <meta name="twitter:player:width" content="640">
+    <meta name="twitter:player:height" content="360">
+    <meta name="twitter:title" content="Título del Video">
+    <meta name="twitter:description" content={{.Description}}>
+
+    <style>
+        /* Ajuste del diseño para simular pantalla de móvil */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        .video-container {
+            width: 100%;
+            max-width: 375px; /* Simula el tamaño de un móvil */
+            background-color: #000;
+        }
+        video {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-container">
+        <video controls>
+            <source src="{{.VideoURL}}"  type="video/mp4">
+            Tu navegador no soporta la reproducción de videos.
+        </video>
+    </div>
+
+</body>
+</html>

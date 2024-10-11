@@ -245,8 +245,8 @@ func CancelOpenPaySubscription(customerID string,subscriptionID string)error {
 	urlapi := os.Getenv("API_URL")
 
 	// Obtener las credenciales de Openpay desde las variables de entorno
-	merchantID := os.Getenv("OPENPAY_MERCHANT_ID")
-	apiKey := os.Getenv("OPENPAY_API_KEY")
+	merchantID := os.Getenv("MERCHANT_ID")
+	apiKey := os.Getenv("OPENPAY_PRIVATE_KEY")
 
 	// Construir la URL para cancelar la suscripción
 	url := fmt.Sprintf("%s%s/customers/%s/subscriptions/%s",urlapi, merchantID, customerID, subscriptionID)
@@ -272,7 +272,7 @@ func CancelOpenPaySubscription(customerID string,subscriptionID string)error {
 	defer resp.Body.Close()
 
 	// Verificar la respuesta
-	if resp.StatusCode == http.StatusOK {
+	if resp.StatusCode == http.StatusNoContent {
 		return nil
 		// c.JSON(http.StatusOK, gin.H{"message": "Suscripción cancelada exitosamente"})
 	} else {

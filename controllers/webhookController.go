@@ -49,7 +49,7 @@ func HandleWebhook(c *gin.Context) {
 			fmt.Println("Error parsing date:", err)
 			return
 		}
-		models.CancelSubscriptionFunction(event.Resource.ID, parsedTime)
+		models.CancelSubscriptionWebhook(event.Resource.ID, parsedTime)
 
 	default:
 		fmt.Printf("Unhandled event type: %s\n", event.EventType)
@@ -213,7 +213,7 @@ func handlePaymentDeclined(webhook OpenpayWebhook) error {
 	// 	return err
 	// }
 
-	err := models.CancelSubscriptionFunction(webhook.Transaction.SubscriptionID, webhook.EventDate)
+	err := models.CancelSubscriptionWebhook(webhook.Transaction.SubscriptionID, webhook.EventDate)
 	if err != nil {
 		fmt.Println("Error parsing date:", err)
 		// c.JSON(http.StatusOK, gin.H{"message": "Pago declinado", "transaction_id": transactionID, "error": errorMessage})
