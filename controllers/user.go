@@ -686,6 +686,9 @@ func CreateOrUpdateReview(c *gin.Context) {
 		return
 	}
 
+	actualUserID, _ := token.ExtractTokenID(c)
+
+	review.IDUser = int(actualUserID)
 	// Validación: id_user no debe ser igual a id_profile
 	if review.IDUser == review.IDProfile {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User cannot review their own profile"})
@@ -702,20 +705,20 @@ func CreateOrUpdateReview(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Review created or updated successfully"})
 }
 
-
 // Struct para recibir el JSON
 type ProfileRequest struct {
-    IdProfile int `json:"id_profile"` // O usa el tipo adecuado según tu modelo
+	IdProfile int `json:"id_profile"` // O usa el tipo adecuado según tu modelo
 }
+
 // GetReviewsByProfile maneja la obtención de reseñas por id_profile
 func GetReviewsByProfile(c *gin.Context) {
 	var req ProfileRequest
 
-    // Bind JSON a la estructura
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Formato JSON inválido"})
-        return
-    }
+	// Bind JSON a la estructura
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Formato JSON inválido"})
+		return
+	}
 
 	var reviews []models.Review
 	// var review models.Review

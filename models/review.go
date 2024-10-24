@@ -10,7 +10,7 @@ type Review struct {
 	ID        int     `gorm:"primaryKey" json:"id"`
 	Rating    float64 `gorm:"type:double(10,2)" json:"rating" binding:"required"`
 	Review    string  `gorm:"type:varchar(250)" json:"review" binding:"required"`
-	IDUser    int     `gorm:"not null" json:"id_user" binding:"required"`
+	IDUser    int     `gorm:"not null" json:"id_user"`
 	IDProfile int     `gorm:"not null" json:"id_profile" binding:"required"`
 }
 
