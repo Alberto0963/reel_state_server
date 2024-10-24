@@ -158,13 +158,14 @@ func main() {
 
 	protected.POST("/createSubscription", controllers.CreateSubscription)
 	protected.POST("/cancelSubscription", controllers.CancelSubscription)
+	protected.POST("/updateLinkUserName", controllers.UpdateLinkUserName)
 
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)
 	protected.GET("/getVideoSponsors", controllers.HandleGetVideosSponsors)
 
 	protected.GET("/getMyFavoritesVideos", controllers.GetUserFavoritesVideos)
-	protected.GET("/GetMemberShips", controllers.GetMemberShips)
+	protected.GET("/GetMCancelSubscriptionemberShips", controllers.GetMemberShips)
 	protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getCategoriesAndTypes", controllers.HandleGetCategoriesAndTypes)
 	protected.GET("/getsongs", controllers.HandleGetAllSongs)

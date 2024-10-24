@@ -36,7 +36,7 @@ type User struct {
 	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
-	Description              string    `gorm:"size:255" json:"description"`
+	Link                     string    `gorm:"size:255" json:"link"`
 	CanUpload                bool      `gorm:"" json:"can_upload"`
 	Email                    string    `gorm:"" json:"email"`
 }
@@ -53,7 +53,7 @@ type UserUpdate struct {
 	IdMembership             int       `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
-	Description              string    `gorm:"size:255" json:"description"`
+	Link                     string    `gorm:"size:255" json:"link"`
 	Email                    string    `gorm:"" json:"email"`
 }
 
@@ -69,8 +69,8 @@ type UserDB struct {
 	IdMembership             int            `gorm:"size:255;not null;" json:"id_membership"`
 	RenovationActive         int            `gorm:"size:255;not null;" json:"renovation_active"`
 	// Cover_image              sql.NullString `gorm:"size:255;" json:"cover_image"`
-	Description              string         `gorm:"size:255" json:"description"`
-	Email                    sql.NullString `gorm:"" json:"email"`
+	Description string         `gorm:"size:255" json:"description"`
+	Email       sql.NullString `gorm:"" json:"email"`
 }
 
 type PublicUser struct {

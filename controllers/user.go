@@ -274,6 +274,38 @@ func UpdateProfileImageUserName(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "image is updated"})
 }
 
+
+func UpdateLinkUserName(c *gin.Context) {
+
+	link := c.Query("link")
+	// if err != nil {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from the request"})
+	// 	return
+	// }
+	// Generate a random file name for the profile image
+	// imageFileName := models.GenerateRandomName() + filepath.Ext(profileImage.Filename)
+	// url := os.Getenv("MY_URL")
+	// profileImagePath := filepath.Join("public/profile_images", imageFileName)
+
+	userID, _ := token.ExtractTokenID(c)
+
+	u,err := models.GetUserByIdToUpdate(userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get user"})
+		return
+	}
+	u.Link = link
+	// u.ID = userID
+
+	_, err = u.UpdateUser()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "link is updated"})
+}
+
 func UpdateCoverImageUserName(c *gin.Context) {
 
 	coverImage, err := c.FormFile("cover_image")
