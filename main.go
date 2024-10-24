@@ -134,6 +134,7 @@ func main() {
 	public.POST("/login", controllers.LoginHandler)
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
 	public.GET("/getAroundVideos", controllers.HandleGetAroundVideos)
+	public.GET("/getReviewsByProfile", controllers.GetReviewsByProfile)
 
 	protected := r.Group("/api/admin")
 	protected.Use(middlewares.JwtAuthMiddleware())
@@ -159,6 +160,7 @@ func main() {
 	protected.POST("/createSubscription", controllers.CreateSubscription)
 	protected.POST("/cancelSubscription", controllers.CancelSubscription)
 	protected.POST("/updateLinkUserName", controllers.UpdateLinkUserName)
+	protected.POST("/createOrUpdateReview", controllers.CreateOrUpdateReview)
 
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)
@@ -172,6 +174,7 @@ func main() {
 	protected.GET("/status/:taskId", controllers.CheckStatus)
 	protected.GET("/getUserSubscription", controllers.GetUserSubscription)
 
+	
 	// // pull messages from "myqueue" with concurrency of 10
 	// workers.Process("myqueue", myJob, 10)
 

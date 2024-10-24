@@ -274,7 +274,6 @@ func UpdateProfileImageUserName(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "image is updated"})
 }
 
-
 func UpdateLinkUserName(c *gin.Context) {
 
 	link := c.Query("link")
@@ -289,7 +288,7 @@ func UpdateLinkUserName(c *gin.Context) {
 
 	userID, _ := token.ExtractTokenID(c)
 
-	u,err := models.GetUserByIdToUpdate(userID)
+	u, err := models.GetUserByIdToUpdate(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get user"})
 		return
@@ -562,7 +561,7 @@ func CancelSubscription(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"Error Paypal Sub": err.Error()})
 			return
 		}
-	} else  {
+	} else {
 		err = models.CancelOpenPaySubscription(subscriber.CustomerId, subscriber.PaypalSubscriptionId)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"Error Paypal Sub": err.Error()})
@@ -674,4 +673,60 @@ func MakePayOpenPay(c *gin.Context) {
 
 	// Respuesta exitosa
 	c.JSON(http.StatusCreated, gin.H{"status": "Pago procesado con éxito", "opensub": open_sub, "reelstateSub": sub})
+}
+
+// CreateOrUpdateReview maneja la creación o actualización de reseñas
+func CreateOrUpdateReview(c *gin.Context) {
+	// Inicializamos una variable del tipo Review
+	var review models.Review
+
+	// Vinculamos la solicitud JSON al struct Review
+	if err := c.ShouldBindJSON(&review); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validación: id_user no debe ser igual a id_profile
+	if review.IDUser == review.IDProfile {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User cannot review their own profile"})
+		return
+	}
+
+	// Intentamos crear o actualizar la reseña
+	if err := review.CreateOrUpdate(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create or update review"})
+		return
+	}
+
+	// Respuesta exitosa
+	c.JSON(http.StatusOK, gin.H{"message": "Review created or updated successfully"})
+}
+
+
+// Struct para recibir el JSON
+type ProfileRequest struct {
+    IdProfile int `json:"id_profile"` // O usa el tipo adecuado según tu modelo
+}
+// GetReviewsByProfile maneja la obtención de reseñas por id_profile
+func GetReviewsByProfile(c *gin.Context) {
+	var req ProfileRequest
+
+    // Bind JSON a la estructura
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Formato JSON inválido"})
+        return
+    }
+
+	var reviews []models.Review
+	// var review models.Review
+
+	reviews, err := models.GetReviewsProfile(req.IdProfile)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": reviews})
+
+	// c.JSON(http.StatusOK, reviews)
 }
