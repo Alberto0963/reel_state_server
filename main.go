@@ -161,6 +161,8 @@ func main() {
 	protected.POST("/cancelSubscription", controllers.CancelSubscription)
 	protected.POST("/updateLinkUserName", controllers.UpdateLinkUserName)
 	protected.POST("/createOrUpdateReview", controllers.CreateOrUpdateReview)
+	protected.POST("/addOrUpdateSales", controllers.AddOrUpdateSales)
+	protected.POST("/updateDeviceToken", controllers.UpdateDeviceToken)
 
 	// protected.GET("/user", controllers.CurrentUserHandler)
 	protected.GET("/getMyVideos", controllers.GetMyVideos)

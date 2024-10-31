@@ -37,10 +37,10 @@ type User struct {
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Link                     string    `gorm:"size:255" json:"link"`
-	Ventas                   int    `gorm:"size:255" json:"ventas"`
-	TotalReviews             int    `gorm:"size:255" json:"total_reviews"`
+	// Ventas                   int       `gorm:"size:255" json:"ventas"`
+	TotalReviews             int       `gorm:"size:255" json:"total_reviews"`
 	AverageRating            string    `gorm:"size:255" json:"average_rating"`
-	VideoCount               int    `gorm:"size:255" json:"video_count"`
+	VideoCount               int       `gorm:"size:255" json:"video_count"`
 	MedalType                int       `gorm:"size:255" json:"medal_type"`
 	CanUpload                bool      `gorm:"" json:"can_upload"`
 	Email                    string    `gorm:"" json:"email"`
@@ -59,11 +59,12 @@ type UserUpdate struct {
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Link                     string    `gorm:"size:255" json:"link"`
-	Ventas                   int    `gorm:"size:255" json:"ventas"`
-	TotalReviews             int    `gorm:"size:255" json:"total_reviews"`
-	AverageRating            string    `gorm:"size:255" json:"average_rating"`
-	VideoCount               int    `gorm:"size:255" json:"video_count"`
+	// Ventas                   int       `gorm:"size:255" json:"ventas"`
+	// TotalReviews             int       `gorm:"size:255" json:"total_reviews"`
+	// AverageRating            string    `gorm:"size:255" json:"average_rating"`
+	// VideoCount               int       `gorm:"size:255" json:"video_count"`
 	MedalType                int       `gorm:"size:255" json:"medal_type"`
+	DeviceToken              string    `gorm:"size:255" json:"device_token"`
 
 	Email string `gorm:"" json:"email"`
 }
@@ -218,10 +219,7 @@ func GetUserByIdToUpdate(uid uint) (UserUpdate, error) {
 	// Define the subquery as a raw SQL string
 	// videosCountSubquery := "(SELECT id_user, COUNT(*) as video_count FROM videos GROUP BY id_user) as v"
 
-	if err := dbConn.Table("view_user_upload_status").
-		// Joins("LEFT JOIN memberships ON memberships.id = users.id_membership").
-		// Joins("LEFT JOIN (SELECT id_user, COUNT(*) as video_count FROM videos GROUP BY id_user) as v ON v.id_user = users.id").
-		Where("id = ?", uid).Find(&u).
+	if err := dbConn.Where("id = ?", uid).Find(&u).
 		Error; err != nil {
 		return u, errors.New("User not found! ")
 	}
@@ -229,6 +227,22 @@ func GetUserByIdToUpdate(uid uint) (UserUpdate, error) {
 	// u.PrepareGive()
 
 	return u, nil
+
+}
+
+func GetUserDeviceToken(likedUserIDs []int) ([]string, error) {
+
+	// var u UserUpdate
+	// Obtain a connection from the pool
+	dbConn := Pool
+
+	var tokens []string
+	if err := dbConn.Table("users").Select("device_token").Where("id IN (?)", likedUserIDs).Find(&tokens).Error; err != nil {
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener tokens"})
+		return tokens, err
+	}
+
+	return tokens, nil
 
 }
 

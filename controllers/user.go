@@ -7,6 +7,7 @@ import (
 	// "os"
 
 	// "encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -732,4 +733,51 @@ func GetReviewsByProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": reviews})
 
 	// c.JSON(http.StatusOK, reviews)
+}
+
+func AddOrUpdateSales(c *gin.Context) {
+	// userIDStr := c.Param("user_id")
+	userID, err := token.ExtractTokenID(c)
+
+	// userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de usuario inválido"})
+		return
+	}
+
+	// Crea una instancia del modelo `Sale`
+	sale := models.Sale{}
+	if err := sale.IncrementOrCreate(uint(userID)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al actualizar ventas"})
+		return
+	}
+
+	// Obtener los IDs de los usuarios que dieron like a este perfil
+	var likedUserIDs []int
+	likedUserIDs, err = models.GetlikedUsersId(int(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener likes"})
+		return
+	}
+
+	// Obtener los tokens de dispositivo de los usuarios que dieron like
+	var tokens []string
+	tokens, err = models.GetUserDeviceToken(likedUserIDs)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener tokens"})
+		return
+	}
+
+	// Enviar notificación a cada token
+	title := "¡Nueva venta registrada!"
+	body := fmt.Sprintf("Has realizado %d ventas en total", sale.Sales)
+
+	for _, token := range tokens {
+		if err := SendNotification(token, title, body, ""); err != nil {
+			// Manejar el error de envío de notificación (opcional)
+			fmt.Printf("Error al enviar notificación a %s: %v\n", token, err)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Venta actualizada o creada correctamente"})
 }
