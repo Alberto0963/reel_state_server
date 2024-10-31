@@ -37,10 +37,11 @@ type User struct {
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Link                     string    `gorm:"size:255" json:"link"`
-	Ventas                   string    `gorm:"size:255" json:"ventas"`
-	TotalReviews             string    `gorm:"size:255" json:"total_reviews"`
+	Ventas                   int    `gorm:"size:255" json:"ventas"`
+	TotalReviews             int    `gorm:"size:255" json:"total_reviews"`
 	AverageRating            string    `gorm:"size:255" json:"average_rating"`
-	VideoCount               string    `gorm:"size:255" json:"video_count"`
+	VideoCount               int    `gorm:"size:255" json:"video_count"`
+	MedalType                int       `gorm:"size:255" json:"medal_type"`
 	CanUpload                bool      `gorm:"" json:"can_upload"`
 	Email                    string    `gorm:"" json:"email"`
 }
@@ -58,10 +59,11 @@ type UserUpdate struct {
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Link                     string    `gorm:"size:255" json:"link"`
-	Ventas                   string    `gorm:"size:255" json:"ventas"`
-	TotalReviews             string    `gorm:"size:255" json:"total_reviews"`
+	Ventas                   int    `gorm:"size:255" json:"ventas"`
+	TotalReviews             int    `gorm:"size:255" json:"total_reviews"`
 	AverageRating            string    `gorm:"size:255" json:"average_rating"`
-	VideoCount               string    `gorm:"size:255" json:"video_count"`
+	VideoCount               int    `gorm:"size:255" json:"video_count"`
+	MedalType                int       `gorm:"size:255" json:"medal_type"`
 
 	Email string `gorm:"" json:"email"`
 }
