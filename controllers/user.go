@@ -320,7 +320,7 @@ func UpdateCoverImageUserName(c *gin.Context) {
 
 	userID, _ := token.ExtractTokenID(c)
 
-	u := models.User{}
+	u := models.UserUpdate{}
 
 	u.Cover_image = coverImagePath
 	u.ID = userID
@@ -768,12 +768,19 @@ func AddOrUpdateSales(c *gin.Context) {
 		return
 	}
 
+	// Obtener los tokens de dispositivo de los usuarios que dieron like
+	// var user []models.UserUpdate
+	user, err := models.GetUserByIdToUpdate(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener tokens"})
+		return
+	}
 	// Enviar notificación a cada token
 	title := "¡Nueva venta registrada!"
-	body := fmt.Sprintf("Has realizado %d ventas en total", sale.Sales)
+	body := fmt.Sprintf("%s ha realizado una nueva", user.Username)
 
 	for _, token := range tokens {
-		if err := SendNotification(token, title, body, ""); err != nil {
+		if err := SendNotification(token, title, body, "android"); err != nil {
 			// Manejar el error de envío de notificación (opcional)
 			fmt.Printf("Error al enviar notificación a %s: %v\n", token, err)
 		}

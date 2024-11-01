@@ -37,7 +37,7 @@ type User struct {
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Link                     string    `gorm:"size:255" json:"link"`
-	// Ventas                   int       `gorm:"size:255" json:"ventas"`
+	Ventas                   int       `gorm:"size:255" json:"ventas"`
 	TotalReviews             int       `gorm:"size:255" json:"total_reviews"`
 	AverageRating            string    `gorm:"size:255" json:"average_rating"`
 	VideoCount               int       `gorm:"size:255" json:"video_count"`
@@ -145,7 +145,7 @@ func (updatedUser *UserUpdate) UpdateProfileImageUser() (UserUpdate, error) {
 	return user, nil
 }
 
-func (updatedUser *User) UpdateCoverImageUser() (User, error) {
+func (updatedUser *UserUpdate) UpdateCoverImageUser() (User, error) {
 	dbConn := Pool
 
 	// Fetch the existing user from the database
@@ -237,7 +237,7 @@ func GetUserDeviceToken(likedUserIDs []int) ([]string, error) {
 	dbConn := Pool
 
 	var tokens []string
-	if err := dbConn.Table("users").Select("device_token").Where("id IN (?)", likedUserIDs).Find(&tokens).Error; err != nil {
+	if err := dbConn.Table("users").Select("device_token").Where("id IN (?) AND device_token IS NOT NULL", likedUserIDs).Find(&tokens).Error; err != nil {
 		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener tokens"})
 		return tokens, err
 	}

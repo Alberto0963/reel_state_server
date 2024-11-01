@@ -10,13 +10,13 @@ import (
 	"reelState/models"
 	"reelState/utils/token"
 
+	// firebase "firebase.google.com/go"
+	firebase "firebase.google.com/go"
+	"firebase.google.com/go/messaging"
 	"github.com/gin-gonic/gin"
-	"google.golang.org/api/fcm/v1"
-	"google.golang.org/api/option"
-	// "os"
+
 	// "google.golang.org/api/fcm/v1"
-	// "google.golang.org/api/idtoken"
-	// "google.golang.org/api/option"
+	"google.golang.org/api/option"
 )
 
 // Estructura para la solicitud FCM
@@ -98,42 +98,89 @@ func SendNotification(token, title, body, deviceType string) error {
 //     return nil
 // }
 
-func sendFCMNotification(token string, title string, body string) error {
+// func sendFCMNotification(token string, title string, body string) error {
+// 	ctx := context.Background()
+
+// 	// Cargar las credenciales desde el archivo JSON
+// 	serviceAccountFile := "/home/alberto/Downloads/reelstate-8cc46-firebase.json"                                          // Cambia esto a la ruta de tu archivo JSON
+// 	fcmService, err := fcm.NewService(ctx, option.WithCredentialsFile(serviceAccountFile)) // Cambia esto a la ruta de tu archivo JSON
+// 	if err != nil {
+// 		return fmt.Errorf("no se pudo crear el token: %v", err)
+// 	}
+
+// 	// Crear el cliente FCM
+// 	// fcmService, err = fcm.NewService(ctx)
+// 	// if err != nil {
+// 	// 	return fmt.Errorf("no se pudo crear el servicio FCM: %v", err)
+// 	// }
+
+// 	// Preparar la notificación
+// 	message := &fcm.Message{
+// 		Token: token,
+// 		Notification: &fcm.Notification{
+// 			Title: title,
+// 			Body:  body,
+// 		},
+// 	}
+
+// 	// Crear la solicitud de envío
+// 	request := &fcm.SendMessageRequest{
+// 		Message: message,
+// 	}
+// 	// Enviar la notificación
+// 	response, err := fcmService.Projects.Messages.Send("projects/reelstate-8cc46/messages:send", request).Do()
+// 	if err != nil {
+// 		return fmt.Errorf("error al enviar la notificación: %v", err)
+// 	}
+
+// 	log.Printf("Respuesta de FCM: %v", response)
+// 	return nil
+// }
+
+func InitFirebaseApp() (*firebase.App, error) {
+	// Cargar las credenciales del archivo JSON
+	opt := option.WithCredentialsFile("/home/alberto/Downloads/reelstate-8cc46-firebase.json")
+	app, err := firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	return app, nil
+}
+
+func sendFCMNotification(token, title, body string) error {
+	// Inicializar la app de Firebase
+	app, err := InitFirebaseApp()
+	if err != nil {
+		return err
+	}
+
+	// Crear un cliente de mensajería
 	ctx := context.Background()
-
-	// Cargar las credenciales desde el archivo JSON
-	serviceAccountFile := "ruta/al/tu/clave.json"                                          // Cambia esto a la ruta de tu archivo JSON
-	fcmService, err := fcm.NewService(ctx, option.WithCredentialsFile(serviceAccountFile)) // Cambia esto a la ruta de tu archivo JSON
+	client, err := app.Messaging(ctx)
 	if err != nil {
-		return fmt.Errorf("no se pudo crear el token: %v", err)
+		return err
 	}
 
-	// Crear el cliente FCM
-	fcmService, err = fcm.NewService(ctx)
-	if err != nil {
-		return fmt.Errorf("no se pudo crear el servicio FCM: %v", err)
-	}
-
-	// Preparar la notificación
-	message := &fcm.Message{
+	// Crear el mensaje
+	message := &messaging.Message{
 		Token: token,
-		Notification: &fcm.Notification{
+		Notification: &messaging.Notification{
 			Title: title,
 			Body:  body,
 		},
+		Data: map[string]string{
+			"key": "value",
+		},
 	}
 
-	// Crear la solicitud de envío
-	request := &fcm.SendMessageRequest{
-		Message: message,
-	}
 	// Enviar la notificación
-	response, err := fcmService.Projects.Messages.Send("projects/reelstate-8cc46/messages:send", request).Do()
+	response, err := client.Send(ctx, message)
 	if err != nil {
-		return fmt.Errorf("error al enviar la notificación: %v", err)
+		return err
 	}
 
-	log.Printf("Respuesta de FCM: %v", response)
+	log.Printf("Mensaje enviado exitosamente: %s\n", response)
 	return nil
 }
 
@@ -180,37 +227,36 @@ func sendHuaweiNotification(token, title, body string) error {
 	return nil
 }
 
-
 // Estructura de la solicitud para actualizar el token
 type UpdateTokenRequest struct {
-    TokenDevice string `json:"token_device" binding:"required"`
+	TokenDevice string `json:"token_device" binding:"required"`
 }
 
 // Función para actualizar el token del dispositivo
-func  UpdateDeviceToken(c *gin.Context) {
-    // Obtener el ID del usuario desde el token
+func UpdateDeviceToken(c *gin.Context) {
+	// Obtener el ID del usuario desde el token
 	userID, err := token.ExtractTokenID(c)
-    if err != nil {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "No autorizado"})
-        return
-    }
-
-    // Parsear el cuerpo de la solicitud
-    var req UpdateTokenRequest
-    if err := c.ShouldBindJSON(&req); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Token del dispositivo requerido"})
-        return
-    }
-
-    // Buscar el usuario y actualizar el token del dispositivo
-	 user, err := models.GetUserByIdToUpdate(userID)
 	if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al actualizar el token"})
-        return
-    }
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "No autorizado"})
+		return
+	}
+
+	// Parsear el cuerpo de la solicitud
+	var req UpdateTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token del dispositivo requerido"})
+		return
+	}
+
+	// Buscar el usuario y actualizar el token del dispositivo
+	user, err := models.GetUserByIdToUpdate(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al actualizar el token"})
+		return
+	}
 	user.DeviceToken = req.TokenDevice
 	user.UpdateUser()
 	// models.UserUpdate(user)
-    // Responder con éxito
-    c.JSON(http.StatusOK, gin.H{"message": "Token del dispositivo actualizado correctamente"})
+	// Responder con éxito
+	c.JSON(http.StatusOK, gin.H{"message": "Token del dispositivo actualizado correctamente"})
 }
