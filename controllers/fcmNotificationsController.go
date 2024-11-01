@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"reelState/models"
 	"reelState/utils/token"
 
@@ -139,7 +140,9 @@ func SendNotification(token, title, body, deviceType string) error {
 
 func InitFirebaseApp() (*firebase.App, error) {
 	// Cargar las credenciales del archivo JSON
-	opt := option.WithCredentialsFile("/home/alberto/Downloads/reelstate-8cc46-firebase.json")
+	serverKey := os.Getenv("FCM_SERVER_KEY")
+
+	opt := option.WithCredentialsFile(serverKey)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
 		return nil, err
