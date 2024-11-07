@@ -43,3 +43,25 @@ func GetReviewsProfile(idProfile int) ([]Review, error) {
 	}
 	return reviews,nil
 }
+
+// DeleteReview elimina una reseña específica por su ID
+func DeleteReview(reviewID int) error {
+    dbConn := Pool
+
+    // Eliminación de la reseña por su ID
+    if err := dbConn.Delete(&Review{}, reviewID).Error; err != nil {
+        return err
+    }
+    return nil
+}
+
+// DeleteReviewByUserAndProfile elimina una reseña específica por el ID de usuario y el perfil
+func DeleteReviewByUserAndProfile(userID int, profileID int) error {
+    dbConn := Pool
+
+    // Eliminación de la reseña que coincide con el id_user y el id_profile
+    if err := dbConn.Where("id_user = ? AND id_profile = ?", userID, profileID).Delete(&Review{}).Error; err != nil {
+        return err
+    }
+    return nil
+}

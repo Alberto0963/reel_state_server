@@ -711,6 +711,10 @@ type ProfileRequest struct {
 	IdProfile int `json:"id_profile"` // O usa el tipo adecuado según tu modelo
 }
 
+type ReviewRequest struct {
+	IdReview int `json:"id_review"` // O usa el tipo adecuado según tu modelo
+}
+
 // GetReviewsByProfile maneja la obtención de reseñas por id_profile
 func GetReviewsByProfile(c *gin.Context) {
 	var req ProfileRequest
@@ -787,4 +791,27 @@ func AddOrUpdateSales(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Venta actualizada o creada correctamente"})
+}
+
+func DeleteReview(c *gin.Context) {
+	var req ReviewRequest
+
+	// Bind JSON a la estructura
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Formato JSON inválido"})
+		return
+	}
+
+	// var reviews []models.Review
+	// var review models.Review
+
+	err := models.DeleteReview(req.IdReview)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
+
+	// c.JSON(http.StatusOK, reviews)
 }
