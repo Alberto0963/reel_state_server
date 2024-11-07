@@ -104,7 +104,7 @@ func main() {
 
 	public := r.Group("/api")
 
-	r.LoadHTMLGlob(os.Getenv("MY_URL") + "templates/*")
+	// r.LoadHTMLGlob(os.Getenv("MY_URL") + "templates/*")
 	r.GET("/video/:videoID", controllers.GetVideoFromLink)
 	// public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
 	public.GET("/GetMemberShips", controllers.GetPublicMemberShips)

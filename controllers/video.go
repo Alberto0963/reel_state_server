@@ -31,6 +31,8 @@ import (
 	"path/filepath"
 
 	// SMS "reelState/utils"
+	// "reelState/services"
+	"reelState/services"
 	"reelState/utils/token"
 	"strconv"
 
@@ -261,7 +263,8 @@ type ErrorResponse struct {
 func HandleVideoUpload(c *gin.Context) {
 	file, _ := c.FormFile("video")
 	// Assuming the file is saved successfully in your server's file system
-
+	
+	var destAudioPath = ""
 	////////////////////////////
 	// c.Request.Body = http.MaxBytesReader(c.Request.Response., c.Request.Body, 300*1024*1024)
 
@@ -281,8 +284,8 @@ func HandleVideoUpload(c *gin.Context) {
 	url := os.Getenv("MY_URL")
 
 	// Generate a random file name
-	fileName := models.GenerateRandomName()
-	tempFilePath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+	// fileName := models.GenerateRandomName()
+	// tempFilePath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
 
 	finalVideoName := models.GenerateRandomName()
 	finalVideoPath := filepath.Join(url, "/public/videos", finalVideoName+filepath.Ext(file.Filename))
@@ -326,7 +329,7 @@ func HandleVideoUpload(c *gin.Context) {
 		fmt.Println("/////////////// inicio ///////////////////")
 		// time.Sleep(50 * time.Second)
 
-		async.ResolveFuture(saveVideo, saveVideoFile(file, tempFilePath), nil)
+		async.ResolveFuture(saveVideo, saveVideoFile(file, finalVideoPath), nil)
 
 	}()
 
@@ -334,7 +337,7 @@ func HandleVideoUpload(c *gin.Context) {
 
 	fmt.Println("/////////////// final ///////////////////")
 
-	d, err := os.Stat(tempFilePath)
+	d, err := os.Stat(finalVideoPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -391,49 +394,30 @@ func HandleVideoUpload(c *gin.Context) {
 	taskStatusMap[taskId] = "Started"
 	mutex.Unlock()
 
+	if audioFileName != "" {
+		destAudioPath = filepath.Join(url, "/public/audio", audioFileName)
+	}
+
+	services.SendVideoProcessingTask(finalVideoPath,true,destAudioPath)
+
 	c.JSON(200, gin.H{
 		"message": "Upload received, processing started.",
 		"taskId":  taskId,
 	})
 
-	go getFrame(tempFilePath, finalVideoName+".jpg")
+	// go getFrame(finalVideoPath, finalVideoName+".jpg")
+	
 
-	fmt.Println("/////////////// audio file $///////////////////", audioFileName)
+	// fmt.Println("/////////////// audio file $///////////////////", audioFileName)
 
-	if audioFileName != "" {
-		destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
-		// fileName = models.GenerateRandomName()
+	// if audioFileName != "" {
+	// 	destAudioPath := filepath.Join(url, "/public/audio", audioFileName)
+	// 	go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath, destAudioPath, true)
 
-		// joinAudioVideo := new(async.Future[error])
-		// // destPath := filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
+	// } else {
+	// 	go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath, "", false)
 
-		// // save video.
-
-		// go func() {
-		// 	// err = saveVideoFile(file, destPath)
-		// 	fmt.Println("/////////////// inicio Join Audio video///////////////////")
-		// 	// time.Sleep(50 * time.Second)
-
-		// 	async.ResolveFuture(joinAudioVideo, joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename)), nil)
-
-		// }()
-
-		// async.Await(joinAudioVideo)
-
-		// fmt.Println("/////////////// final join audio Video///////////////////")
-
-		// tempFilePath = filepath.Join(url, "/public/videos", fileName+filepath.Ext(file.Filename))
-		go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath, destAudioPath, true)
-
-		// go joinAudioWithVideo(destAudioPath, tempFilePath, fileName+filepath.Ext(file.Filename), finalVideoPath, v.Id, input.Type)
-	} else {
-		go compressVideos(v.Id, input.Type, taskId, tempFilePath, finalVideoPath, "", false)
-
-	}
-
-	//end add audio to video//////
-
-	// Start the compression in a new goroutine
+	// }
 }
 
 func compressVideos(idvideo int, typeV int, taskId, tempFilePath string, finalVideoPath string, audio_path string, has_audio bool) error {
