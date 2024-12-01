@@ -9,7 +9,7 @@ import (
 )
 
 // Función para enviar mensaje a RabbitMQ
-func SendVideoProcessingTask(videoPath string, requiresAudio bool, audioPath string) error {
+func SendVideoProcessingTask(typeVideo int, videoPath string, requiresAudio bool, audioPath string) error {
     // Conectar a RabbitMQ
     conn, err := amqp.Dial("amqp://ReelState:ReelState2024@rabbitmq:5672/myvhost")
     if err != nil {

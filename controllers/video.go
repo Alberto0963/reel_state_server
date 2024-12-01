@@ -398,7 +398,7 @@ func HandleVideoUpload(c *gin.Context) {
 		destAudioPath = filepath.Join(url, "/public/audio", audioFileName)
 	}
 
-	services.SendVideoProcessingTask(finalVideoPath,true,destAudioPath)
+	services.SendVideoProcessingTask(input.Type,finalVideoPath,true,destAudioPath)
 
 	c.JSON(200, gin.H{
 		"message": "Upload received, processing started.",

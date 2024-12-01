@@ -59,10 +59,7 @@ type UserUpdate struct {
 	RenovationActive         int       `gorm:"size:255;not null;" json:"renovation_active"`
 	Cover_image              string    `gorm:"size:255;not null;" json:"cover_image"`
 	Link                     string    `gorm:"size:255" json:"link"`
-	// Ventas                   int       `gorm:"size:255" json:"ventas"`
-	// TotalReviews             int       `gorm:"size:255" json:"total_reviews"`
-	// AverageRating            string    `gorm:"size:255" json:"average_rating"`
-	// VideoCount               int       `gorm:"size:255" json:"video_count"`
+
 	MedalType                int       `gorm:"size:255" json:"medal_type"`
 	DeviceToken              string    `gorm:"size:255" json:"device_token"`
 
@@ -280,6 +277,23 @@ func GetUserByPhone(phone string) (UserUpdate, error) {
 
 }
 
+func GetUserByPhoneUpdate(phone string) (UserDB, error) {
+
+	var u UserDB
+	// Obtain a connection from the pool
+	dbConn := Pool
+	// defer dbConn.Close()
+
+	if err := dbConn.Model(&User{}).Where("phone = ?", phone).Find(&u).Error; err != nil {
+		return u, errors.New("User not found! ")
+	}
+
+	// u.PrepareGive()
+
+	return u, nil
+
+}
+
 func DeleteUserByID(uid uint) error {
 
 	var u User
@@ -406,12 +420,24 @@ func (u *UserUpdate) UpdateUser() (*UserUpdate, error) {
 	return u, nil
 }
 
-func (user *UserUpdate) UpdatePassword(newPassword string) error {
-	// var err error
+func (u *UserDB) UpdateUser() (*UserDB, error) {
+
+	var err error
 	dbConn := Pool
 
-	return dbConn.Model(&user).Update("password", newPassword).Error
+	err = dbConn.Save(&u).Error
+	if err != nil {
+		return &UserDB{}, err
+	}
+	return u, nil
 }
+
+// func (user *UserUpdate) UpdatePassword(newPassword string) error {
+// 	// var err error
+// 	dbConn := Pool
+
+// 	return dbConn.Model(&user).Update("password", newPassword).Error
+// }
 
 func (u *UserDB) BeforeSave(tx *gorm.DB) error {
 
@@ -428,6 +454,23 @@ func (u *UserDB) BeforeSave(tx *gorm.DB) error {
 	return nil
 
 }
+
+
+// func (u *UserUpdate) BeforeSave(tx *gorm.DB) error {
+
+// 	//turn password into hash
+// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	u.Password = string(hashedPassword)
+
+// 	//remove spaces in username
+// 	u.Username = html.EscapeString(strings.TrimSpace(u.Username))
+
+// 	return nil
+
+// }
 
 func GetMyVideos(id_user int, page int, typeVideo int) ([]FeedVideo, error) {
 	var err error

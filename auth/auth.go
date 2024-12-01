@@ -174,18 +174,6 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// profileImage, err := c.FormFile("profile_image")
-	// if err != nil {
-	//     c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get file from the request"})
-	//     return
-	// }
-	// Generate a random file name for the profile image
-	// imageFileName := models.GenerateRandomName() + filepath.Ext(profileImage.Filename)
-	// url := os.Getenv("MY_URL")
-
-	// Create the destination path for saving the image
-	// profileImagePath := filepath.Join("public/profile_images", imageFileName)
-
 	u := models.UserDB{}
 
 	u.Username = input.Username
@@ -195,28 +183,10 @@ func Register(c *gin.Context) {
 	// u.ProfileImage = profileImagePath
 	u.ExpirationMembershipDate = time.Now()
 	u.IdMembership = 100004
-	// // Get the current date and time
-	// currentTime := time.Now()
 
-	// // Extract the date from the current time
-	// // currentDate := currentTime.Format("2006-01-02")
-
-	// date := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 0, 0, 0, 0, time.UTC)
-
-	// // Define a duration to add
-	// duration := 24 * time.Hour
-
-	// // Add the duration to the date
-	// sum := date.Add(duration)
 	vc := models.VerificationCode{}
 	vc.Code = input.Code
 	vc.Phone = input.Phone
-
-	// _, err = vc.CodeIsValid()
-	// if err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification code"})
-	// 	return
-	// }
 
 	_, err := u.SaveUser()
 	if err != nil {
@@ -230,13 +200,6 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// Save the profile image
-	// err = c.SaveUploadedFile(profileImage, url+ profileImagePath)
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save profile image"})
-	// 	return
-	// }
-
 	c.JSON(http.StatusOK, gin.H{"message": "registration success", "token": token})
 	// c.JSON(http.StatusOK, gin.H{"message": "validated!"})
 
@@ -245,13 +208,14 @@ func Register(c *gin.Context) {
 func ResetPassword(c *gin.Context) {
 
 	var input ResetPasswordInput
+	// u := models.UserDB{}
 
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	u, err := models.GetUserByPhone(input.Phone)
+	u, err := models.GetUserByPhoneUpdate(input.Phone)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error getting user"})
 		return
