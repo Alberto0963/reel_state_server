@@ -40,7 +40,7 @@ func SendVideoProcessingTask(typeVideo int, videoPath string, requiresAudio bool
     // Definir el contenido de la tarea
     task := map[string]interface{}{
         "task": "api.task.process_video_task",
-        "args": []interface{}{videoPath, requiresAudio, audioPath},
+        "args": []interface{}{typeVideo,videoPath, requiresAudio, audioPath},
     }
 
     // Convertir el contenido de la tarea a formato JSON

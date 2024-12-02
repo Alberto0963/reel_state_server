@@ -393,12 +393,13 @@ func HandleVideoUpload(c *gin.Context) {
 	mutex.Lock()
 	taskStatusMap[taskId] = "Started"
 	mutex.Unlock()
-
+	hasAudio := false
 	if audioFileName != "" {
 		destAudioPath = filepath.Join(url, "/public/audio", audioFileName)
+		hasAudio = true
 	}
 
-	services.SendVideoProcessingTask(input.Type,finalVideoPath,true,destAudioPath)
+	services.SendVideoProcessingTask(input.Type,finalVideoPath,hasAudio,destAudioPath)
 
 	c.JSON(200, gin.H{
 		"message": "Upload received, processing started.",
