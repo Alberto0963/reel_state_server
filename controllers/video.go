@@ -823,6 +823,89 @@ func HandleGetAllSongs(c *gin.Context) {
 
 // }
 
+// func HandleGetAllVideos(c *gin.Context) {
+// 	userID, _ := token.ExtractTokenID(c)
+
+// 	// Parsear la página
+// 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+// 	if err != nil || page < 1 {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
+// 		return
+// 	}
+
+// 	// Parsear sale_id
+// 	saleID, err := strconv.Atoi(c.Query("sale"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
+// 		return
+// 	}
+
+// 	// Parsear typeVideo
+// 	typeVideo, err := strconv.Atoi(c.Query("type"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type"})
+// 		return
+// 	}
+
+// 	// Parsear idVideo (opcional)
+// 	var idVideo *int
+// 	if idVideoStr := c.Query("idVideo"); idVideoStr != "" {
+// 		id, err := strconv.Atoi(idVideoStr)
+// 		if err != nil {
+// 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid idVideo"})
+// 			return
+// 		}
+// 		idVideo = &id
+// 	}
+
+// 	// Determinar categoría
+// 	categoryMap := map[string]int{
+// 		"All":         0,
+// 		"Todos":       0,
+// 		"Residencial": 1,
+// 		"Comercial":   2,
+// 		"Terreno":     3,
+// 		"Corporativo": 4,
+// 		"Industrial":  5,
+// 		"Exclusivo":   6,
+// 		"Residential": 1,
+// 		"Business":    2,
+// 		"Land":        3,
+// 		"corporate":   4,
+// 		"industry":    5,
+// 		"Vip":         6,
+// 	}
+
+// 	// Obtener la categoría
+// 	categoryStr := c.Query("category")
+// 	category, err := strconv.Atoi(categoryStr)
+// 	if err != nil {
+// 		// Si no es un número, intenta mapearlo
+// 		var exists bool
+// 		category, exists = categoryMap[categoryStr]
+// 		if !exists && categoryStr != "" {
+// 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category"})
+// 			return
+// 		}
+// 	}
+
+// 	var data []models.FeedVideo
+
+// 	// Obtener los videos según la categoría
+// 	if category > 0 {
+// 		data, err = models.FetchAllCategoryVideos(int(userID), saleID, typeVideo, category, page, idVideo)
+// 	} else {
+// 		data, err = models.FetchAllVideos(int(userID), saleID, typeVideo, page, idVideo)
+// 	}
+
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": data})
+// }
+
 func HandleGetAllVideos(c *gin.Context) {
 	userID, _ := token.ExtractTokenID(c)
 
@@ -858,6 +941,18 @@ func HandleGetAllVideos(c *gin.Context) {
 		idVideo = &id
 	}
 
+	// Obtener las coordenadas del usuario
+	userLat, err := strconv.ParseFloat(c.Query("latitude"), 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid latitude"})
+		return
+	}
+	userLon, err := strconv.ParseFloat(c.Query("longitude"), 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid longitude"})
+		return
+	}
+
 	// Determinar categoría
 	categoryMap := map[string]int{
 		"All":         0,
@@ -891,11 +986,11 @@ func HandleGetAllVideos(c *gin.Context) {
 
 	var data []models.FeedVideo
 
-	// Obtener los videos según la categoría
+	// Obtener los videos según la categoría, organizados por prioridad y filtrados por ubicación
 	if category > 0 {
-		data, err = models.FetchAllCategoryVideos(int(userID), saleID, typeVideo, category, page, idVideo)
+		data, err = models.FetchAllCategoryVideosWithFilters(int(userID), saleID, typeVideo, category, page, idVideo, userLat, userLon)
 	} else {
-		data, err = models.FetchAllVideos(int(userID), saleID, typeVideo, page, idVideo)
+		data, err = models.FetchAllVideosWithFilters(int(userID), saleID, typeVideo, page, idVideo, userLat, userLon)
 	}
 
 	if err != nil {
@@ -905,6 +1000,10 @@ func HandleGetAllVideos(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": data})
 }
+
+
+
+
 
 type RequestData struct {
 	Path_video string `json:"path_video"`
@@ -1120,3 +1219,6 @@ func deleteTemporalVideo(filePath string) {
 	}
 
 }
+
+
+

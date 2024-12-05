@@ -779,6 +779,24 @@ func AddOrUpdateSales(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener tokens"})
 		return
 	}
+
+
+		// Extraer el ID del video de la solicitud JSON
+		var requestBody struct {
+			VideoID int `json:"video_id"`
+		}
+		if err := c.ShouldBindJSON(&requestBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Datos de entrada inválidos"})
+			return
+		}
+	
+		// Eliminar el video con el ID proporcionado
+		if err := models.DeleteUserVideo(requestBody.VideoID, int(userID)); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al eliminar el video"})
+			return
+		}
+ 
+
 	// Enviar notificación a cada token
 	title := "¡Nueva venta registrada!"
 	body := fmt.Sprintf("%s ha realizado una nueva", user.Username)
