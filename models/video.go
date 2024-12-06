@@ -832,7 +832,10 @@ func FetchAllVideosWithFilters(userID, saleID, typeVideo, page int, idVideo *int
 		Select(`videos.*, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite,` + distanceQuery, userLat, userLon, userLat).
 		Joins("LEFT JOIN users_videos_favorites ON videos.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", userID).
 		Where("videos.sale_type_id = ? AND videos.type = ?", saleID, typeVideo).
-		Having("distance <= ?", maxDistance)
+		Having("distance <= ?", maxDistance).
+		Preload("SaleType").
+		Preload("SaleCategory").
+		Preload("User")
 
 	if idVideo != nil {
 		query = query.Or("videos.id = ?", *idVideo)
@@ -856,8 +859,8 @@ func FetchAllVideosWithFilters(userID, saleID, typeVideo, page int, idVideo *int
 	}
 
 	// Paginación sobre el resultado final
-	start := (page - 1) * 20
-	end := start + 20
+	start := (page - 1) * 10
+	end := start + 10
 	if start >= len(videos) {
 		return []FeedVideo{}, nil // Página vacía
 	}
