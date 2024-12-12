@@ -987,10 +987,10 @@ func HandleGetAllVideos(c *gin.Context) {
 	var data []models.FeedVideo
 
 	// Obtener los videos según la categoría, organizados por prioridad y filtrados por ubicación
-	if category > 0 {
-		data, err = models.FetchAllCategoryVideosWithFilters(int(userID), saleID, typeVideo, category, page, idVideo, userLat, userLon)
+	if category == 0 {
+		data, err = models.FetchAllCategoryVideosWithFilters(int(userID), saleID, typeVideo, page, idVideo, userLat, userLon)
 	} else {
-		data, err = models.FetchAllVideosWithFilters(int(userID), saleID, typeVideo, page, idVideo, userLat, userLon)
+		data, err = models.FetchAllVideosWithFilters(int(userID), saleID, typeVideo, category, page, idVideo, userLat, userLon)
 	}
 
 	if err != nil {
