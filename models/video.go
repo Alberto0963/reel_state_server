@@ -845,9 +845,9 @@ func FetchAllCategoryVideosWithFilters(userID, saleID int, typeVideo, page int, 
 	// Función auxiliar para construir la consulta principal
 	buildQuery := func(ignoreDistance bool) *gorm.DB {
 		subquery := db.Table("videos").
-			Select("videos.*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance", userLat, userLon, userLat).
-			Limit(pageSize).
-			Offset(offset)
+			Select("videos.*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance", userLat, userLon, userLat)
+			// Limit(pageSize).
+			// Offset(offset)
 
 		if !ignoreDistance {
 			subquery = subquery.Having("distance <= ?", maxDistance)
