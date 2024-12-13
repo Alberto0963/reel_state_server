@@ -764,63 +764,6 @@ func findPricePatterns(search string) []string {
 	return patterns
 }
 
-// func FetchAllCategoryVideosWithFilters(userID, saleID, typeVideo, category, page int, idVideo *int, userLat, userLon float64) ([]FeedVideo, error) {
-// 	var videos []FeedVideo
-// 	db := Pool
-
-// 	// Define el rango máximo de distancia (en kilómetros)
-// 	const maxDistance = 50.0
-// 	const limitPerPriority = 10 // Límite por prioridad (ajustable)
-
-// 	// // Subconsulta para calcular la distancia
-
-// 	// Subconsulta para calcular la distancia y filtrar por rango
-// 	subquery := db.Table("videos").
-// 		Select("videos.*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance", userLat, userLon, userLat).
-// 		Having("distance <= ?", maxDistance)
-
-// 	// Consulta principal
-// 	query := db.Table("(?) AS v", subquery).
-// 		Select("v.*, users.medal_type, IF(users_videos_favorites.id IS NULL, 0, 1) AS is_favorite").
-// 		Joins("INNER JOIN users ON v.id_user = users.id").
-// 		Joins("LEFT JOIN users_videos_favorites ON v.id = users_videos_favorites.id_video AND users_videos_favorites.id_user = ?", userID).
-// 		Where("videos.sale_type_id = ? AND videos.type = ? AND videos.sale_category_id = ?", saleID, typeVideo, category)
-
-// 		// Scan(&results).Error
-
-// 	if idVideo != nil {
-// 		query = query.Or("videos.id = ?", *idVideo)
-// 	}
-
-// 	// Iterar por las prioridades (1, 2, 3)
-// 	for medalType := 1; medalType <= 3; medalType++ {
-// 		var group []FeedVideo
-
-// 		// Subconsulta para obtener videos de esta prioridad con aleatoriedad
-// 		err := query.Where("users.medal_type = ?", medalType).
-// 			Order("RAND()").         // Orden aleatorio
-// 			Limit(limitPerPriority). // Límite por grupo
-// 			Find(&group).Error
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		// Agregar el grupo al resultado final
-// 		videos = append(videos, group...)
-// 	}
-
-// 	// Paginación sobre el resultado final
-// 	start := (page - 1) * 20
-// 	end := start + 20
-// 	if start >= len(videos) {
-// 		return []FeedVideo{}, nil // Página vacía
-// 	}
-// 	if end > len(videos) {
-// 		end = len(videos)
-// 	}
-// 	return videos[start:end], nil
-// }
-
 func FetchAllCategoryVideosWithFilters(userID, saleID int, typeVideo, page int, idVideo *int, userLat, userLon float64) ([]FeedVideo, error) {
 	// var videos []FeedVideo
 	var (
@@ -863,6 +806,7 @@ func FetchAllCategoryVideosWithFilters(userID, saleID int, typeVideo, page int, 
 			Preload("SaleType").
 			Preload("SaleCategory").
 			Preload("User")
+
 		if idVideo != nil {
 			query = query.Or("v.id = ?", *idVideo)
 		}
@@ -871,13 +815,15 @@ func FetchAllCategoryVideosWithFilters(userID, saleID int, typeVideo, page int, 
 	}
 
 	// Intentar primero con el filtro de distancia
-	query := buildQuery(false)
+	// query := buildQuery(false)
 
 	// Iterar por las prioridades (1, 2, 3)
 	for medalType := 1; medalType <= 3; medalType++ {
 		var group []FeedVideo
 
-		err := query.Where("users.medal_type = ?", medalType).
+		// Crear una nueva instancia de la consulta para cada iteración
+		err := buildQuery(false).
+			Where("users.medal_type = ?", medalType).
 			Order("RAND()").
 			Limit(limitPerPriority).
 			Find(&group).Error
@@ -890,12 +836,13 @@ func FetchAllCategoryVideosWithFilters(userID, saleID int, typeVideo, page int, 
 
 	// Si no se encontraron videos, intentar sin el filtro de distancia
 	if len(videos) == 0 {
-		query = buildQuery(true)
-
+		// Iterar por las prioridades (1, 2, 3)
 		for medalType := 1; medalType <= 3; medalType++ {
 			var group []FeedVideo
 
-			err := query.Where("users.medal_type = ?", medalType).
+			// Crear una nueva instancia de la consulta para cada iteración
+			err := buildQuery(true).
+				Where("users.medal_type = ?", medalType).
 				Order("RAND()").
 				Limit(limitPerPriority).
 				Find(&group).Error
