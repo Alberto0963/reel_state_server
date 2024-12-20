@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"sync"
+	"text/template"
 
 	// "os/exec"
 
@@ -43,6 +44,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ianlopshire/go-async"
+	"reelState/templates"
 	// "github.com/jrallison/go-workers"
 	// "github.com/jrallison/go-workers"
 	// "github.com/jrallison/go-workers"
@@ -81,28 +83,45 @@ type VideoInput struct {
 }
 
 func GetVideoFromLink(c *gin.Context) {
+	// Extraer el ID del usuario desde el token
 	userID, _ := token.ExtractTokenID(c)
-	var data models.FeedVideo
+
+	// Obtener el ID del video desde los parámetros
 	videoID := c.Param("videoID")
 	id_vid, err := strconv.ParseUint(videoID, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid video ID"})
+		return
+	}
 
-	data, err = models.GetVideo(int(id_vid), int(userID))
+	// Obtener los datos del video desde el modelo
+	data, err := models.GetVideo(int(id_vid), int(userID))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}
+
+	// Obtener la URL base de las variables de entorno
 	videoURL := os.Getenv("App_URL")
-	// videoURL := "https://api.reelstate.mx/" + data.Video_url
-	// img := "https://api.reelstate.mx/" + data.Image_cover
-	c.HTML(200, "newPlayVideo.html", gin.H{
+
+	// Parsear la plantilla incrustada
+	t, err := template.New("newPlayVideo").Parse(templates.NewPlayVideo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"Error": "Error loading template"})
+		return
+	}
+
+	// Renderizar la plantilla con los datos del video
+	videoData := gin.H{
 		"title":       "Video Showcase",
 		"VideoURL":    videoURL + data.Video_url,
 		"User":        data.User.Username,
 		"Description": data.Description,
 		"Img":         videoURL + data.Image_cover,
-	})
-}
+	}
 
+	t.Execute(c.Writer, videoData)
+}
 func checkVideoSize(filePath string, maxSize int64) error {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
