@@ -2,6 +2,8 @@ package models
 
 import (
 	"errors"
+
+	"gorm.io/gorm"
 	// "gorm.io/gorm"
 )
 
@@ -43,4 +45,57 @@ func GetSponsors(region_code string) ([]Sponsors, error) {
 
 	return cat, nil
 
+}
+
+// CreateSponsor creates a new sponsor in the database
+func CreateSponsor(sponsor Sponsors) (*Sponsors, error) {
+	dbConn := Pool // Get database connection
+
+	if err := dbConn.Create(&sponsor).Error; err != nil {
+		return nil, errors.New("failed to create sponsor: " + err.Error())
+	}
+
+	return &sponsor, nil
+}
+
+// EditSponsor updates an existing sponsor by its ID
+func EditSponsor(id uint, updatedData Sponsors) (*Sponsors, error) {
+	dbConn := Pool
+	var sponsor Sponsors
+
+	// Find the sponsor by ID
+	if err := dbConn.First(&sponsor, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("sponsor not found")
+		}
+		return nil, errors.New("failed to retrieve sponsor: " + err.Error())
+	}
+
+	// Update the sponsor fields
+	if err := dbConn.Model(&sponsor).Updates(updatedData).Error; err != nil {
+		return nil, errors.New("failed to update sponsor: " + err.Error())
+	}
+
+	return &sponsor, nil
+}
+
+// DeleteSponsor removes a sponsor from the database by its ID
+func DeleteSponsor(id uint) error {
+	dbConn := Pool
+	var sponsor Sponsors
+
+	// Find the sponsor by ID
+	if err := dbConn.First(&sponsor, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("sponsor not found")
+		}
+		return errors.New("failed to retrieve sponsor: " + err.Error())
+	}
+
+	// Delete the sponsor
+	if err := dbConn.Delete(&sponsor).Error; err != nil {
+		return errors.New("failed to delete sponsor: " + err.Error())
+	}
+
+	return nil
 }

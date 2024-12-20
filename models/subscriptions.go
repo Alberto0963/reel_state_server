@@ -138,6 +138,27 @@ func CancelSubscriptionFunction(subID int, date time.Time) error {
 	return nil
 }
 
+func UpdateSubscriptionWebhook(paypal_subscription_id string, actualDate time.Time,nextDate time.Time) error {
+	var err error
+	dbConn := Pool
+
+	var subscriber Subscription
+
+	if err = dbConn.Where("paypal_subscription_id = ?", paypal_subscription_id).First(&subscriber).Error; err != nil {
+		return err
+	}
+
+	subscriber.Renewal = false
+	subscriber.NextBillingTime = nextDate
+	subscriber.StartedAt = actualDate
+
+	if err = dbConn.Save(&subscriber).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func CancelSubscriptionWebhook(paypal_subscription_id string, date time.Time) error {
 	var err error
 	dbConn := Pool

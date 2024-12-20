@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -110,7 +111,10 @@ type SubscriptionRequest struct {
 func CreateSubscriptionWithToken(customerID, planID, tokenID string, amount float64, trialDays int) (SubscriptionResponse, error) {
 	merchantID := os.Getenv("MERCHANT_ID")
 	apiKey := os.Getenv("OPENPAY_PRIVATE_KEY")
-	var sub *SubscriptionResponse
+
+	if merchantID == "" || apiKey == "" {
+		return SubscriptionResponse{}, errors.New("las credenciales de Openpay no están configuradas")
+	}
 
 	subscriptionRequest := SubscriptionRequest{
 		PlanID:    planID,
@@ -120,44 +124,103 @@ func CreateSubscriptionWithToken(customerID, planID, tokenID string, amount floa
 		Currency:  "MXN",
 	}
 
+	// Codificar la solicitud en JSON
 	body, err := json.Marshal(subscriptionRequest)
 	if err != nil {
-		return *sub, fmt.Errorf("error al generar la solicitud de suscripción: %v", err)
+		return SubscriptionResponse{}, fmt.Errorf("error al generar la solicitud de suscripción: %v", err)
 	}
 
 	url := fmt.Sprintf("https://sandbox-api.openpay.mx/v1/%s/customers/%s/subscriptions", merchantID, customerID)
-
+// "POST https://sandbox-api.openpay.mx/v1/{MERCHANT_ID}/customers/{CUSTOMER_ID}/subscriptions"
+	// Crear la solicitud HTTP
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	if err != nil {
-		return *sub, fmt.Errorf("error al crear la solicitud HTTP: %v", err)
+		return SubscriptionResponse{}, fmt.Errorf("error al crear la solicitud HTTP: %v", err)
 	}
 
+	// Agregar cabeceras
 	auth := base64.StdEncoding.EncodeToString([]byte(apiKey + ":"))
+	// req.Header.Set("Authorization", "Basic "+auth)
 	req.Header.Set("Authorization", "Basic "+auth)
+
 	req.Header.Set("Content-Type", "application/json")
 
+	// Enviar la solicitud
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return *sub, fmt.Errorf("error al realizar la solicitud HTTP: %v", err)
+		return SubscriptionResponse{}, fmt.Errorf("error al realizar la solicitud HTTP: %v", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated {
+	// Manejar errores HTTP
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		var errorResponse map[string]interface{}
 		json.NewDecoder(resp.Body).Decode(&errorResponse)
-		return *sub, fmt.Errorf("error al crear suscripción: %v", errorResponse)
-	}
-	// Parseamos la respuesta de la suscripción
-	sub, err = ParseSubscriptionResponse(resp)
-	if err != nil {
-		return *sub,	fmt.Errorf("Error al parsear la respuesta de la suscripción: %v\n", err)
-
+		return SubscriptionResponse{}, fmt.Errorf("error al crear suscripción, código HTTP %d: %v", resp.StatusCode, errorResponse)
 	}
 
-	fmt.Println("Suscripción creada con éxito")
-	return *sub, nil
+	// Parsear la respuesta de la suscripción
+	var sub SubscriptionResponse
+	if err := json.NewDecoder(resp.Body).Decode(&sub); err != nil {
+		return SubscriptionResponse{}, fmt.Errorf("error al parsear la respuesta de la suscripción: %v", err)
+	}
+
+	fmt.Println("Suscripción creada con éxito:", sub)
+	return sub, nil
 }
+
+// func CreateSubscriptionWithToken(customerID, planID, tokenID string, amount float64, trialDays int) (SubscriptionResponse, error) {
+// 	merchantID := os.Getenv("MERCHANT_ID")
+// 	apiKey := os.Getenv("OPENPAY_PRIVATE_KEY")
+// 	var sub *SubscriptionResponse
+
+// 	subscriptionRequest := SubscriptionRequest{
+// 		PlanID:    planID,
+// 		SourceID:  tokenID,
+// 		TrialDays: trialDays,
+// 		Amount:    amount,
+// 		Currency:  "MXN",
+// 	}
+
+// 	body, err := json.Marshal(subscriptionRequest)
+// 	if err != nil {
+// 		return *sub, fmt.Errorf("error al generar la solicitud de suscripción: %v", err)
+// 	}
+
+// 	url := fmt.Sprintf("https://sandbox-api.openpay.mx/v1/%s/customers/%s/subscriptions", merchantID, customerID)
+
+// 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+// 	if err != nil {
+// 		return *sub, fmt.Errorf("error al crear la solicitud HTTP: %v", err)
+// 	}
+
+// 	auth := base64.StdEncoding.EncodeToString([]byte(apiKey + ":"))
+// 	req.Header.Set("Authorization", "Basic "+auth)
+// 	req.Header.Set("Content-Type", "application/json")
+
+// 	client := &http.Client{}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		return *sub, fmt.Errorf("error al realizar la solicitud HTTP: %v", err)
+// 	}
+// 	defer resp.Body.Close()
+
+// 	if resp.StatusCode != http.StatusCreated {
+// 		var errorResponse map[string]interface{}
+// 		json.NewDecoder(resp.Body).Decode(&errorResponse)
+// 		return *sub, fmt.Errorf("error al crear suscripción: %v", errorResponse)
+// 	}
+// 	// Parseamos la respuesta de la suscripción
+// 	sub, err = ParseSubscriptionResponse(resp)
+// 	if err != nil {
+// 		return *sub,	fmt.Errorf("Error al parsear la respuesta de la suscripción: %v\n", err)
+
+// 	}
+
+// 	fmt.Println("Suscripción creada con éxito")
+// 	return *sub, nil
+// }
 
 func CreateCustomer(user Customer) (string, error) {
 	merchantID := os.Getenv("MERCHANT_ID")     // Merchant ID de Openpay

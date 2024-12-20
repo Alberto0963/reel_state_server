@@ -34,6 +34,19 @@ func HandleWebhook(c *gin.Context) {
 		// Process the billing subscription created event
 		fmt.Printf("Billing subscription created: %+v\n", event)
 
+	case "PAYMENT.SALE.COMPLETED":
+		// Obtener la fecha del pago
+		paymentDateStr :=  event.CreateTime
+		paymentDate, _ := time.Parse(time.RFC3339, paymentDateStr)
+
+		// Calcular la siguiente fecha de pago (suma 30 días)
+		nextPaymentDate := paymentDate.AddDate(0, 1, 0)
+
+		// Actualizar la base de datos
+		models.UpdateSubscriptionWebhook(event.Resource.ID,paymentDate, nextPaymentDate)
+
+		fmt.Printf("Billing subscription created: %+v\n", event)
+
 	case "BILLING.SUBSCRIPTION.PAYMENT.FAILED", "BILLING.SUBSCRIPTION.CANCELLED":
 
 		// var sub models.Subscription
@@ -49,6 +62,7 @@ func HandleWebhook(c *gin.Context) {
 			fmt.Println("Error parsing date:", err)
 			return
 		}
+		
 		models.CancelSubscriptionWebhook(event.Resource.ID, parsedTime)
 
 	default:
@@ -147,25 +161,25 @@ func OpenpayWebhookHandler(c *gin.Context) {
 
 	case "subscription.create", "charge.succeeded":
 		err := handleSubscriptionCreated(webhook)
-		if err != nil {
+		if err == nil {
 			c.JSON(http.StatusOK, gin.H{"message": "éxito"})
 
 		}
 	case "charge.refund":
 		err := handlePaymentRefunded(webhook)
-		if err != nil {
+		if err == nil {
 			c.JSON(http.StatusOK, gin.H{"message": "Reembolso realizado"})
 
 		}
 	case "charge.failed":
 		err := handlePaymentDeclined(webhook)
-		if err != nil {
+		if err == nil {
 			c.JSON(http.StatusOK, gin.H{"message": "Pago declinado"})
 
 		}
 	case "subscription.cancel":
 		err := handleSubscriptionCanceled(webhook)
-		if err != nil {
+		if err == nil {
 			c.JSON(http.StatusOK, gin.H{"message": "Reembolso realizado"})
 
 		}
@@ -187,9 +201,17 @@ func handleVerificationCode(webhook OpenpayWebhook) error {
 // Función para manejar la creación de suscripciones
 func handleSubscriptionCreated(webhook OpenpayWebhook) error {
 	subscriptionID := webhook.Transaction.SubscriptionID
-	// planID := webhook.Transaction.pl
+	// subscriptionID := webhook.Transaction.SubscriptionID
 	status := webhook.Transaction.Status
 
+	// Usar directamente EventDate como time.Time
+	paymentDate := webhook.EventDate
+
+	// Calcular la siguiente fecha de pago (suma 1 mes)
+	nextPaymentDate := paymentDate.AddDate(0, 1, 0)
+
+	// Actualizar la base de datos con las fechas de pago
+	models.UpdateSubscriptionWebhook(webhook.Transaction.SubscriptionID, paymentDate, nextPaymentDate)
 	// Realizar las operaciones necesarias (guardar en la base de datos, enviar confirmación, etc.)
 	fmt.Printf("Suscripción creada:\nID: %s \nEstado: %s\n", subscriptionID, status)
 

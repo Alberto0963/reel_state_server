@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"html"
 	"os"
+	"path/filepath"
+
+	// "path/filepath"
 
 	// "reelState/utils/token"
 
@@ -549,25 +552,65 @@ func GetMyFavoritesVideos(id_user int, page int) ([]FeedVideo, error) {
 
 }
 
+// func DeleteUserVideo(id_video int, id_user int) error {
+// 	var err error
+// 	dbConn := Pool
+// 	var vid MyVideo
+
+// 	if err = dbConn.Where("id_user = ? && id = ?", id_user, id_video).Find(&vid).Error; err != nil {
+// 		return err
+// 	}
+// 	pathOldImage := os.Getenv("MY_URL")
+
+// 	deleteImage(pathOldImage + vid.Image_cover)
+// 	deleteImage(pathOldImage + vid.Video_url)
+
+// 	if err = dbConn.Where("id_user = ? && id = ?", id_user, id_video).Delete(&vid).Error; err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
 func DeleteUserVideo(id_video int, id_user int) error {
-	var err error
 	dbConn := Pool
 	var vid Video
 
-	if err = dbConn.Where("id_user = ? && id = ?", id_user, id_video).Find(&vid).Error; err != nil {
-		return err
+	// Buscar el video
+	err := dbConn.Where("id_user = ? AND id = ?", id_user, id_video).First(&vid).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("video no encontrado: %w", err)
+		}
+		return fmt.Errorf("error al buscar el video: %w", err)
 	}
-	pathOldImage := os.Getenv("MY_URL")
 
-	deleteImage(pathOldImage + vid.Image_cover)
-	deleteImage(pathOldImage + vid.Video_url)
+	// Construir rutas de archivos a eliminar
+	baseURL := os.Getenv("MY_URL")
+	if baseURL == "" {
+		return fmt.Errorf("la variable de entorno MY_URL no está configurada")
+	}
 
-	if err = dbConn.Where("id_user = ? && id = ?", id_user, id_video).Delete(&vid).Error; err != nil {
-		return err
+	imagePath := filepath.Join(baseURL, vid.Image_cover)
+	videoPath := filepath.Join(baseURL, vid.Video_url)
+
+	// Eliminar archivos asociados
+	if err := deleteImage(imagePath); err != nil {
+		return fmt.Errorf("error al eliminar la imagen: %w", err)
+	}
+	if err := deleteImage(videoPath); err != nil {
+		return fmt.Errorf("error al eliminar el video: %w", err)
+	}
+
+	// Eliminar el registro de la base de datos
+	err = dbConn.Where("id_user = ? AND id = ?", id_user, id_video).Delete(&vid).Error
+	if err != nil {
+		return fmt.Errorf("error al eliminar el registro del video: %w", err)
 	}
 
 	return nil
 }
+
 
 func ValidateUserType(id_user int) error {
 	u, err := GetUserByIDWithVideos(uint(id_user))

@@ -1221,4 +1221,66 @@ func deleteTemporalVideo(filePath string) {
 }
 
 
+func CreateSponsor(c *gin.Context) {
+	var sponsor models.Sponsors
+
+	// Bind JSON to sponsor struct
+	if err := c.ShouldBindJSON(&sponsor); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
+		return
+	}
+
+	// Crear el sponsor en la base de datos
+	createdSponsor, err := models.CreateSponsor(sponsor)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Responder con el sponsor creado
+	c.JSON(http.StatusOK, createdSponsor)
+}
+
+func EditSponsor(c *gin.Context) {
+	idStr := c.Param("id")
+	var updatedData models.Sponsors
+
+	// Bind JSON to updated sponsor data
+	if err := c.ShouldBindJSON(&updatedData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
+		return
+	}
+
+	id, err := strconv.ParseUint(idStr, 10, 32)
+
+
+	// Editar el sponsor en la base de datos
+	updatedSponsor, err := models.EditSponsor(uint(id), updatedData)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Responder con el sponsor actualizado
+	c.JSON(http.StatusOK, updatedSponsor)
+}
+
+func DeleteSponsor(c *gin.Context) {
+	idStr := c.Param("id")
+
+
+	id, err := strconv.ParseUint(idStr, 10, 32)
+
+	// Eliminar el sponsor de la base de datos
+	err = models.DeleteSponsor(uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+
+	// Responder con mensaje de éxito
+	c.JSON(http.StatusOK, gin.H{"message": "Sponsor deleted successfully"})
+}
+
 
