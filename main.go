@@ -59,15 +59,7 @@ func main() {
 	})
 
 	workers.Middleware.Append(&myMiddleware{})
-	//  SMS.ScheduleTokenUpdate()
-
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	log.Fatal("Error loading .env file")
-	// }
-
-	// gin.SetMode(gin.DebugMode)
-
+=
 	r := gin.Default()
 
 	r.SetTrustedProxies(nil)
@@ -82,15 +74,8 @@ func main() {
 
 	// Serve static files from the "public" directory
 	r.StaticFS("/public", fs)
-	// Serve files from the .well-known directory
-	// r.Static("/.well-known", publicDir+"/.well-known")
-	// Specify the directory containing your public files
-	// Serve files from the .well-known directory
-	// r.StaticFS("/.well-known", fs)
-	// Create a file server handler for the public directory
+=	r.LoadHTMLGlob("templates/*")
 
-	// Register the file server handler with a specific URL path
-	// Specify the directory containing your public files
 
 	// Manejador para la ruta raíz
 	r.GET("/", func(c *gin.Context) {
@@ -181,24 +166,6 @@ func main() {
 	protected.GET("/getsongs", controllers.HandleGetAllSongs)
 	protected.GET("/status/:taskId", controllers.CheckStatus)
 	protected.GET("/getUserSubscription", controllers.GetUserSubscription)
-
-	
-	// // pull messages from "myqueue" with concurrency of 10
-	// workers.Process("myqueue", myJob, 10)
-
-	// // pull messages from "myqueue2" with concurrency of 20
-	// workers.Process("myqueue2", myJob, 20)
-	// stats will be available at http://localhost:8080/stats
-	// pull messages from "myqueue" with concurrency of 10
-	// workers.Process("myqueue", myJob, 10)
-	// Enqueue the background task
-	// Register the background task
-	// workers.Process("myqueue", MyBackgroundTask,10)
-	// workers.Enqueue("myqueue", "MyBackgroundTask", nil)
-	// // Register the background task
-	workers.Process("myqueue", MyBackgroundTask, 1)
-	go workers.StatsServer(8081)
-	// Blocks until process is told to exit via unix signal
 
 	// workers.Run()
 	log.Fatal(http.ListenAndServe(":8080", r))
