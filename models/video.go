@@ -814,8 +814,6 @@ func FetchAllCategoryVideosWithFilters(userID, saleID int, typeVideo, page int, 
 		return query
 	}
 
-	// Intentar primero con el filtro de distancia
-	// query := buildQuery(false)
 
 	// Iterar por las prioridades (1, 2, 3)
 	for medalType := 1; medalType <= 3; medalType++ {
@@ -854,15 +852,26 @@ func FetchAllCategoryVideosWithFilters(userID, saleID int, typeVideo, page int, 
 		}
 	}
 
-	// Paginación sobre el resultado final
-	// start := (page - 1) * 20
-	// end := start + 20
-	// if start >= len(videos) {
-	// 	return []FeedVideo{}, nil // Página vacía
-	// }
-	// if end > len(videos) {
-	// 	end = len(videos)
-	// }
+    finalList := []FeedVideo{}
+    adIndex := 0
+	
+	ads, err := FetchAds(10)
+	if(err != nil){
+		return nil,err
+	}
+
+	for i, video := range videos {
+        finalList = append(finalList, video)
+        // Cada 20 videos, insertar un anuncio
+        if (i+1)%20 == 0 && adIndex < len(ads) {
+            finalList = append(finalList, ads[adIndex])
+            adIndex++
+            if adIndex >= len(ads) {
+                adIndex = 0 // Reiniciar los anuncios si son pocos
+            }
+        }
+    }
+
 	return videos, nil
 }
 
@@ -887,6 +896,9 @@ func FetchAllVideosWithFilters(userID, saleID, typeVideo, category int, page int
 	const maxDistance = 50.0
 	const limitPerPriority = 10 // Límite por prioridad (ajustable)
 	db := Pool
+
+    finalList := []FeedVideo{}
+    adIndex := 0
 	// Función auxiliar para construir la consulta principal
 	buildQuery := func(ignoreDistance bool) *gorm.DB {
 		subquery := db.Table("videos").
@@ -915,13 +927,13 @@ func FetchAllVideosWithFilters(userID, saleID, typeVideo, category int, page int
 		return query
 	}
 
-	// Intentar primero con el filtro de distancia
-	query := buildQuery(false)
 	// Iterar por las prioridades (1, 2, 3)
 	for medalType := 1; medalType <= 3; medalType++ {
 		var group []FeedVideo
 
-		err := query.Where("users.medal_type = ?", medalType).
+		// Crear una nueva instancia de la consulta para cada iteración
+		err := buildQuery(false).
+			Where("users.medal_type = ?", medalType).
 			Order("RAND()").
 			Limit(limitPerPriority).
 			Find(&group).Error
@@ -934,12 +946,13 @@ func FetchAllVideosWithFilters(userID, saleID, typeVideo, category int, page int
 
 	// Si no se encontraron videos, intentar sin el filtro de distancia
 	if len(videos) == 0 {
-		query = buildQuery(true)
-
+		// Iterar por las prioridades (1, 2, 3)
 		for medalType := 1; medalType <= 3; medalType++ {
 			var group []FeedVideo
 
-			err := query.Where("users.medal_type = ?", medalType).
+			// Crear una nueva instancia de la consulta para cada iteración
+			err := buildQuery(true).
+				Where("users.medal_type = ?", medalType).
 				Order("RAND()").
 				Limit(limitPerPriority).
 				Find(&group).Error
@@ -951,5 +964,41 @@ func FetchAllVideosWithFilters(userID, saleID, typeVideo, category int, page int
 		}
 	}
 
-	return videos, nil
+	ads, err := FetchAds(10)
+	if(err != nil){
+		return nil,err
+	}
+
+	for i, video := range videos {
+        finalList = append(finalList, video)
+        // Cada 20 videos, insertar un anuncio
+        if (i+1)%20 == 0 && adIndex < len(ads) {
+            finalList = append(finalList, ads[adIndex])
+            adIndex++
+            if adIndex >= len(ads) {
+                adIndex = 0 // Reiniciar los anuncios si son pocos
+            }
+        }
+    }
+
+	return finalList, nil
+}
+
+
+func FetchAds(limit int) ([]FeedVideo, error) {
+    dbConn := Pool
+    var ads []FeedVideo
+
+    query := `
+        SELECT * 
+        FROM videos 
+        WHERE type = 3 
+        ORDER BY priority, RAND() 
+        LIMIT ?`
+
+    if err := dbConn.Raw(query, limit).Scan(&ads).Error; err != nil {
+        return nil,  err
+    }
+
+    return ads, nil
 }

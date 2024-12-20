@@ -486,40 +486,7 @@ type RequestCompressVideo struct {
 	Has_audio        bool   `json:"has_audio"`
 }
 
-// func compressVideo(tempFilePath string, finalVideoPath string) error {
 
-// 	url := os.Getenv("api_compress_video")
-
-// 	data := RequestCompressVideo{
-// 		Video_path:       tempFilePath,   //"/home/albert/Downloads/ssstik.io_1691458134586 (copy).mp4",
-// 		Final_video_path: finalVideoPath, //"/home/albert/Downloads/dreams.mp3",
-// 		// Final_video_name: finalVideoName,
-// 	}
-
-// 	jsonData, err := json.Marshal(data)
-// 	if err != nil {
-// 		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
-// 		return err
-// 	}
-
-// 	fmt.Println("HTTP JSON POST URL:", url)
-
-// 	request, error := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-// 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
-
-// 	client := &http.Client{}
-// 	response, error := client.Do(request)
-// 	if error != nil {
-// 		panic(error)
-// 	}
-// 	defer response.Body.Close()
-// 	deleteTemporalVideo(tempFilePath)
-// 	fmt.Println("response Status:", response.Status)
-// 	fmt.Println("response Headers:", response.Header)
-// 	// body, _ := ioutil.ReadAll(response.Body)
-// 	// fmt.Println("response Body:", string(body))
-// 	return nil
-// }
 
 func CheckStatus(c *gin.Context) {
 	taskId := c.Param("taskId")
@@ -701,38 +668,7 @@ func HandleGetAroundVideos(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success", "videos": vid})
 }
 
-// func HandleGetAllVideos(c *gin.Context) {
-// 	userID, _ := token.ExtractTokenID(c)
 
-// 	p := c.Query("page")
-// 	page, err := strconv.ParseUint(p, 10, 64)
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Page"})
-// 		return
-// 	}
-
-// 	sale := c.Query("sale")
-// 	sale_id, err := strconv.ParseUint(sale, 10, 64)
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid sale type"})
-// 		return
-// 	}
-
-// 	typeV := c.Query("type")
-// 	TypeVideo, err := strconv.ParseUint(typeV, 10, 64)
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type"})
-// 		return
-// 	}
-
-// 	cat, err := models.FetchAllVideos(int(userID), int(sale_id), int(TypeVideo), int(page))
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
-// 		return
-// 	}
-// 	c.JSON(http.StatusOK, gin.H{"message": "success", "data": cat})
-
-// }
 
 func HandleGetAllSongs(c *gin.Context) {
 

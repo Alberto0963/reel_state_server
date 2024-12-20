@@ -88,6 +88,8 @@ func InitDB() (*gorm.DB, error) {
 	} else {
 		fmt.Println("We are connected to the database ", Dbdriver)
 	}
+	db = db.Debug()
+
 
 	sqlDB, err := db.DB()
 	if err != nil {
