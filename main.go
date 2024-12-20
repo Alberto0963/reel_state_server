@@ -59,7 +59,7 @@ func main() {
 	})
 
 	workers.Middleware.Append(&myMiddleware{})
-=
+
 	r := gin.Default()
 
 	r.SetTrustedProxies(nil)
@@ -74,7 +74,7 @@ func main() {
 
 	// Serve static files from the "public" directory
 	r.StaticFS("/public", fs)
-=	r.LoadHTMLGlob("templates/*")
+	r.LoadHTMLGlob("templates/*")
 
 
 	// Manejador para la ruta raíz
