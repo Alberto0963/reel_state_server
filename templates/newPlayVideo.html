@@ -6,8 +6,8 @@
     <title>Visualización de Video</title>
 
     <!-- Meta etiquetas de Open Graph para Facebook y WhatsApp -->
-    <meta property="og:title" content="Título del Video">
-    <meta property="og:description" content="Descripción breve del video.">
+    <meta property="og:title" content="{{.User}}">
+    <meta property="og:description" content="{{.Description}}">
     <meta property="og:type" content="video.other">
     <meta property="og:url" content="{{.VideoURL}}" > <!-- URL del video o página de video -->
     <meta property="og:image" content="{{.Img}}"> <!-- Imagen de vista previa -->
@@ -21,7 +21,7 @@
     <meta name="twitter:player" content="{{.VideoURL}}">
     <meta name="twitter:player:width" content="640">
     <meta name="twitter:player:height" content="360">
-    <meta name="twitter:title" content="Título del Video">
+    <meta name="twitter:title" content="{{.User}}">
     <meta name="twitter:description" content={{.Description}}>
 
     <style>

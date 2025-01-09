@@ -113,7 +113,7 @@ func GetVideoFromLink(c *gin.Context) {
 
 	// Renderizar la plantilla con los datos del video
 	videoData := gin.H{
-		"title":       "Video Showcase",
+		// "title":       data.User.Username,
 		"VideoURL":    videoURL + data.Video_url,
 		"User":        data.User.Username,
 		"Description": data.Description,
