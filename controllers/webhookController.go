@@ -43,7 +43,7 @@ func HandleWebhook(c *gin.Context) {
 		nextPaymentDate := paymentDate.AddDate(0, 1, 0)
 
 		// Actualizar la base de datos
-		models.UpdateSubscriptionWebhook(event.Resource.ID,paymentDate, nextPaymentDate)
+		models.UpdateSubscriptionWebhook(event.Resource.ID,paymentDate, nextPaymentDate, true)
 
 		fmt.Printf("Billing subscription created: %+v\n", event)
 
@@ -211,7 +211,7 @@ func handleSubscriptionCreated(webhook OpenpayWebhook) error {
 	nextPaymentDate := paymentDate.AddDate(0, 1, 0)
 
 	// Actualizar la base de datos con las fechas de pago
-	models.UpdateSubscriptionWebhook(webhook.Transaction.SubscriptionID, paymentDate, nextPaymentDate)
+	models.UpdateSubscriptionWebhook(webhook.Transaction.SubscriptionID, paymentDate, nextPaymentDate, true)
 	// Realizar las operaciones necesarias (guardar en la base de datos, enviar confirmación, etc.)
 	fmt.Printf("Suscripción creada:\nID: %s \nEstado: %s\n", subscriptionID, status)
 
@@ -237,7 +237,7 @@ func handlePaymentDeclined(webhook OpenpayWebhook) error {
 
 	err := models.CancelSubscriptionWebhook(webhook.Transaction.SubscriptionID, webhook.EventDate)
 	if err != nil {
-		fmt.Println("Error parsing date:", err)
+		fmt.Println("Error:", err)
 		// c.JSON(http.StatusOK, gin.H{"message": "Pago declinado", "transaction_id": transactionID, "error": errorMessage})
 
 		return err
