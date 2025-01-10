@@ -8,7 +8,7 @@ type Membership struct {
 	// gorm.Model `gorm:"softDelete:false"`
 	// DeletedAt gorm.DeletedAt `gorm:"index"`
 	ID              uint   `gorm:"not null;unique" json:"id"`
-	Membership      string `gorm:"size:13;not null;unique" json:"membership"`
+	Membership      string `gorm:"size:13;not null;unique" json:"subscription"`
 	Description     string `gorm:"size:255;not null;unique" json:"description"`
 	Price           string `gorm:"size:100;not null;" json:"price"`
 	ProductCode     string `gorm:"size:255;not null;" json:"product_code"`
@@ -18,7 +18,7 @@ type Membership struct {
 }
 
 func (Membership) TableName() string {
-	return "memberships"
+	return "subscriptions"
 }
 
 func GetMemberShips(code string, page int) ([]Membership, error) {
