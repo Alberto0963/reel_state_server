@@ -157,7 +157,7 @@ type UpdatePhoneNumberInput struct {
 
 type VerificationPhoneInput struct {
 	Phone        string `json:"phone" binding:"required"`
-	AppSignature string `json:"appSignature" binding:"required"`
+	AppSignature string `json:"appSignature"`
 }
 
 type VerificationCodeInput struct {
