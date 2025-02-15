@@ -138,7 +138,7 @@ func CancelSubscriptionFunction(subID int, date time.Time) error {
 	return nil
 }
 
-func UpdateSubscriptionWebhook(paypal_subscription_id string, actualDate time.Time,nextDate time.Time, status bool) error {
+func UpdateSubscriptionWebhook(paypal_subscription_id string, actualDate time.Time, nextDate time.Time, status bool) error {
 	var err error
 	dbConn := Pool
 
@@ -151,7 +151,10 @@ func UpdateSubscriptionWebhook(paypal_subscription_id string, actualDate time.Ti
 	subscriber.Renewal = status
 	subscriber.NextBillingTime = nextDate
 	subscriber.StartedAt = actualDate
+	if !status {
+		subscriber.RenewalCancelledAt = actualDate
 
+	}
 	if err = dbConn.Save(&subscriber).Error; err != nil {
 		return err
 	}

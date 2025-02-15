@@ -10,6 +10,7 @@ import (
 	"reelState/controllers"
 	"reelState/middlewares"
 	"reelState/models"
+
 	// SMS "reelState/utils"
 
 	// "github.com/joho/godotenv"
@@ -149,6 +150,7 @@ func main() {
 	protected.POST("/addOrUpdateSales", controllers.AddOrUpdateSales)
 	protected.POST("/updateDeviceToken", controllers.UpdateDeviceToken)
 	protected.POST("/deleteReview", controllers.DeleteReview)
+	protected.POST("/ai", controllers.GenerateResponse)
 
 
 	protected.POST("/createSponsor", controllers.CreateSponsor)
