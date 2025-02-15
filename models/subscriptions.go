@@ -21,15 +21,16 @@ import (
 )
 
 type Subscription struct {
-	ID                   int       `gorm:"primaryKey;autoIncrement" json:"id"`
-	IdUser               int       `gorm:"not null" json:"id_user"`
-	MembershipId         int       `gorm:"not null" json:"membership_id"`
-	Renewal              bool      `json:"renewal"`
-	PaypalSubscriptionId string    `gorm:"size:255" json:"paypal_subscription_id"`
-	RenewalCancelledAt   time.Time `json:"renewal_cancelled_at"`
-	NextBillingTime      time.Time `json:"next_billing_time"`
-	StartedAt            time.Time `json:"started_at"`
+	ID                   int        `gorm:"primaryKey;autoIncrement" json:"id"`
+	IdUser               int        `gorm:"not null" json:"id_user"`
+	MembershipId         int        `gorm:"not null" json:"membership_id"`
+	Renewal              bool       `json:"renewal"`
+	PaypalSubscriptionId string     `gorm:"size:255" json:"paypal_subscription_id"`
+	RenewalCancelledAt   *time.Time `json:"renewal_cancelled_at"` // Permitir NULL
+	NextBillingTime      time.Time  `json:"next_billing_time"`
+	StartedAt            time.Time  `json:"started_at"`
 }
+
 
 type UpdateSubscription struct {
 	ID                   int       `gorm:"primaryKey;autoIncrement" json:"id"`
@@ -129,7 +130,7 @@ func CancelSubscriptionFunction(subID int, date time.Time) error {
 	}
 
 	subscriber.Renewal = false
-	subscriber.RenewalCancelledAt = date
+	subscriber.RenewalCancelledAt = &date // Asignar puntero para permitir NULL
 
 	if err = dbConn.Save(&subscriber).Error; err != nil {
 		return err
@@ -137,6 +138,7 @@ func CancelSubscriptionFunction(subID int, date time.Time) error {
 
 	return nil
 }
+
 
 func UpdateSubscriptionWebhook(paypal_subscription_id string, actualDate time.Time, nextDate time.Time, status bool) error {
 	var err error
@@ -151,16 +153,20 @@ func UpdateSubscriptionWebhook(paypal_subscription_id string, actualDate time.Ti
 	subscriber.Renewal = status
 	subscriber.NextBillingTime = nextDate
 	subscriber.StartedAt = actualDate
-	if !status {
-		subscriber.RenewalCancelledAt = actualDate
 
+	if !status {
+		subscriber.RenewalCancelledAt = &actualDate // Asignar puntero
+	} else {
+		subscriber.RenewalCancelledAt = nil // Establecer NULL en DB
 	}
+
 	if err = dbConn.Save(&subscriber).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
+
 
 func CancelSubscriptionWebhook(paypal_subscription_id string, date time.Time) error {
 	var err error
@@ -173,7 +179,7 @@ func CancelSubscriptionWebhook(paypal_subscription_id string, date time.Time) er
 	}
 
 	subscriber.Renewal = false
-	subscriber.RenewalCancelledAt = date
+	subscriber.RenewalCancelledAt = &date
 
 	if err = dbConn.Save(&subscriber).Error; err != nil {
 		return err
