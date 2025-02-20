@@ -15,6 +15,7 @@ import (
 
 	// "github.com/joho/godotenv"
 	"github.com/jrallison/go-workers"
+	// "golang.org/x/net/websocket"
 
 	// "time"
 	"github.com/gin-gonic/gin"
@@ -89,7 +90,7 @@ func main() {
 	})
 
 	public := r.Group("/api")
-
+	webhooks := r.Group("/webhooks")
 	// r.LoadHTMLGlob(os.Getenv("MY_URL") + "templates/*")
 	r.GET("/video/:videoID", controllers.GetVideoFromLink)
 	// public.GET("/getFeedVideos", controllers.HandleGetAllVideos)
@@ -116,6 +117,7 @@ func main() {
 	
 	public.POST("/addUserSubscription", controllers.HandleWebhook)
 	public.POST("/openpayWebhook", controllers.OpenpayWebhookHandler)
+	webhooks.POST("/webhookWhatsapp", controllers.WebhookHandlerWhatsapp)
 
 	public.POST("/login", controllers.LoginHandler)
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
@@ -168,6 +170,7 @@ func main() {
 	protected.GET("/getsongs", controllers.HandleGetAllSongs)
 	protected.GET("/status/:taskId", controllers.CheckStatus)
 	protected.GET("/getUserSubscription", controllers.GetUserSubscription)
+
 
 	// workers.Run()
 	log.Fatal(http.ListenAndServe(":8080", r))
