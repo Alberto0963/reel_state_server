@@ -104,8 +104,7 @@ type WhatsAppMessage struct {
 
 // Webhook para WhatsApp
 func WebhookHandlerWhatsapp(c *gin.Context) {
-	verifyToken := os.Getenv("WHATSAPP_TOKEN")
-
+	verifyToken := os.Getenv("Whatsapp_Token")
 	if c.Request.Method == http.MethodGet {
 		// Verificar el webhook con Meta
 		if c.Query("hub.verify_token") == verifyToken {
