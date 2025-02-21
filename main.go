@@ -118,6 +118,7 @@ func main() {
 	public.POST("/addUserSubscription", controllers.HandleWebhook)
 	public.POST("/openpayWebhook", controllers.OpenpayWebhookHandler)
 	webhooks.POST("/webhookWhatsapp", controllers.WebhookHandlerWhatsapp)
+	webhooks.GET("/webhookWhatsapp", controllers.WebhookHandlerWhatsapp)
 
 	public.POST("/login", controllers.LoginHandler)
 	public.POST("/UpdatePasswordHandler", controllers.UpdatePasswordHandler)
