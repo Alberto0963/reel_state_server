@@ -151,7 +151,7 @@ func WebhookHandlerWhatsapp(c *gin.Context) {
 // Función para enviar mensajes a WhatsApp
 // EnviarMensajeWhatsApp envía un mensaje por WhatsApp y maneja errores
 func EnviarMensajeWhatsApp(numero string, mensaje string) error {
-	token := os.Getenv("Whatsapp_Token")
+	token := os.Getenv("User_Access_Token_Whatsapp")
 	phoneID := os.Getenv("WHATSAPP_PHONE_ID")
 
 	if token == "" || phoneID == "" {
