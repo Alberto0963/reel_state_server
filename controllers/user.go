@@ -40,11 +40,11 @@ func RegisterHandlerWithGogle(c *gin.Context) {
 }
 
 func RegisterHandlerWithFacebook(c *gin.Context) {
-	auth.HandleFacebookRegister(c)
+	auth.HandleFacebookAuth(c)
 }
 
 func LoginHandlerWithFacebook(c *gin.Context) {
-	auth.HandleFacebookLogin(c)
+	auth.HandleFacebookAuth(c)
 }
 
 func UpdatePasswordHandler(c *gin.Context) {

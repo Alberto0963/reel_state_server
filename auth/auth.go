@@ -599,6 +599,92 @@ type FacebookResponse struct {
 	Name string `json:"name"`
 }
 
+func HandleFacebookAuth(c *gin.Context) {
+    var input FacebookInput
+    var saveUser models.UserDB
+
+    if err := c.ShouldBind(&input); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    // Validar token de Facebook
+    err := validateFacebookToken(input.AccessToken)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+        return
+    }
+
+    // Buscar usuario existente por email
+    localuser, err := models.GetUserByEmail(input.Email)
+    
+    if err != nil {
+        // Usuario no existe, registrar nuevo usuario
+        log.Printf("Usuario no encontrado, registrando nuevo usuario: %s", input.Email)
+        
+        saveUser.Email = models.Setnull(input.Email)
+        saveUser.Username = input.Name
+        saveUser.ExpirationMembershipDate = time.Now()
+        saveUser.IdMembership = 100004
+        
+        usr, err := saveUser.SaveUser()
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error: " + err.Error()})
+            return
+        }
+        
+        log.Printf("Usuario registrado exitosamente: %v", usr)
+        
+        // Generar token para el nuevo usuario
+        token, err := token.GenerateToken(saveUser.ID)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+            return
+        }
+        
+        isVip := false
+        if saveUser.IdMembership == 100008 || saveUser.IdMembership == 100007 {
+            isVip = true
+        }
+        
+        // Respuesta para registro exitoso
+        c.JSON(http.StatusOK, gin.H{
+            "message": "User registered and logged in successfully",
+            "action": "registered",
+            "ReelStateUser": saveUser,
+            "token": token,
+            "isVip": isVip,
+            "canUpload": true, // Valor por defecto para nuevos usuarios
+        })
+        
+    } else {
+        // Usuario existe, iniciar sesión
+        log.Printf("Usuario encontrado, iniciando sesión: %s", input.Email)
+        
+        token, err := token.GenerateToken(localuser.ID)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+            return
+        }
+        
+        isVip := false
+        if localuser.IdMembership == 6 || localuser.IdMembership == 7 || 
+           localuser.IdMembership == 100008 || localuser.IdMembership == 100007 {
+            isVip = true
+        }
+        
+        // Respuesta para login exitoso
+        c.JSON(http.StatusOK, gin.H{
+            "message": "User logged in successfully",
+            "action": "logged_in",
+            "ReelStateUser": localuser,
+            "token": token,
+            "isVip": isVip,
+            "canUpload": localuser.CanUpload,
+        })
+    }
+}
+
 // validateFacebookToken validates the Facebook token by making a request to the Facebook Graph API.
 func validateFacebookToken(token string) error {
     fbValidationURL := "https://graph.facebook.com/me?access_token=" + token

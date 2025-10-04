@@ -173,8 +173,41 @@ func main() {
 	protected.GET("/getUserSubscription", controllers.GetUserSubscription)
 
 
-	// workers.Run()
-	log.Fatal(http.ListenAndServe(":8080", r))
+    // Configuración HTTPS/HTTP
+    useHTTPS := os.Getenv("USE_HTTPS")
+    if useHTTPS == "true" {
+        certFile := os.Getenv("CERT_FILE")
+        keyFile := os.Getenv("KEY_FILE")
+        port := os.Getenv("HTTPS_PORT")
+        
+        // Valores por defecto
+        if certFile == "" {
+            certFile = "./certs/server.crt"
+        }
+        if keyFile == "" {
+            keyFile = "./certs/server.key"
+        }
+        if port == "" {
+            port = ":8443"
+        }
+        
+        fmt.Printf("🔐 Starting HTTPS server on %s...\n", port)
+        fmt.Printf("📁 Using cert: %s\n", certFile)
+        fmt.Printf("🔑 Using key: %s\n", keyFile)
+        fmt.Printf("🌐 Access: https://localhost%s\n", port)
+        
+        log.Fatal(r.RunTLS(port, certFile, keyFile))
+    } else {
+        port := os.Getenv("HTTP_PORT")
+        if port == "" {
+            port = ":8080"
+        }
+        
+        fmt.Printf("🌐 Starting HTTP server on %s...\n", port)
+        fmt.Printf("🌐 Access: http://localhost%s\n", port)
+        
+        log.Fatal(http.ListenAndServe(port, r))
+    }	// log.Fatal(http.ListenAndServe(":8080", r))
 
 }
 
